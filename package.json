@@ -27,7 +27,9 @@
     "eslint-config-standard": "latest",
     "@typescript-eslint/parser": "latest",
     "@typescript-eslint/eslint-plugin": "latest",
-    "eslint-plugin-jest": "latest"
+    "eslint-plugin-jest": "latest",
+    "@commitlint/cli": "latest",
+    "@commitlint/config-conventional": "latest"
   },
   "jest": {
     "verbose": true,
@@ -64,5 +66,8 @@
     "env": {
         "jest/globals": true
     }
+  },
+  "commitlint": {
+    "extends": ["@commitlint/config-conventional"]
   }
 }
