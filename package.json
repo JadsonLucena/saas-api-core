@@ -9,6 +9,7 @@
   "main": "./build/index.js",
   "scripts": {
     "build": "tsc --build",
+    "lint": "eslint ./src ./test --ext .ts,.js",
     "pretest": "npm run build",
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest ./test --onlyChanged",
     "start": "node ./build/index"
@@ -21,7 +22,12 @@
   "devDependencies": {
     "typescript": "latest",
     "@types/node": "latest",
-    "jest": "latest"
+    "jest": "latest",
+    "eslint": "latest",
+    "eslint-config-standard": "latest",
+    "@typescript-eslint/parser": "latest",
+    "@typescript-eslint/eslint-plugin": "latest",
+    "eslint-plugin-jest": "latest"
   },
   "jest": {
     "verbose": true,
@@ -42,6 +48,21 @@
         "lines": 100,
         "statements": 100
       }
+    }
+  },
+  "eslintConfig": {
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "extends": [
+      "standard",
+      "eslint:recommended"
+    ],
+    "plugins": [
+      "@typescript-eslint",
+      "jest"
+    ],
+    "env": {
+        "jest/globals": true
     }
   }
 }
