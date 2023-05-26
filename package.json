@@ -9,6 +9,8 @@
   "main": "./build/index.js",
   "scripts": {
     "build": "tsc --build",
+    "pretest": "npm run build",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest ./test --onlyChanged",
     "start": "node ./build/index"
   },
   "keywords": [],
@@ -18,6 +20,28 @@
   },
   "devDependencies": {
     "typescript": "latest",
-    "@types/node": "latest"
+    "@types/node": "latest",
+    "jest": "latest"
+  },
+  "jest": {
+    "verbose": true,
+    "collectCoverage": true,
+    "testEnvironment": "jest-environment-node",
+    "collectCoverageFrom": [
+      "./build/**/*.js"
+    ],
+    "coverageReporters": [
+      "lcov",
+      "text",
+      "html"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
+    }
   }
 }
