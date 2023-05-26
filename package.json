@@ -1,0 +1,23 @@
+{
+  "name": "saas-rest-api-core",
+  "version": "1.0.0",
+  "description": "Worry about developing only your application's business rules. Extend this core REST API in Typescript to manage users, projects and payment plans. The design of this project was based on the principles of clean architecture and Domain-Driven Design (DDD)",
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "module",
+  "main": "./build/index.js",
+  "scripts": {
+    "build": "tsc --build",
+    "start": "node ./build/index"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "typescript": "latest",
+    "@types/node": "latest"
+  }
+}
