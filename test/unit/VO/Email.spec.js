@@ -58,7 +58,7 @@ const INVALID_DOMAINS = [
   'subdomain..domain.org.uk',
   `${'b'.repeat(64)}.com`
 ]
-const invalidEmails = INVALID_USERNAMES.map(username => INVALID_DOMAINS.map(domain => `${username}@${domain}`)).flat()
+const INVALID_EMAILS = INVALID_USERNAMES.map(username => INVALID_DOMAINS.map(domain => `${username}@${domain}`)).flat()
 const INVALID_INPUT_TYPES = [
   0,
   Infinity,
@@ -72,7 +72,7 @@ const INVALID_INPUT_TYPES = [
 
 describe('Constructor', () => {
   test('Given that one wants to instantiate the object with invalid arguments', () => {
-    invalidEmails.forEach(email => {
+    INVALID_EMAILS.forEach(email => {
       expect(() => new Email(email)).toThrowError(new TypeError('Invalid email'))
     })
     INVALID_USERNAMES.forEach(username => {
@@ -81,6 +81,8 @@ describe('Constructor', () => {
     INVALID_INPUT_TYPES.forEach(email => {
       expect(() => new Email(email)).toThrowError(new TypeError('Invalid email'))
     })
+
+    expect(() => new Email(VALID_USERNAMES[Math.floor(Math.random() * VALID_USERNAMES.length)])).toThrowError(new TypeError('Invalid email'))
   })
 
   test('Given that one wants to instantiate the object with valid arguments', () => {
@@ -103,12 +105,12 @@ describe('Methods', () => {
     const parsedEmail = new Email(email).parse()
 
     expect(parsedEmail).toBeDefined()
-    expect(email.split('@')[0]).toBe(parsedEmail?.username)
-    expect(email.split('@')[1]).toBe(parsedEmail?.domain)
+    expect(parsedEmail?.username).toBe(email.split('@')[0])
+    expect(parsedEmail?.domain).toBe(email.split('@')[1])
   })
 
-  test('Given that one wants to verify email with invalid arguments', () => {
-    invalidEmails.forEach(email => {
+  test('Given that one wants to verify a email with invalid arguments', () => {
+    INVALID_EMAILS.forEach(email => {
       expect(Email.verify(email)).toBeFalsy()
     })
     INVALID_USERNAMES.forEach(username => {
@@ -117,9 +119,11 @@ describe('Methods', () => {
     INVALID_INPUT_TYPES.forEach(email => {
       expect(() => Email.verify(email)).toThrowError(new TypeError('Invalid email'))
     })
+
+    expect(Email.verify(VALID_USERNAMES[Math.floor(Math.random() * VALID_USERNAMES.length)])).toBeFalsy()
   })
 
-  test('Given that one wants to verify email with valid arguments', () => {
+  test('Given that one wants to verify a email with valid arguments', () => {
     VALID_EMAILS.forEach(email => {
       expect(Email.verify(email)).toBeTruthy()
     })
@@ -129,12 +133,12 @@ describe('Methods', () => {
   })
 
   test('Given that one wants to check if the domain is from a valid email server', () => {
-    expect(new Email('jadsonlucena@example.io').getMxRecords()).rejects.toThrowError(new Error('queryMx ENODATA example.io'))
+    expect(new Email('john.doe@example.io').getMxRecords()).rejects.toThrowError(new Error('queryMx ENODATA example.io'))
     expect(() => {
-      new Email('jadsonlucena', false).getMxRecords()
+      new Email('john.doe', false).getMxRecords()
     }).toThrowError(new Error('Domain required'))
 
-    expect(new Email('jadsonlucena@gmail.com').getMxRecords()).resolves.toEqual(expect.arrayContaining([
+    expect(new Email('john.doe@gmail.com').getMxRecords()).resolves.toEqual(expect.arrayContaining([
       expect.objectContaining({
         exchange: expect.any(String),
         priority: expect.any(Number)
