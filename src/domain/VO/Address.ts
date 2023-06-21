@@ -1,4 +1,4 @@
-type addressDTO = {
+export type addressDTO = {
   city: string,
   complement?: string,
   country: string,
@@ -48,17 +48,17 @@ export default class Address extends String {
   }
 
   private static parse (address: String) {
-    const parsed = address.match(Address.pattern)?.groups as { [key: string]: string }
+    const parsed = address.match(Address.pattern)?.groups
 
     return {
-      city: parsed.city,
-      complement: parsed.complement ? parsed.complement : undefined,
-      country: parsed.country,
-      district: parsed.district ? parsed.district : undefined,
-      number: parsed.number ? Number(parsed.number) : undefined,
-      postalCode: parsed.postalCode,
-      state: parsed.state,
-      street: parsed.street
+      city: parsed!.city,
+      complement: parsed?.complement,
+      country: parsed!.country,
+      district: parsed?.district,
+      number: parsed?.number ? Number(parsed.number) : undefined,
+      postalCode: parsed!.postalCode,
+      state: parsed!.state,
+      street: parsed!.street
     }
   }
 

@@ -21,13 +21,25 @@
 
 import crypto from 'node:crypto'
 
+export type uuidDTO = {
+  time_low: string,
+  time_mid: string,
+  time_high_and_version: string,
+  version: number,
+  clock_seq_and_reserved: string,
+  variant: string,
+  clock_seq_low: string,
+  node: string,
+}
+
 export default class UUID extends String {
+  private static readonly pattern = /^\s*(?<time_low>[0-9a-f]{8})-?(?<time_mid>[0-9a-f]{4})-?(?<time_high_and_version>(?<version>[1-5])[0-9a-f]{3})-?(?<clock_seq_and_reserved>(?<variant>[0-9a-d])[0-9a-f])(?<clock_seq_low>[0-9a-f]{2})-?(?<node>[0-9a-f]{12})\s*$/i
+
   static readonly DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
   static readonly NIL = '00000000-0000-0000-0000-000000000000'
   static readonly OID = '6ba7b812-9dad-11d1-80b4-00c04fd430c8'
   static readonly URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8'
   static readonly X500 = '6ba7b814-9dad-11d1-80b4-00c04fd430c8'
-  private static readonly pattern = /^\s*(?<time_low>[0-9a-f]{8})-?(?<time_mid>[0-9a-f]{4})-?(?<time_high_and_version>(?<version>[1-5])[0-9a-f]{3})-?(?<clock_seq_and_reserved>(?<variant>[0-9a-d])[0-9a-f])(?<clock_seq_low>[0-9a-f]{2})-?(?<node>[0-9a-f]{12})\s*$/i
 
   constructor (uuid: String | Buffer = crypto.randomUUID()) {
     if (!UUID.verify(uuid)) {
@@ -67,7 +79,7 @@ export default class UUID extends String {
   }
 
   parse = () => {
-    return UUID.parse(this)
+    return UUID.parse(this) as uuidDTO
   }
 
   toBinary = () => {

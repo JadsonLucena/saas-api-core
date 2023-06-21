@@ -1,4 +1,4 @@
-type nameDTO = {
+export type nameDTO = {
   firstName: string,
   lastName?: string
 }
@@ -46,10 +46,17 @@ export default class Name extends String {
   }
 
   private static parse (name: String) {
-    return name.match(Name.pattern)?.groups
+    const parsed = name.match(Name.pattern)?.groups
+
+    return !parsed
+      ? undefined
+      : {
+          firstName: parsed.firstName,
+          lastName: parsed.lastName?.replace(/\s{2,}/g, ' ')
+        }
   }
 
-  parse = (): nameDTO => {
+  parse = () => {
     return Name.parse(this) as nameDTO
   }
 
