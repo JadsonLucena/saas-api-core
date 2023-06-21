@@ -68,13 +68,13 @@ describe('Methods', () => {
 
     const parsedUUID = new UUID(RANDOM_UUID).parse()
     expect(parsedUUID).toBeDefined()
-    expect(RANDOM_UUID.toLowerCase().split('-')[0]).toBe(parsedUUID?.time_low)
-    expect(RANDOM_UUID.toLowerCase().split('-')[1]).toBe(parsedUUID?.time_mid)
-    expect(RANDOM_UUID.toLowerCase().split('-')[2]).toBe(parsedUUID?.time_high_and_version)
-    expect(Number(RANDOM_UUID.toLowerCase().split('-')[2][0])).toBe(parsedUUID?.version)
-    expect(RANDOM_UUID.toLowerCase().split('-')[3]).toBe(`${parsedUUID?.clock_seq_and_reserved}${parsedUUID?.clock_seq_low}`)
-    expect(RANDOM_UUID.toLowerCase().split('-')[3][0]).toBe(parsedUUID?.variant)
-    expect(RANDOM_UUID.toLowerCase().split('-')[4]).toBe(parsedUUID?.node)
+    expect(parsedUUID?.time_low).toBe(RANDOM_UUID.toLowerCase().split('-')[0])
+    expect(parsedUUID?.time_mid).toBe(RANDOM_UUID.toLowerCase().split('-')[1])
+    expect(parsedUUID?.time_high_and_version).toBe(RANDOM_UUID.toLowerCase().split('-')[2])
+    expect(parsedUUID?.version).toBe(Number(RANDOM_UUID.toLowerCase().split('-')[2][0]))
+    expect(`${parsedUUID?.clock_seq_and_reserved}${parsedUUID?.clock_seq_low}`).toBe(RANDOM_UUID.toLowerCase().split('-')[3])
+    expect(parsedUUID?.variant).toBe(RANDOM_UUID.toLowerCase().split('-')[3][0])
+    expect(parsedUUID?.node).toBe(RANDOM_UUID.toLowerCase().split('-')[4])
   })
 
   test('Given that one wants to work with uuid in binary', () => {
@@ -86,7 +86,7 @@ describe('Methods', () => {
     expect(new UUID(binaryUUID).toString()).toBe(RANDOM_UUID)
   })
 
-  test('Given that one wants to verify uuid with invalid arguments', () => {
+  test('Given that one wants to verify a uuid with invalid arguments', () => {
     INVALID_UUID.forEach(uuid => {
       expect(UUID.verify(uuid)).toBeFalsy()
     })
@@ -95,7 +95,7 @@ describe('Methods', () => {
     })
   })
 
-  test('Given that one wants to verify uuid with valid arguments', () => {
+  test('Given that one wants to verify a uuid with valid arguments', () => {
     expect(UUID.verify(UUID.DNS)).toBeTruthy()
     expect(UUID.verify(UUID.NIL)).toBeTruthy()
     expect(UUID.verify(UUID.OID)).toBeTruthy()
