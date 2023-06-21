@@ -51,7 +51,7 @@ export default class Email extends String {
 
     return (
       email.trim().length <= 254 &&
-      (!!parsedEmail && (!domainRequired || ('domain' in parsedEmail)))
+      (!!parsedEmail && (!domainRequired || parsedEmail.domain))
     )
   }
 
