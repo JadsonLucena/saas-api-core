@@ -131,11 +131,11 @@ describe('Methods', () => {
     const parsedName = new Name(MIN_NAME).parse()
 
     expect(parsedName).toBeDefined()
-    expect(MIN_NAME.firstName).toBe(parsedName?.firstName)
-    expect(MIN_NAME.lastName).toBe(parsedName?.lastName)
+    expect(parsedName?.firstName).toBe(MIN_NAME.firstName)
+    expect(parsedName?.lastName).toBe(MIN_NAME.lastName)
   })
 
-  test('Given that one wants to verify name with invalid arguments', () => {
+  test('Given that one wants to verify a name with invalid arguments', () => {
     INVALID_NAMES.forEach(name => {
       expect(Name.verify(name)).toBeFalsy()
     })
@@ -204,7 +204,7 @@ describe('Methods', () => {
     })).toThrow(AggregateError)
   })
 
-  test('Given that one wants to verify name with valid arguments', () => {
+  test('Given that one wants to verify a name with valid arguments', () => {
     VALID_NAMES.forEach(name => {
       expect(Name.verify(name)).toBeTruthy()
     })

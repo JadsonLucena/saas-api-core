@@ -122,19 +122,19 @@ describe('Methods', () => {
     const parsedMinPhone = new Phone(MIN_PHONE).parse()
 
     expect(parsedMinPhone).toBeDefined()
-    expect(`+${MIN_PHONE.country}`).toBe(parsedMinPhone?.country)
-    expect(MIN_PHONE.area).toBe(parsedMinPhone?.area)
-    expect(MIN_PHONE.number).toBe(parsedMinPhone?.number.replace('-', ''))
+    expect(parsedMinPhone?.country).toBe(`+${MIN_PHONE.country}`)
+    expect(parsedMinPhone?.area).toBe(MIN_PHONE.area)
+    expect(parsedMinPhone?.number.replace('-', '')).toBe(MIN_PHONE.number)
 
     const parsedMaxPhone = new Phone(MAX_PHONE).parse()
 
     expect(parsedMaxPhone).toBeDefined()
-    expect(MAX_PHONE.country).toBe(parsedMaxPhone?.country)
-    expect(MAX_PHONE.area).toBe(parsedMaxPhone?.area)
-    expect(MAX_PHONE.number.replaceAll(' ', '')).toBe(parsedMaxPhone?.number)
+    expect(parsedMaxPhone?.country).toBe(MAX_PHONE.country)
+    expect(parsedMaxPhone?.area).toBe(MAX_PHONE.area)
+    expect(parsedMaxPhone?.number).toBe(MAX_PHONE.number.replaceAll(' ', ''))
   })
 
-  test('Given that one wants to verify phone with invalid arguments', () => {
+  test('Given that one wants to verify a phone with invalid arguments', () => {
     INVALID_PHONES.forEach(phone => {
       expect(Phone.verify(phone)).toBeFalsy()
     })
@@ -176,7 +176,7 @@ describe('Methods', () => {
     })).toThrow(AggregateError)
   })
 
-  test('Given that one wants to verify phone with invalid arguments', () => {
+  test('Given that one wants to verify a phone with invalid arguments', () => {
     VALID_PHONES.forEach(phone => {
       expect(Phone.verify(phone.in)).toBeTruthy()
     })
