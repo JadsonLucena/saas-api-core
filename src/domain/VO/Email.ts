@@ -5,7 +5,7 @@
 
 import dns from 'node:dns'
 
-type emailDTO = {
+export type emailDTO = {
   username: string,
   domain?: string
 }
@@ -31,7 +31,7 @@ export default class Email extends String {
     return email.match(Email.pattern)?.groups
   }
 
-  parse = (): emailDTO => {
+  parse = () => {
     return Email.parse(this) as emailDTO
   }
 

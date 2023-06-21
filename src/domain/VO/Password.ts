@@ -6,7 +6,7 @@
 
 import crypto from 'node:crypto'
 
-type passwordDTO = {
+export type passwordDTO = {
   algorithm: string,
   iterations: number,
   salt: string,
@@ -114,13 +114,13 @@ export default class Password extends String {
   }
 
   private static parse (password: String) {
-    const parsed = password.match(Password.pattern)?.groups as { [key: string]: string }
+    const parsed = password.match(Password.pattern)?.groups
 
     return {
-      algorithm: parsed?.algorithm,
-      iterations: parseInt(parsed?.iterations),
-      salt: parsed?.salt,
-      hash: parsed?.hash
+      algorithm: parsed!.algorithm,
+      iterations: parseInt(parsed!.iterations),
+      salt: parsed!.salt,
+      hash: parsed!.hash
     }
   }
 

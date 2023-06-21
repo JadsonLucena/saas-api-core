@@ -1,7 +1,7 @@
 // https://www.rfc-editor.org/rfc/rfc2806
 // https://www.rfc-editor.org/rfc/rfc3966
 
-type PhoneDTO = {
+export type PhoneDTO = {
   country: string,
   area: number,
   number: string
@@ -34,7 +34,7 @@ export default class Phone extends String {
   }
 
   private static parse (phone: String) {
-    const parsed = phone.match(Phone.pattern)?.groups as { [key: string]: string }
+    const parsed = phone.match(Phone.pattern)?.groups
 
     return !parsed
       ? undefined
