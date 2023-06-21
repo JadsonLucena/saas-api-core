@@ -123,14 +123,14 @@ describe('Constructor', () => {
     })
 
     expect(() => new Address({
-      city: INVALID_INPUT_TYPES[Math.floor(Math.random() * invalidInputTypesForOptionalFields.length)],
+      city: INVALID_INPUT_TYPES[Math.floor(Math.random() * INVALID_INPUT_TYPES.length)],
       complement: invalidInputTypesForOptionalFields[Math.floor(Math.random() * invalidInputTypesForOptionalFields.length)],
-      country: INVALID_INPUT_TYPES[Math.floor(Math.random() * invalidInputTypesForOptionalFields.length)],
+      country: INVALID_INPUT_TYPES[Math.floor(Math.random() * INVALID_INPUT_TYPES.length)],
       district: invalidInputTypesForOptionalFields[Math.floor(Math.random() * invalidInputTypesForOptionalFields.length)],
       number: invalidInputTypesForOptionalFields.filter(input => !Number.isFinite(input))[Math.floor(Math.random() * invalidInputTypesForOptionalFields.filter(input => !Number.isFinite(input)).length)],
-      postalCode: INVALID_INPUT_TYPES[Math.floor(Math.random() * invalidInputTypesForOptionalFields.length)],
-      state: INVALID_INPUT_TYPES[Math.floor(Math.random() * invalidInputTypesForOptionalFields.length)],
-      street: INVALID_INPUT_TYPES[Math.floor(Math.random() * invalidInputTypesForOptionalFields.length)]
+      postalCode: INVALID_INPUT_TYPES[Math.floor(Math.random() * INVALID_INPUT_TYPES.length)],
+      state: INVALID_INPUT_TYPES[Math.floor(Math.random() * INVALID_INPUT_TYPES.length)],
+      street: INVALID_INPUT_TYPES[Math.floor(Math.random() * INVALID_INPUT_TYPES.length)]
     })).toThrow(AggregateError)
   })
 
@@ -153,26 +153,26 @@ describe('Methods', () => {
     const parsedMinAddress = new Address(MIN_ADDRESS).parse()
 
     expect(parsedMinAddress).toBeDefined()
-    expect(MIN_ADDRESS.city).toBe(parsedMinAddress?.city)
-    expect(MIN_ADDRESS.country).toBe(parsedMinAddress?.country)
-    expect(MIN_ADDRESS.postalCode).toBe(parsedMinAddress?.postalCode)
-    expect(MIN_ADDRESS.state).toBe(parsedMinAddress?.state)
-    expect(MIN_ADDRESS.street).toBe(parsedMinAddress?.street)
+    expect(parsedMinAddress?.city).toBe(MIN_ADDRESS.city)
+    expect(parsedMinAddress?.country).toBe(MIN_ADDRESS.country)
+    expect(parsedMinAddress?.postalCode).toBe(MIN_ADDRESS.postalCode)
+    expect(parsedMinAddress?.state).toBe(MIN_ADDRESS.state)
+    expect(parsedMinAddress?.street).toBe(MIN_ADDRESS.street)
 
     const parsedMaxAddress = new Address(MAX_ADDRESS).parse()
 
     expect(parsedMaxAddress).toBeDefined()
-    expect(MAX_ADDRESS.city).toBe(parsedMaxAddress?.city)
-    expect(MAX_ADDRESS.complement).toBe(parsedMaxAddress?.complement)
-    expect(MAX_ADDRESS.country).toBe(parsedMaxAddress?.country)
-    expect(MAX_ADDRESS.district).toBe(parsedMaxAddress?.district)
-    expect(MAX_ADDRESS.number).toBe(parsedMaxAddress?.number)
-    expect(MAX_ADDRESS.postalCode).toBe(parsedMaxAddress?.postalCode)
-    expect(MAX_ADDRESS.state).toBe(parsedMaxAddress?.state)
-    expect(MAX_ADDRESS.street).toBe(parsedMaxAddress?.street)
+    expect(parsedMaxAddress?.city).toBe(MAX_ADDRESS.city)
+    expect(parsedMaxAddress?.complement).toBe(MAX_ADDRESS.complement)
+    expect(parsedMaxAddress?.country).toBe(MAX_ADDRESS.country)
+    expect(parsedMaxAddress?.district).toBe(MAX_ADDRESS.district)
+    expect(parsedMaxAddress?.number).toBe(MAX_ADDRESS.number)
+    expect(parsedMaxAddress?.postalCode).toBe(MAX_ADDRESS.postalCode)
+    expect(parsedMaxAddress?.state).toBe(MAX_ADDRESS.state)
+    expect(parsedMaxAddress?.street).toBe(MAX_ADDRESS.street)
   })
 
-  test('Given that one wants to verify address with invalid arguments', () => {
+  test('Given that one wants to verify a address with invalid arguments', () => {
     INVALID_ADDRESSES.forEach(address => {
       expect(Address.verify(address)).toBeFalsy()
     })
@@ -243,18 +243,18 @@ describe('Methods', () => {
     })
 
     expect(() => Address.verify({
-      city: INVALID_INPUT_TYPES[Math.floor(Math.random() * invalidInputTypesForOptionalFields.length)],
+      city: INVALID_INPUT_TYPES[Math.floor(Math.random() * INVALID_INPUT_TYPES.length)],
       complement: invalidInputTypesForOptionalFields[Math.floor(Math.random() * invalidInputTypesForOptionalFields.length)],
-      country: INVALID_INPUT_TYPES[Math.floor(Math.random() * invalidInputTypesForOptionalFields.length)],
+      country: INVALID_INPUT_TYPES[Math.floor(Math.random() * INVALID_INPUT_TYPES.length)],
       district: invalidInputTypesForOptionalFields[Math.floor(Math.random() * invalidInputTypesForOptionalFields.length)],
       number: invalidInputTypesForOptionalFields.filter(input => !Number.isFinite(input))[Math.floor(Math.random() * invalidInputTypesForOptionalFields.filter(input => !Number.isFinite(input)).length)],
-      postalCode: INVALID_INPUT_TYPES[Math.floor(Math.random() * invalidInputTypesForOptionalFields.length)],
-      state: INVALID_INPUT_TYPES[Math.floor(Math.random() * invalidInputTypesForOptionalFields.length)],
-      street: INVALID_INPUT_TYPES[Math.floor(Math.random() * invalidInputTypesForOptionalFields.length)]
+      postalCode: INVALID_INPUT_TYPES[Math.floor(Math.random() * INVALID_INPUT_TYPES.length)],
+      state: INVALID_INPUT_TYPES[Math.floor(Math.random() * INVALID_INPUT_TYPES.length)],
+      street: INVALID_INPUT_TYPES[Math.floor(Math.random() * INVALID_INPUT_TYPES.length)]
     })).toThrow(AggregateError)
   })
 
-  test('Given that one wants to verify address with valid arguments', () => {
+  test('Given that one wants to verify a address with valid arguments', () => {
     VALID_ADDRESSES.forEach(address => {
       expect(Address.verify(address)).toBeTruthy()
     })
