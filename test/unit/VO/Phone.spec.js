@@ -72,10 +72,10 @@ describe('Constructor', () => {
 
     expect(() => new Phone({})).toThrow(AggregateError)
 
-    expect(() => new Phone(Object.assign(JSON.parse(JSON.stringify(MAX_PHONE)), {
+    expect(() => new Phone(Object.assign({ ...MAX_PHONE }, {
       country: ''
     }))).toThrowError(new TypeError('Invalid phone'))
-    expect(() => new Phone(Object.assign(JSON.parse(JSON.stringify(MAX_PHONE)), {
+    expect(() => new Phone(Object.assign({ ...MAX_PHONE }, {
       number: ''
     }))).toThrowError(new TypeError('Invalid phone'))
 
@@ -83,20 +83,20 @@ describe('Constructor', () => {
       expect(() => new Phone(input)).toThrowError(new TypeError('Invalid phone'))
     })
 
-    INVALID_INPUT_TYPES.concat({}, 0, undefined).map(input => Object.assign(JSON.parse(JSON.stringify(MAX_PHONE)), {
-      country: input
-    })).forEach(input => {
-      expect(() => new Phone(input)).toThrowError(new TypeError('Invalid country'))
+    INVALID_INPUT_TYPES.concat({}, 0, undefined).forEach(input => {
+      expect(() => new Phone(Object.assign({ ...MAX_PHONE }, {
+        country: input
+      }))).toThrowError(new TypeError('Invalid country'))
     })
-    INVALID_INPUT_TYPES.concat({}, -1, 1.1, Number.MAX_SAFE_INTEGER + 1, undefined).map(input => Object.assign(JSON.parse(JSON.stringify(MAX_PHONE)), {
-      area: input
-    })).forEach(input => {
-      expect(() => new Phone(input)).toThrowError(new TypeError('Invalid area'))
+    INVALID_INPUT_TYPES.concat({}, -1, 1.1, Number.MAX_SAFE_INTEGER + 1, undefined).forEach(input => {
+      expect(() => new Phone(Object.assign({ ...MAX_PHONE }, {
+        area: input
+      }))).toThrowError(new TypeError('Invalid area'))
     })
-    INVALID_INPUT_TYPES.concat({}, 0, undefined).map(input => Object.assign(JSON.parse(JSON.stringify(MAX_PHONE)), {
-      number: input
-    })).forEach(input => {
-      expect(() => new Phone(input)).toThrowError(new TypeError('Invalid number'))
+    INVALID_INPUT_TYPES.concat({}, 0, undefined).forEach(input => {
+      expect(() => new Phone(Object.assign({ ...MAX_PHONE }, {
+        number: input
+      }))).toThrowError(new TypeError('Invalid number'))
     })
 
     expect(() => new Phone({
@@ -142,10 +142,10 @@ describe('Methods', () => {
     expect(Phone.verify('')).toBeFalsy()
     expect(() => Phone.verify({})).toThrow(AggregateError)
 
-    expect(Phone.verify(Object.assign(JSON.parse(JSON.stringify(MAX_PHONE)), {
+    expect(Phone.verify(Object.assign({ ...MAX_PHONE }, {
       country: ''
     }))).toBeFalsy()
-    expect(Phone.verify(Object.assign(JSON.parse(JSON.stringify(MAX_PHONE)), {
+    expect(Phone.verify(Object.assign({ ...MAX_PHONE }, {
       number: ''
     }))).toBeFalsy()
 
@@ -153,20 +153,20 @@ describe('Methods', () => {
       expect(() => Phone.verify(input)).toThrowError(new TypeError('Invalid phone'))
     })
 
-    INVALID_INPUT_TYPES.concat({}, 0, undefined).map(input => Object.assign(JSON.parse(JSON.stringify(MAX_PHONE)), {
-      country: input
-    })).forEach(input => {
-      expect(() => Phone.verify(input)).toThrowError(new TypeError('Invalid country'))
+    INVALID_INPUT_TYPES.concat({}, 0, undefined).forEach(input => {
+      expect(() => Phone.verify(Object.assign({ ...MAX_PHONE }, {
+        country: input
+      }))).toThrowError(new TypeError('Invalid country'))
     })
-    INVALID_INPUT_TYPES.concat({}, -1, 1.1, Number.MAX_SAFE_INTEGER + 1, undefined).map(input => Object.assign(JSON.parse(JSON.stringify(MAX_PHONE)), {
-      area: input
-    })).forEach(input => {
-      expect(() => Phone.verify(input)).toThrowError(new TypeError('Invalid area'))
+    INVALID_INPUT_TYPES.concat({}, -1, 1.1, Number.MAX_SAFE_INTEGER + 1, undefined).forEach(input => {
+      expect(() => Phone.verify(Object.assign({ ...MAX_PHONE }, {
+        area: input
+      }))).toThrowError(new TypeError('Invalid area'))
     })
-    INVALID_INPUT_TYPES.concat({}, 0, undefined).map(input => Object.assign(JSON.parse(JSON.stringify(MAX_PHONE)), {
-      number: input
-    })).forEach(input => {
-      expect(() => Phone.verify(input)).toThrowError(new TypeError('Invalid number'))
+    INVALID_INPUT_TYPES.concat({}, 0, undefined).forEach(input => {
+      expect(() => Phone.verify(Object.assign({ ...MAX_PHONE }, {
+        number: input
+      }))).toThrowError(new TypeError('Invalid number'))
     })
 
     expect(() => Phone.verify({

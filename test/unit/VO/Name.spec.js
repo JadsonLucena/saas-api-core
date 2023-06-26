@@ -51,15 +51,15 @@ describe('Constructor', () => {
       expect(() => new Name(name)).toThrowError(new TypeError('Invalid name'))
     })
 
-    INVALID_INPUT_TYPES.concat({}, 0, undefined).map(input => Object.assign(JSON.parse(JSON.stringify(MIN_NAME)), {
-      firstName: input
-    })).forEach(input => {
-      expect(() => new Name(input)).toThrowError(new TypeError('Invalid firstName'))
+    INVALID_INPUT_TYPES.concat({}, 0, undefined).forEach(input => {
+      expect(() => new Name(Object.assign({ ...MIN_NAME }, {
+        firstName: input
+      }))).toThrowError(new TypeError('Invalid firstName'))
     })
-    INVALID_INPUT_TYPES.concat({}, 0).map(input => Object.assign(JSON.parse(JSON.stringify(MIN_NAME)), {
-      lastName: input
-    })).forEach(input => {
-      expect(() => new Name(input)).toThrowError(new TypeError('Invalid lastName'))
+    INVALID_INPUT_TYPES.concat({}, 0).forEach(input => {
+      expect(() => new Name(Object.assign({ ...MIN_NAME }, {
+        lastName: input
+      }))).toThrowError(new TypeError('Invalid lastName'))
     })
 
     expect(() => new Name({
@@ -150,15 +150,15 @@ describe('Methods', () => {
       expect(() => Name.verify(name)).toThrowError(new TypeError('Invalid name'))
     })
 
-    INVALID_INPUT_TYPES.concat({}, 0, undefined).map(input => Object.assign(JSON.parse(JSON.stringify(MIN_NAME)), {
-      firstName: input
-    })).forEach(input => {
-      expect(() => Name.verify(input)).toThrowError(new TypeError('Invalid firstName'))
+    INVALID_INPUT_TYPES.concat({}, 0, undefined).forEach(input => {
+      expect(() => Name.verify(Object.assign({ ...MIN_NAME }, {
+        firstName: input
+      }))).toThrowError(new TypeError('Invalid firstName'))
     })
-    INVALID_INPUT_TYPES.concat({}, 0).map(input => Object.assign(JSON.parse(JSON.stringify(MIN_NAME)), {
-      lastName: input
-    })).forEach(input => {
-      expect(() => Name.verify(input)).toThrowError(new TypeError('Invalid lastName'))
+    INVALID_INPUT_TYPES.concat({}, 0).forEach(input => {
+      expect(() => Name.verify(Object.assign({ ...MIN_NAME }, {
+        lastName: input
+      }))).toThrowError(new TypeError('Invalid lastName'))
     })
 
     expect(() => Name.verify({

@@ -60,66 +60,66 @@ describe('Constructor', () => {
     expect(() => new Address('')).toThrowError(new TypeError('Invalid address'))
     expect(() => new Address({})).toThrow(AggregateError)
 
-    expect(() => new Address(Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
+    expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
       city: ''
     }))).toThrowError(new TypeError('Invalid address'))
-    expect(() => new Address(Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
+    expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
       country: ''
     }))).toThrowError(new TypeError('Invalid address'))
-    expect(() => new Address(Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
+    expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
       postalCode: ''
     }))).toThrowError(new TypeError('Invalid address'))
-    expect(() => new Address(Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
+    expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
       state: ''
     }))).toThrowError(new TypeError('Invalid address'))
-    expect(() => new Address(Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
+    expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
       street: ''
     }))).toThrowError(new TypeError('Invalid address'))
 
-    INVALID_INPUT_TYPES.forEach(address => {
-      expect(() => new Address(address)).toThrowError(new TypeError('Invalid address'))
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => new Address(input)).toThrowError(new TypeError('Invalid address'))
     })
 
     const invalidInputTypesForOptionalFields = INVALID_INPUT_TYPES.filter(input => typeof input !== 'undefined')
-    INVALID_INPUT_TYPES.map(input => Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
-      city: input
-    })).forEach(input => {
-      expect(() => new Address(input)).toThrowError(new TypeError('Invalid city'))
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+        city: input
+      }))).toThrowError(new TypeError('Invalid city'))
     })
-    invalidInputTypesForOptionalFields.map(input => Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
-      complement: input
-    })).forEach(input => {
-      expect(() => new Address(input)).toThrowError(new TypeError('Invalid complement'))
+    invalidInputTypesForOptionalFields.forEach(input => {
+      expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+        complement: input
+      }))).toThrowError(new TypeError('Invalid complement'))
     })
-    INVALID_INPUT_TYPES.map(input => Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
-      country: input
-    })).forEach(input => {
-      expect(() => new Address(input)).toThrowError(new TypeError('Invalid country'))
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+        country: input
+      }))).toThrowError(new TypeError('Invalid country'))
     })
-    invalidInputTypesForOptionalFields.map(input => Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
-      district: input
-    })).forEach(input => {
-      expect(() => new Address(input)).toThrowError(new TypeError('Invalid district'))
+    invalidInputTypesForOptionalFields.forEach(input => {
+      expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+        district: input
+      }))).toThrowError(new TypeError('Invalid district'))
     })
-    invalidInputTypesForOptionalFields.filter(input => !Number.isFinite(input)).map(input => Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
-      number: input
-    })).forEach(input => {
-      expect(() => new Address(input)).toThrowError(new TypeError('Invalid number'))
+    invalidInputTypesForOptionalFields.filter(input => !Number.isFinite(input)).forEach(input => {
+      expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+        number: input
+      }))).toThrowError(new TypeError('Invalid number'))
     })
-    INVALID_INPUT_TYPES.map(input => Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
-      postalCode: input
-    })).forEach(input => {
-      expect(() => new Address(input)).toThrowError(new TypeError('Invalid postalCode'))
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+        postalCode: input
+      }))).toThrowError(new TypeError('Invalid postalCode'))
     })
-    INVALID_INPUT_TYPES.map(input => Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
-      state: input
-    })).forEach(input => {
-      expect(() => new Address(input)).toThrowError(new TypeError('Invalid state'))
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+        state: input
+      }))).toThrowError(new TypeError('Invalid state'))
     })
-    INVALID_INPUT_TYPES.map(input => Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
-      street: input
-    })).forEach(input => {
-      expect(() => new Address(input)).toThrowError(new TypeError('Invalid street'))
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+        street: input
+      }))).toThrowError(new TypeError('Invalid street'))
     })
 
     expect(() => new Address({
@@ -180,66 +180,66 @@ describe('Methods', () => {
     expect(Address.verify('')).toBeFalsy()
     expect(() => Address.verify({})).toThrow(AggregateError)
 
-    expect(Address.verify(Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
+    expect(Address.verify(Object.assign({ ...MAX_ADDRESS }, {
       city: ''
     }))).toBeFalsy()
-    expect(Address.verify(Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
+    expect(Address.verify(Object.assign({ ...MAX_ADDRESS }, {
       country: ''
     }))).toBeFalsy()
-    expect(Address.verify(Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
+    expect(Address.verify(Object.assign({ ...MAX_ADDRESS }, {
       postalCode: ''
     }))).toBeFalsy()
-    expect(Address.verify(Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
+    expect(Address.verify(Object.assign({ ...MAX_ADDRESS }, {
       state: ''
     }))).toBeFalsy()
-    expect(Address.verify(Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
+    expect(Address.verify(Object.assign({ ...MAX_ADDRESS }, {
       street: ''
     }))).toBeFalsy()
 
-    INVALID_INPUT_TYPES.forEach(address => {
-      expect(() => Address.verify(address)).toThrowError(new TypeError('Invalid address'))
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => Address.verify(input)).toThrowError(new TypeError('Invalid address'))
     })
 
     const invalidInputTypesForOptionalFields = INVALID_INPUT_TYPES.filter(input => typeof input !== 'undefined')
-    INVALID_INPUT_TYPES.map(input => Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
-      city: input
-    })).forEach(input => {
-      expect(() => Address.verify(input)).toThrowError(new TypeError('Invalid city'))
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+        city: input
+      }))).toThrowError(new TypeError('Invalid city'))
     })
-    invalidInputTypesForOptionalFields.map(input => Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
-      complement: input
-    })).forEach(address => {
-      expect(() => Address.verify(address)).toThrowError(new TypeError('Invalid complement'))
+    invalidInputTypesForOptionalFields.forEach(input => {
+      expect(() => Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+        complement: input
+      }))).toThrowError(new TypeError('Invalid complement'))
     })
-    INVALID_INPUT_TYPES.map(input => Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
-      country: input
-    })).forEach(address => {
-      expect(() => Address.verify(address)).toThrowError(new TypeError('Invalid country'))
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+        country: input
+      }))).toThrowError(new TypeError('Invalid country'))
     })
-    invalidInputTypesForOptionalFields.map(input => Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
-      district: input
-    })).forEach(address => {
-      expect(() => Address.verify(address)).toThrowError(new TypeError('Invalid district'))
+    invalidInputTypesForOptionalFields.forEach(input => {
+      expect(() => Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+        district: input
+      }))).toThrowError(new TypeError('Invalid district'))
     })
-    invalidInputTypesForOptionalFields.filter(input => !Number.isFinite(input)).map(input => Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
-      number: input
-    })).forEach(address => {
-      expect(() => Address.verify(address)).toThrowError(new TypeError('Invalid number'))
+    invalidInputTypesForOptionalFields.filter(input => !Number.isFinite(input)).forEach(input => {
+      expect(() => Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+        number: input
+      }))).toThrowError(new TypeError('Invalid number'))
     })
-    INVALID_INPUT_TYPES.map(input => Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
-      postalCode: input
-    })).forEach(address => {
-      expect(() => Address.verify(address)).toThrowError(new TypeError('Invalid postalCode'))
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+        postalCode: input
+      }))).toThrowError(new TypeError('Invalid postalCode'))
     })
-    INVALID_INPUT_TYPES.map(input => Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
-      state: input
-    })).forEach(address => {
-      expect(() => Address.verify(address)).toThrowError(new TypeError('Invalid state'))
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+        state: input
+      }))).toThrowError(new TypeError('Invalid state'))
     })
-    INVALID_INPUT_TYPES.map(input => Object.assign(JSON.parse(JSON.stringify(MAX_ADDRESS)), {
-      street: input
-    })).forEach(address => {
-      expect(() => Address.verify(address)).toThrowError(new TypeError('Invalid street'))
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+        street: input
+      }))).toThrowError(new TypeError('Invalid street'))
     })
 
     expect(() => Address.verify({
