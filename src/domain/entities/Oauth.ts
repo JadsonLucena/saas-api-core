@@ -135,7 +135,7 @@ export default class Oauth extends Entity {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
     } else if (
-      (!(expiresIn instanceof Date) || !expiresIn) ||
+      !(expiresIn instanceof Date) ||
       expiresIn.getTime() <= Date.now()
     ) {
       throw new TypeError('Invalid expiresIn')
@@ -152,7 +152,7 @@ export default class Oauth extends Entity {
   set updatedAt (updatedAt: Date) {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
-    } else if (!(updatedAt instanceof Date) || !updatedAt) {
+    } else if (!(updatedAt instanceof Date)) {
       throw new TypeError('Invalid updatedAt')
     }
 
