@@ -5,9 +5,9 @@ import Entity from './Entity.js'
 import OauthProvider from './OauthProvider.js'
 
 export default class Oauth extends Entity {
-  readonly provider: OauthProvider
+  #provider: OauthProvider
   #name: string
-  readonly username: Email
+  #username: Email
   #picture?: URL
   #accessToken: string
   #refreshToken: string
@@ -52,15 +52,19 @@ export default class Oauth extends Entity {
       throw new TypeError('Invalid username')
     }
 
-    this.provider = provider
+    this.#provider = provider
     this.name = name
-    this.username = username
+    this.#username = username
     this.picture = picture
     this.accessToken = accessToken
     this.refreshToken = refreshToken
     this.expiresIn = expiresIn
     this.updatedAt = updatedAt
     this.disabledAt = disabledAt
+  }
+
+  get provider () {
+    return this.#provider
   }
 
   set name (name: string) {
@@ -76,6 +80,10 @@ export default class Oauth extends Entity {
 
   get name () {
     return this.#name
+  }
+
+  get username () {
+    return this.#username
   }
 
   set picture (picture: URL | undefined) {
