@@ -103,11 +103,9 @@ describe('Constructor', () => {
     expect(() => new Oauth(MIN_OAUTH)).not.toThrow()
     expect(() => new Oauth(MAX_OAUTH)).not.toThrow()
 
-    // const minOauthProvider = new Oauth(MIN_OAUTH)
-    // expect(minOauthProvider.updatedAt).toEqual(minOauthProvider.createdAt)
-
-    // const maxOauthProvider = new Oauth(MAX_OAUTH)
-    // expect(maxOauthProvider.updatedAt).not.toEqual(maxOauthProvider.createdAt)
+    const oauth = new Oauth(MAX_OAUTH)
+    expect(oauth.provider).toBe(MAX_OAUTH.provider)
+    expect(oauth.username).toBe(MAX_OAUTH.username)
   })
 })
 
