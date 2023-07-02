@@ -44,49 +44,58 @@ describe('Constructor', () => {
     })
 
     INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
-      expect(() => new Oauth(Object.assign({ ...MAX_OAUTH }, {
+      expect(() => new Oauth({
+        ...MAX_OAUTH,
         provider: input
-      }))).toThrowError(new TypeError('Invalid provider'))
+      })).toThrowError(new TypeError('Invalid provider'))
     })
     INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
-      expect(() => new Oauth(Object.assign({ ...MAX_OAUTH }, {
+      expect(() => new Oauth({
+        ...MAX_OAUTH,
         name: input
-      }))).toThrowError(new TypeError('Invalid name'))
+      })).toThrowError(new TypeError('Invalid name'))
     })
     INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
-      expect(() => new Oauth(Object.assign({ ...MAX_OAUTH }, {
+      expect(() => new Oauth({
+        ...MAX_OAUTH,
         username: input
-      }))).toThrowError(new TypeError('Invalid username'))
+      })).toThrowError(new TypeError('Invalid username'))
     })
     INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new Oauth(Object.assign({ ...MAX_OAUTH }, {
+      expect(() => new Oauth({
+        ...MAX_OAUTH,
         picture: input
-      }))).toThrowError(new TypeError('Invalid picture'))
+      })).toThrowError(new TypeError('Invalid picture'))
     })
     INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
-      expect(() => new Oauth(Object.assign({ ...MAX_OAUTH }, {
+      expect(() => new Oauth({
+        ...MAX_OAUTH,
         accessToken: input
-      }))).toThrowError(new TypeError('Invalid accessToken'))
+      })).toThrowError(new TypeError('Invalid accessToken'))
     })
     INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
-      expect(() => new Oauth(Object.assign({ ...MAX_OAUTH }, {
+      expect(() => new Oauth({
+        ...MAX_OAUTH,
         refreshToken: input
-      }))).toThrowError(new TypeError('Invalid refreshToken'))
+      })).toThrowError(new TypeError('Invalid refreshToken'))
     })
     INVALID_INPUT_TYPES.concat(undefined, null).filter(input => input != null).forEach(input => {
-      expect(() => new Oauth(Object.assign({ ...MAX_OAUTH }, {
+      expect(() => new Oauth({
+        ...MAX_OAUTH,
         expiresIn: input
-      }))).toThrowError(new TypeError('Invalid expiresIn'))
+      })).toThrowError(new TypeError('Invalid expiresIn'))
     })
     INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new Oauth(Object.assign({ ...MAX_OAUTH }, {
+      expect(() => new Oauth({
+        ...MAX_OAUTH,
         updatedAt: input
-      }))).toThrowError(new TypeError('Invalid updatedAt'))
+      })).toThrowError(new TypeError('Invalid updatedAt'))
     })
     INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new Oauth(Object.assign({ ...MAX_OAUTH }, {
+      expect(() => new Oauth({
+        ...MAX_OAUTH,
         disabledAt: input
-      }))).toThrowError(new TypeError('Invalid disabledAt'))
+      })).toThrowError(new TypeError('Invalid disabledAt'))
     })
 
     // expect(() => new Oauth({

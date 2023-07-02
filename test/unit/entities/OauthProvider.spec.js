@@ -33,34 +33,40 @@ describe('Constructor', () => {
     })
 
     INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
-      expect(() => new OauthProvider(Object.assign({ ...MAX_OAUTH_PROVIDER }, {
+      expect(() => new OauthProvider({
+        ...MAX_OAUTH_PROVIDER,
         name: input
-      }))).toThrowError(new TypeError('Invalid name'))
+      })).toThrowError(new TypeError('Invalid name'))
     })
     INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new OauthProvider(Object.assign({ ...MAX_OAUTH_PROVIDER }, {
+      expect(() => new OauthProvider({
+        ...MAX_OAUTH_PROVIDER,
         picture: input
-      }))).toThrowError(new TypeError('Invalid picture'))
+      })).toThrowError(new TypeError('Invalid picture'))
     })
     INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
-      expect(() => new OauthProvider(Object.assign({ ...MAX_OAUTH_PROVIDER }, {
+      expect(() => new OauthProvider({
+        ...MAX_OAUTH_PROVIDER,
         clientId: input
-      }))).toThrowError(new TypeError('Invalid clientId'))
+      })).toThrowError(new TypeError('Invalid clientId'))
     })
     INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
-      expect(() => new OauthProvider(Object.assign({ ...MAX_OAUTH_PROVIDER }, {
+      expect(() => new OauthProvider({
+        ...MAX_OAUTH_PROVIDER,
         clientSecret: input
-      }))).toThrowError(new TypeError('Invalid clientSecret'))
+      })).toThrowError(new TypeError('Invalid clientSecret'))
     })
     INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new OauthProvider(Object.assign({ ...MAX_OAUTH_PROVIDER }, {
+      expect(() => new OauthProvider({
+        ...MAX_OAUTH_PROVIDER,
         updatedAt: input
-      }))).toThrowError(new TypeError('Invalid updatedAt'))
+      })).toThrowError(new TypeError('Invalid updatedAt'))
     })
     INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new OauthProvider(Object.assign({ ...MAX_OAUTH_PROVIDER }, {
+      expect(() => new OauthProvider({
+        ...MAX_OAUTH_PROVIDER,
         disabledAt: input
-      }))).toThrowError(new TypeError('Invalid disabledAt'))
+      })).toThrowError(new TypeError('Invalid disabledAt'))
     })
 
     // expect(() => new OauthProvider({

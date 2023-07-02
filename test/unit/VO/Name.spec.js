@@ -52,14 +52,16 @@ describe('Constructor', () => {
     })
 
     INVALID_INPUT_TYPES.concat({}, 0, undefined).forEach(input => {
-      expect(() => new Name(Object.assign({ ...MIN_NAME }, {
+      expect(() => new Name({
+        ...MIN_NAME,
         firstName: input
-      }))).toThrowError(new TypeError('Invalid firstName'))
+      })).toThrowError(new TypeError('Invalid firstName'))
     })
     INVALID_INPUT_TYPES.concat({}, 0).forEach(input => {
-      expect(() => new Name(Object.assign({ ...MIN_NAME }, {
+      expect(() => new Name({
+        ...MIN_NAME,
         lastName: input
-      }))).toThrowError(new TypeError('Invalid lastName'))
+      })).toThrowError(new TypeError('Invalid lastName'))
     })
 
     expect(() => new Name({
@@ -151,14 +153,16 @@ describe('Methods', () => {
     })
 
     INVALID_INPUT_TYPES.concat({}, 0, undefined).forEach(input => {
-      expect(() => Name.verify(Object.assign({ ...MIN_NAME }, {
+      expect(() => Name.verify({
+        ...MIN_NAME,
         firstName: input
-      }))).toThrowError(new TypeError('Invalid firstName'))
+      })).toThrowError(new TypeError('Invalid firstName'))
     })
     INVALID_INPUT_TYPES.concat({}, 0).forEach(input => {
-      expect(() => Name.verify(Object.assign({ ...MIN_NAME }, {
+      expect(() => Name.verify({
+        ...MIN_NAME,
         lastName: input
-      }))).toThrowError(new TypeError('Invalid lastName'))
+      })).toThrowError(new TypeError('Invalid lastName'))
     })
 
     expect(() => Name.verify({
