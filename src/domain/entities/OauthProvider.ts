@@ -162,10 +162,10 @@ export default class OauthProvider extends Entity {
   }
 
   set disabledAt (disabledAt: Date | undefined) {
-    if (this.#disabledAt && disabledAt) {
-      throw new Error('It\'s already disabled')
-    } else if (!(disabledAt instanceof Date) && typeof disabledAt !== 'undefined') {
+    if (!(disabledAt instanceof Date) && typeof disabledAt !== 'undefined') {
       throw new TypeError('Invalid disabledAt')
+    } else if (this.#disabledAt && disabledAt) {
+      throw new Error('It\'s already disabled')
     }
 
     this.#disabledAt = disabledAt
