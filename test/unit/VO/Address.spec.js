@@ -60,21 +60,26 @@ describe('Constructor', () => {
     expect(() => new Address('')).toThrowError(new TypeError('Invalid address'))
     expect(() => new Address({})).toThrow(AggregateError)
 
-    expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+    expect(() => new Address({
+      ...MAX_ADDRESS,
       city: ''
-    }))).toThrowError(new TypeError('Invalid address'))
-    expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+    })).toThrowError(new TypeError('Invalid address'))
+    expect(() => new Address({
+      ...MAX_ADDRESS,
       country: ''
-    }))).toThrowError(new TypeError('Invalid address'))
-    expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+    })).toThrowError(new TypeError('Invalid address'))
+    expect(() => new Address({
+      ...MAX_ADDRESS,
       postalCode: ''
-    }))).toThrowError(new TypeError('Invalid address'))
-    expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+    })).toThrowError(new TypeError('Invalid address'))
+    expect(() => new Address({
+      ...MAX_ADDRESS,
       state: ''
-    }))).toThrowError(new TypeError('Invalid address'))
-    expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+    })).toThrowError(new TypeError('Invalid address'))
+    expect(() => new Address({
+      ...MAX_ADDRESS,
       street: ''
-    }))).toThrowError(new TypeError('Invalid address'))
+    })).toThrowError(new TypeError('Invalid address'))
 
     INVALID_INPUT_TYPES.forEach(input => {
       expect(() => new Address(input)).toThrowError(new TypeError('Invalid address'))
@@ -82,44 +87,52 @@ describe('Constructor', () => {
 
     const invalidInputTypesForOptionalFields = INVALID_INPUT_TYPES.filter(input => typeof input !== 'undefined')
     INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+      expect(() => new Address({
+        ...MAX_ADDRESS,
         city: input
-      }))).toThrowError(new TypeError('Invalid city'))
+      })).toThrowError(new TypeError('Invalid city'))
     })
     invalidInputTypesForOptionalFields.forEach(input => {
-      expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+      expect(() => new Address({
+        ...MAX_ADDRESS,
         complement: input
-      }))).toThrowError(new TypeError('Invalid complement'))
+      })).toThrowError(new TypeError('Invalid complement'))
     })
     INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+      expect(() => new Address({
+        ...MAX_ADDRESS,
         country: input
-      }))).toThrowError(new TypeError('Invalid country'))
+      })).toThrowError(new TypeError('Invalid country'))
     })
     invalidInputTypesForOptionalFields.forEach(input => {
-      expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+      expect(() => new Address({
+        ...MAX_ADDRESS,
         district: input
-      }))).toThrowError(new TypeError('Invalid district'))
+      })).toThrowError(new TypeError('Invalid district'))
     })
     invalidInputTypesForOptionalFields.filter(input => !Number.isFinite(input)).forEach(input => {
-      expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+      expect(() => new Address({
+        ...MAX_ADDRESS,
         number: input
-      }))).toThrowError(new TypeError('Invalid number'))
+      })).toThrowError(new TypeError('Invalid number'))
     })
     INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+      expect(() => new Address({
+        ...MAX_ADDRESS,
         postalCode: input
-      }))).toThrowError(new TypeError('Invalid postalCode'))
+      })).toThrowError(new TypeError('Invalid postalCode'))
     })
     INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+      expect(() => new Address({
+        ...MAX_ADDRESS,
         state: input
-      }))).toThrowError(new TypeError('Invalid state'))
+      })).toThrowError(new TypeError('Invalid state'))
     })
     INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new Address(Object.assign({ ...MAX_ADDRESS }, {
+      expect(() => new Address({
+        ...MAX_ADDRESS,
         street: input
-      }))).toThrowError(new TypeError('Invalid street'))
+      })).toThrowError(new TypeError('Invalid street'))
     })
 
     expect(() => new Address({
@@ -180,21 +193,26 @@ describe('Methods', () => {
     expect(Address.verify('')).toBeFalsy()
     expect(() => Address.verify({})).toThrow(AggregateError)
 
-    expect(Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+    expect(Address.verify({
+      ...MAX_ADDRESS,
       city: ''
-    }))).toBeFalsy()
-    expect(Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+    })).toBeFalsy()
+    expect(Address.verify({
+      ...MAX_ADDRESS,
       country: ''
-    }))).toBeFalsy()
-    expect(Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+    })).toBeFalsy()
+    expect(Address.verify({
+      ...MAX_ADDRESS,
       postalCode: ''
-    }))).toBeFalsy()
-    expect(Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+    })).toBeFalsy()
+    expect(Address.verify({
+      ...MAX_ADDRESS,
       state: ''
-    }))).toBeFalsy()
-    expect(Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+    })).toBeFalsy()
+    expect(Address.verify({
+      ...MAX_ADDRESS,
       street: ''
-    }))).toBeFalsy()
+    })).toBeFalsy()
 
     INVALID_INPUT_TYPES.forEach(input => {
       expect(() => Address.verify(input)).toThrowError(new TypeError('Invalid address'))
@@ -202,44 +220,52 @@ describe('Methods', () => {
 
     const invalidInputTypesForOptionalFields = INVALID_INPUT_TYPES.filter(input => typeof input !== 'undefined')
     INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+      expect(() => Address.verify({
+        ...MAX_ADDRESS,
         city: input
-      }))).toThrowError(new TypeError('Invalid city'))
+      })).toThrowError(new TypeError('Invalid city'))
     })
     invalidInputTypesForOptionalFields.forEach(input => {
-      expect(() => Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+      expect(() => Address.verify({
+        ...MAX_ADDRESS,
         complement: input
-      }))).toThrowError(new TypeError('Invalid complement'))
+      })).toThrowError(new TypeError('Invalid complement'))
     })
     INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+      expect(() => Address.verify({
+        ...MAX_ADDRESS,
         country: input
-      }))).toThrowError(new TypeError('Invalid country'))
+      })).toThrowError(new TypeError('Invalid country'))
     })
     invalidInputTypesForOptionalFields.forEach(input => {
-      expect(() => Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+      expect(() => Address.verify({
+        ...MAX_ADDRESS,
         district: input
-      }))).toThrowError(new TypeError('Invalid district'))
+      })).toThrowError(new TypeError('Invalid district'))
     })
     invalidInputTypesForOptionalFields.filter(input => !Number.isFinite(input)).forEach(input => {
-      expect(() => Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+      expect(() => Address.verify({
+        ...MAX_ADDRESS,
         number: input
-      }))).toThrowError(new TypeError('Invalid number'))
+      })).toThrowError(new TypeError('Invalid number'))
     })
     INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+      expect(() => Address.verify({
+        ...MAX_ADDRESS,
         postalCode: input
-      }))).toThrowError(new TypeError('Invalid postalCode'))
+      })).toThrowError(new TypeError('Invalid postalCode'))
     })
     INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+      expect(() => Address.verify({
+        ...MAX_ADDRESS,
         state: input
-      }))).toThrowError(new TypeError('Invalid state'))
+      })).toThrowError(new TypeError('Invalid state'))
     })
     INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => Address.verify(Object.assign({ ...MAX_ADDRESS }, {
+      expect(() => Address.verify({
+        ...MAX_ADDRESS,
         street: input
-      }))).toThrowError(new TypeError('Invalid street'))
+      })).toThrowError(new TypeError('Invalid street'))
     })
 
     expect(() => Address.verify({
