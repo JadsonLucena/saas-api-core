@@ -1,12 +1,13 @@
 import UUID from '../VO/UUID.js'
 import Email from '../VO/Email.js'
+import Name from '../VO/Name.js'
 
 import Entity from './Entity.js'
 import OauthProvider from './OauthProvider.js'
 
 export default class Oauth extends Entity {
   #provider: OauthProvider
-  #name: string
+  #name: Name
   #username: Email
   #picture?: URL
   #accessToken: string
@@ -30,7 +31,7 @@ export default class Oauth extends Entity {
   }: {
     provider: OauthProvider,
     id?: UUID,
-    name: string,
+    name: Name,
     username: Email,
     picture?: URL,
     accessToken: string,
@@ -67,10 +68,10 @@ export default class Oauth extends Entity {
     return this.#provider
   }
 
-  set name (name: string) {
+  set name (name: Name) {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
-    } else if (typeof name !== 'string' || !name) {
+    } else if (!(name instanceof Name)) {
       throw new TypeError('Invalid name')
     }
 

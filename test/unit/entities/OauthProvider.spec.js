@@ -1,15 +1,20 @@
 import UUID from '../../../build/domain/VO/UUID.js'
+import Name from '../../../build/domain/VO/Name.js'
 
 import OauthProvider from '../../../build/domain/entities/OauthProvider.js'
 
 const MIN_OAUTH_PROVIDER = {
-  name: 'Github',
+  name: new Name('Github', {
+    minAmountOfLastNames: 0
+  }),
   clientId: '115c7faa93f26f0c4fff',
   clientSecret: 'c486cf3d8670a2fe84ded7d08abd97300845677e'
 }
 const MAX_OAUTH_PROVIDER = {
   id: new UUID(),
-  name: 'Linkedin',
+  name: new Name('Linkedin', {
+    minAmountOfLastNames: 0
+  }),
   picture: new URL('https://cdn.example.com/oauth/linkedin.webp'),
   clientId: '28cjjwaxaz7c15',
   clientSecret: 'OaNGp7Lf9AKmJ4Se',
