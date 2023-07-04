@@ -1,23 +1,28 @@
 import UUID from '../../../build/domain/VO/UUID.js'
 import Email from '../../../build/domain/VO/Email.js'
+import Name from '../../../build/domain/VO/Name.js'
 
 import OauthProvider from '../../../build/domain/entities/OauthProvider.js'
 import Oauth from '../../../build/domain/entities/Oauth.js'
 
-const oneYear = 31622400000
+const ONE_YEAR = 31622400000
 
 const OAUTH_PROVIDER = new OauthProvider({
-  name: 'Github',
+  name: new Name('Github', {
+    minAmountOfLastNames: 0
+  }),
   clientId: '115c7faa93f26f0c4fff',
   clientSecret: 'c486cf3d8670a2fe84ded7d08abd97300845677e'
 })
 const MIN_OAUTH = {
   provider: OAUTH_PROVIDER,
-  name: 'John Doe',
+  name: new Name('John Doe', {
+    minAmountOfLastNames: 0
+  }),
   username: new Email('john.doe@example.com'),
   accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
   refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
-  expiresIn: new Date(Date.now() + oneYear)
+  expiresIn: new Date(Date.now() + ONE_YEAR)
 }
 const MAX_OAUTH = {
   ...MIN_OAUTH,

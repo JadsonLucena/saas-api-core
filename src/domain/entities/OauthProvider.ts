@@ -1,9 +1,10 @@
 import UUID from '../VO/UUID.js'
+import Name from '../VO/Name.js'
 
 import Entity from './Entity.js'
 
 export default class OauthProvider extends Entity {
-  #name: string
+  #name: Name
   #picture?: URL
   #clientId: string
   #clientSecret: string
@@ -21,7 +22,7 @@ export default class OauthProvider extends Entity {
     disabledAt
   }: {
     id?: UUID,
-    name: string,
+    name: Name,
     picture?: URL,
     clientId: string,
     clientSecret: string,
@@ -87,10 +88,10 @@ export default class OauthProvider extends Entity {
     } */
   }
 
-  set name (name: string) {
+  set name (name: Name) {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
-    } else if (typeof name !== 'string' || !name) {
+    } else if (!(name instanceof Name)) {
       throw new TypeError('Invalid name')
     }
 
