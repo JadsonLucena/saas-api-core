@@ -18,7 +18,7 @@ export default class OauthProvider extends Entity {
     clientId,
     clientSecret,
     createdAt,
-    updatedAt = new Date(),
+    updatedAt,
     disabledAt
   }: {
     id?: UUID,
@@ -39,9 +39,8 @@ export default class OauthProvider extends Entity {
     this.picture = picture
     this.clientId = clientId
     this.clientSecret = clientSecret
-    // updatedAt ??= this.createdAt
-    this.updatedAt = updatedAt
     this.disabledAt = disabledAt
+    this.updatedAt = updatedAt ?? this.createdAt
 
     /* let errors = []
 
