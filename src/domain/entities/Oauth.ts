@@ -26,7 +26,7 @@ export default class Oauth extends Entity {
     refreshToken,
     expiresIn,
     createdAt,
-    updatedAt = new Date(),
+    updatedAt,
     disabledAt
   }: {
     provider: OauthProvider,
@@ -60,8 +60,8 @@ export default class Oauth extends Entity {
     this.accessToken = accessToken
     this.refreshToken = refreshToken
     this.expiresIn = expiresIn
-    this.updatedAt = updatedAt
     this.disabledAt = disabledAt
+    this.updatedAt = updatedAt ?? this.createdAt
   }
 
   get provider () {
