@@ -11,15 +11,12 @@ const MIN_OAUTH_PROVIDER = {
   clientSecret: 'c486cf3d8670a2fe84ded7d08abd97300845677e'
 }
 const MAX_OAUTH_PROVIDER = {
-  id: new UUID(),
   name: new Name('Linkedin', {
     minAmountOfLastNames: 0
   }),
   picture: new URL('https://cdn.example.com/oauth/linkedin.webp'),
   clientId: '28cjjwaxaz7c15',
-  clientSecret: 'OaNGp7Lf9AKmJ4Se',
-  createdAt: new Date(),
-  updatedAt: new Date()
+  clientSecret: 'OaNGp7Lf9AKmJ4Se'
 }
 const INVALID_INPUT_TYPES = [
   {},
@@ -60,18 +57,6 @@ describe('Constructor', () => {
         ...MAX_OAUTH_PROVIDER,
         clientSecret: input
       })).toThrowError(new TypeError('Invalid clientSecret'))
-    })
-    INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new OauthProvider({
-        ...MAX_OAUTH_PROVIDER,
-        updatedAt: input
-      })).toThrowError(new TypeError('Invalid updatedAt'))
-    })
-    INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new OauthProvider({
-        ...MAX_OAUTH_PROVIDER,
-        disabledAt: input
-      })).toThrowError(new TypeError('Invalid disabledAt'))
     })
 
     // expect(() => new OauthProvider({
@@ -117,18 +102,20 @@ describe('Attributes', () => {
     expect(oauthProvider.clientSecret).toBe(MAX_OAUTH_PROVIDER.clientSecret)
     expect(oauthProvider.updatedAt).not.toBe(updatedAt)
 
-    oauthProvider.updatedAt = MAX_OAUTH_PROVIDER.updatedAt
-    expect(oauthProvider.updatedAt).toBe(MAX_OAUTH_PROVIDER.updatedAt)
+    updatedAt = oauthProvider.updatedAt
+    oauthProvider.disable()
+    expect(oauthProvider.disabledAt).toBe(oauthProvider.updatedAt)
+    expect(oauthProvider.updatedAt).not.toBe(updatedAt)
 
     updatedAt = oauthProvider.updatedAt
-    oauthProvider.disabledAt = MAX_OAUTH_PROVIDER.disabledAt
-    expect(oauthProvider.disabledAt).toBe(MAX_OAUTH_PROVIDER.disabledAt)
+    oauthProvider.enable()
+    expect(oauthProvider.disabledAt).toBeUndefined()
     expect(oauthProvider.updatedAt).not.toBe(updatedAt)
   })
   test('Given that we want to disable the entity', () => {
     const oauthProvider = new OauthProvider(MIN_OAUTH_PROVIDER)
 
-    oauthProvider.disabledAt = new Date()
+    oauthProvider.disable()
 
     expect(() => {
       oauthProvider.name = MAX_OAUTH_PROVIDER.name
@@ -143,15 +130,15 @@ describe('Attributes', () => {
       oauthProvider.clientSecret = MAX_OAUTH_PROVIDER.clientSecret
     }).toThrowError(new Error('It\'s disabled'))
     expect(() => {
-      oauthProvider.updatedAt = MAX_OAUTH_PROVIDER.updatedAt
-    }).toThrowError(new Error('It\'s disabled'))
-    expect(() => {
-      oauthProvider.disabledAt = new Date()
+      oauthProvider.disable()
     }).toThrowError(new Error('It\'s already disabled'))
 
     expect(() => {
-      oauthProvider.disabledAt = undefined
+      oauthProvider.enable()
     }).not.toThrow()
+    expect(() => {
+      oauthProvider.enable()
+    }).toThrowError(new Error('It\'s already enabled'))
 
     expect(oauthProvider.disabledAt).toBeUndefined()
   })

@@ -10,14 +10,11 @@ export default abstract class Entity {
   }: {
     id?: UUID,
     createdAt?: Date
-  }) {
+  } = {}) {
     if (!(id instanceof UUID)) {
       throw new TypeError('Invalid id')
     }
-    if (
-      !(createdAt instanceof Date)
-      // || createdAt.getTime() < Date.now()
-    ) {
+    if (!(createdAt instanceof Date)) {
       throw new TypeError('Invalid createdAt')
     }
 

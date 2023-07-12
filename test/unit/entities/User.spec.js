@@ -19,11 +19,8 @@ const MIN_USER = {
 }
 const MAX_USER = {
   ...MIN_USER,
-  id: new UUID(),
   picture: new URL('file://path/to/file.webp'),
-  tfa: true,
-  createdAt: new Date(),
-  updatedAt: new Date()
+  tfa: true
 }
 const INVALID_INPUT_TYPES = [
   {},
@@ -47,18 +44,6 @@ describe('Constructor', () => {
         name: input
       })).toThrowError(new TypeError('Invalid name'))
     })
-    // INVALID_INPUT_TYPES.forEach(input => {
-    //   expect(() => new User({
-    //     ...MAX_USER,
-    //     phones: input
-    //   })).toThrowError(new TypeError('Invalid phone'))
-    // })
-    // INVALID_INPUT_TYPES.forEach(input => {
-    //   expect(() => new User({
-    //     ...MAX_USER,
-    //     emails: input
-    //   })).toThrowError(new TypeError('Invalid email'))
-    // })
     INVALID_INPUT_TYPES.forEach(input => {
       expect(() => new User({
         ...MAX_USER,
@@ -77,30 +62,6 @@ describe('Constructor', () => {
         picture: input
       })).toThrowError(new TypeError('Invalid picture'))
     })
-    // INVALID_INPUT_TYPES.forEach(input => {
-    //   expect(() => new User({
-    //     ...MAX_USER,
-    //     oauths: input
-    //   })).toThrowError(new TypeError('Invalid oauth'))
-    // })
-    /* INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new User({
-        ...MAX_USER,
-        tfa: input
-      })).toThrowError(new TypeError('Invalid tfa'))
-    }) */
-    INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new User({
-        ...MAX_USER,
-        updatedAt: input
-      })).toThrowError(new TypeError('Invalid updatedAt'))
-    })
-    INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new User({
-        ...MAX_USER,
-        disabledAt: input
-      })).toThrowError(new TypeError('Invalid disabledAt'))
-    })
   })
 
   test('Given that one wants to instantiate the object with a valid argument', () => {
@@ -109,9 +70,7 @@ describe('Constructor', () => {
 
     const user = new User(MAX_USER)
     expect(user.username).toBe(MAX_USER.username)
-    // expect(user.phones).toBe(MAX_USER.phones)
-    // expect(user.emails).toBe(MAX_USER.emails)
-    // expect(user.oauths).toBe(MAX_USER.oauths)
+    expect(user.createdAt).toEqual(user.updatedAt)
   })
 })
 
@@ -119,18 +78,9 @@ describe('Attributes', () => {
   test('Given that we want to try to update readonly attributes', () => {
     const user = new User(MIN_USER)
 
-    // expect(() => {
-    //   user.phones = MAX_USER.phones
-    // }).toThrow()
-    // expect(() => {
-    //   user.emails = MAX_USER.emails
-    // }).toThrow()
     expect(() => {
       user.username = MAX_USER.username
     }).toThrow()
-    // expect(() => {
-    //   user.oauths = MAX_USER.oauths
-    // }).toThrow()
   })
   test('Given that we want to check for entity update whenever an attribute is updated', () => {
     const user = new User(MIN_USER)
@@ -156,19 +106,19 @@ describe('Attributes', () => {
     expect(user.updatedAt).not.toBe(updatedAt)
 
     updatedAt = user.updatedAt
-    user.updatedAt = MAX_USER.updatedAt
-    expect(user.updatedAt).toBe(MAX_USER.updatedAt)
+    user.disable()
+    expect(user.disabledAt).toBe(user.updatedAt)
     expect(user.updatedAt).not.toBe(updatedAt)
 
     updatedAt = user.updatedAt
-    user.disabledAt = MAX_USER.disabledAt
-    expect(user.disabledAt).toBe(MAX_USER.disabledAt)
+    user.enable()
+    expect(user.disabledAt).toBeUndefined()
     expect(user.updatedAt).not.toBe(updatedAt)
   })
   test('Given that we want to disable the entity', () => {
     const user = new User(MIN_USER)
 
-    user.disabledAt = new Date()
+    user.disable()
 
     expect(() => {
       user.name = MAX_USER.name
@@ -183,15 +133,15 @@ describe('Attributes', () => {
       user.picture = MAX_USER.picture
     }).toThrowError(new Error('It\'s disabled'))
     expect(() => {
-      user.updatedAt = MAX_USER.updatedAt
-    }).toThrowError(new Error('It\'s disabled'))
-    expect(() => {
-      user.disabledAt = new Date()
+      user.disable()
     }).toThrowError(new Error('It\'s already disabled'))
 
     expect(() => {
-      user.disabledAt = undefined
+      user.enable()
     }).not.toThrow()
+    expect(() => {
+      user.enable()
+    }).toThrowError(new Error('It\'s already enabled'))
 
     expect(user.disabledAt).toBeUndefined()
   })
@@ -230,7 +180,7 @@ describe('Methods', () => {
       value: new EmailVO('login', false)
     }))).toThrowError(new TypeError('Domain required'))
 
-    user.disabledAt = new Date()
+    user.disable()
 
     expect(() => user.addEmail(otherEmail)).toThrowError(new Error('User is disabled'))
   })
@@ -250,7 +200,7 @@ describe('Methods', () => {
     expect(() => user.confirmEmail('id')).toThrowError(new TypeError('Invalid id'))
     expect(() => user.confirmEmail(new UUID())).toThrowError(new Error('Not found'))
 
-    user.disabledAt = new Date()
+    user.disable()
 
     expect(() => user.confirmEmail(email.id)).toThrowError(new Error('User is disabled'))
   })
@@ -270,11 +220,11 @@ describe('Methods', () => {
     expect(() => user.disableEmail('id')).toThrowError(new TypeError('Invalid id'))
     expect(() => user.disableEmail(new UUID())).toThrowError(new Error('Not found'))
 
-    user.disabledAt = new Date()
+    user.disable()
 
     expect(() => user.disableEmail(email.id)).toThrowError(new Error('User is disabled'))
   })
-  test('Given that we want to rehabilitate emails', () => {
+  test('Given that we want to enable emails', () => {
     const user = new User(MIN_USER)
 
     const email = new Email({
@@ -284,16 +234,16 @@ describe('Methods', () => {
     user
       .addEmail(email)
       .disableEmail(email.id)
-      .rehabilitateEmail(email.id)
+      .enableEmail(email.id)
 
     expect(user.emails[0].disabledAt).toBeUndefined()
 
-    expect(() => user.rehabilitateEmail('id')).toThrowError(new TypeError('Invalid id'))
-    expect(() => user.rehabilitateEmail(new UUID())).toThrowError(new Error('Not found'))
+    expect(() => user.enableEmail('id')).toThrowError(new TypeError('Invalid id'))
+    expect(() => user.enableEmail(new UUID())).toThrowError(new Error('Not found'))
 
-    user.disabledAt = new Date()
+    user.disable()
 
-    expect(() => user.rehabilitateEmail(email.id)).toThrowError(new Error('User is disabled'))
+    expect(() => user.enableEmail(email.id)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to delete emails', () => {
     const user = new User(MIN_USER)
@@ -310,7 +260,7 @@ describe('Methods', () => {
 
     expect(() => user.deleteEmail('id')).toThrowError(new TypeError('Invalid id'))
 
-    user.disabledAt = new Date()
+    user.disable()
 
     expect(() => user.deleteEmail(email.id)).toThrowError(new Error('User is disabled'))
   })
@@ -340,7 +290,7 @@ describe('Methods', () => {
 
     expect(() => user.addPhone(new PhoneVO('+01-234 (123) 67890-1234'))).toThrowError(new TypeError('Invalid phone'))
 
-    user.disabledAt = new Date()
+    user.disable()
 
     expect(() => user.addPhone(otherPhone)).toThrowError(new Error('User is disabled'))
   })
@@ -360,7 +310,7 @@ describe('Methods', () => {
     expect(() => user.confirmPhone('id')).toThrowError(new TypeError('Invalid id'))
     expect(() => user.confirmPhone(new UUID())).toThrowError(new Error('Not found'))
 
-    user.disabledAt = new Date()
+    user.disable()
 
     expect(() => user.confirmPhone(phone.id)).toThrowError(new Error('User is disabled'))
   })
@@ -380,11 +330,11 @@ describe('Methods', () => {
     expect(() => user.disablePhone('id')).toThrowError(new TypeError('Invalid id'))
     expect(() => user.disablePhone(new UUID())).toThrowError(new Error('Not found'))
 
-    user.disabledAt = new Date()
+    user.disable()
 
     expect(() => user.disablePhone(phone.id)).toThrowError(new Error('User is disabled'))
   })
-  test('Given that we want to rehabilitate phones', () => {
+  test('Given that we want to enable phones', () => {
     const user = new User(MIN_USER)
 
     const phone = new Phone({
@@ -394,16 +344,16 @@ describe('Methods', () => {
     user
       .addPhone(phone)
       .disablePhone(phone.id)
-      .rehabilitatePhone(phone.id)
+      .enablePhone(phone.id)
 
     expect(user.phones[0].disabledAt).toBeUndefined()
 
-    expect(() => user.rehabilitatePhone('id')).toThrowError(new TypeError('Invalid id'))
-    expect(() => user.rehabilitatePhone(new UUID())).toThrowError(new Error('Not found'))
+    expect(() => user.enablePhone('id')).toThrowError(new TypeError('Invalid id'))
+    expect(() => user.enablePhone(new UUID())).toThrowError(new Error('Not found'))
 
-    user.disabledAt = new Date()
+    user.disable()
 
-    expect(() => user.rehabilitatePhone(phone.id)).toThrowError(new Error('User is disabled'))
+    expect(() => user.enablePhone(phone.id)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to delete phones', () => {
     const user = new User(MIN_USER)
@@ -420,7 +370,7 @@ describe('Methods', () => {
 
     expect(() => user.deletePhone('id')).toThrowError(new TypeError('Invalid id'))
 
-    user.disabledAt = new Date()
+    user.disable()
 
     expect(() => user.deletePhone(phone.id)).toThrowError(new Error('User is disabled'))
   })
@@ -482,7 +432,7 @@ describe('Methods', () => {
 
     expect(() => user.addOauth(oauthProvider)).toThrowError(new TypeError('Invalid oauth'))
 
-    user.disabledAt = new Date()
+    user.disable()
 
     expect(() => user.addOauth(otherOauth)).toThrowError(new Error('User is disabled'))
   })
@@ -531,7 +481,7 @@ describe('Methods', () => {
     expect(() => user.updateOauth('id', data)).toThrowError(new TypeError('Invalid id'))
     expect(() => user.updateOauth(new UUID(), data)).toThrowError(new Error('Not found'))
 
-    user.disabledAt = new Date()
+    user.disable()
 
     expect(() => user.updateOauth(oauth.id, data)).toThrowError(new Error('User is disabled'))
   })
@@ -566,11 +516,11 @@ describe('Methods', () => {
     expect(() => user.disableOauth('id')).toThrowError(new TypeError('Invalid id'))
     expect(() => user.disableOauth(new UUID())).toThrowError(new Error('Not found'))
 
-    user.disabledAt = new Date()
+    user.disable()
 
     expect(() => user.disableOauth(oauth.id)).toThrowError(new Error('User is disabled'))
   })
-  test('Given that we want to rehabilitate oauths', () => {
+  test('Given that we want to enable oauths', () => {
     const user = new User(MIN_USER)
 
     const oauthProvider = new OauthProvider({
@@ -595,16 +545,16 @@ describe('Methods', () => {
     user
       .addOauth(oauth)
       .disableOauth(oauth.id)
-      .rehabilitateOauth(oauth.id)
+      .enableOauth(oauth.id)
 
     expect(user.oauths[0].disabledAt).toBeUndefined()
 
-    expect(() => user.rehabilitateOauth('id')).toThrowError(new TypeError('Invalid id'))
-    expect(() => user.rehabilitateOauth(new UUID())).toThrowError(new Error('Not found'))
+    expect(() => user.enableOauth('id')).toThrowError(new TypeError('Invalid id'))
+    expect(() => user.enableOauth(new UUID())).toThrowError(new Error('Not found'))
 
-    user.disabledAt = new Date()
+    user.disable()
 
-    expect(() => user.rehabilitateOauth(oauth.id)).toThrowError(new Error('User is disabled'))
+    expect(() => user.enableOauth(oauth.id)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to delete oauths', () => {
     const user = new User(MIN_USER)
@@ -636,7 +586,7 @@ describe('Methods', () => {
 
     expect(() => user.deleteOauth('id')).toThrowError(new TypeError('Invalid id'))
 
-    user.disabledAt = new Date()
+    user.disable()
 
     expect(() => user.deleteOauth(oauth.id)).toThrowError(new Error('User is disabled'))
   })

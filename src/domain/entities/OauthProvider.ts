@@ -1,4 +1,3 @@
-import UUID from '../VO/UUID.js'
 import Name from '../VO/Name.js'
 
 import Entity from './Entity.js'
@@ -12,79 +11,23 @@ export default class OauthProvider extends Entity {
   #disabledAt?: Date
 
   constructor ({
-    id,
     name,
     picture,
     clientId,
-    clientSecret,
-    createdAt,
-    updatedAt,
-    disabledAt
+    clientSecret
   }: {
-    id?: UUID,
     name: Name,
     picture?: URL,
     clientId: string,
-    clientSecret: string,
-    createdAt?: Date,
-    updatedAt?: Date,
-    disabledAt?: Date
+    clientSecret: string
   }) {
-    super({
-      id,
-      createdAt
-    })
+    super()
 
     this.name = name
     this.picture = picture
     this.clientId = clientId
     this.clientSecret = clientSecret
-    this.disabledAt = disabledAt
-    this.updatedAt = updatedAt ?? this.createdAt
-
-    /* let errors = []
-
-    try {
-      this.name = name
-    } catch (err) {
-      errors.push(err)
-    }
-
-    try {
-      this.picture = picture
-    } catch (err) {
-      errors.push(err)
-    }
-
-    try {
-      this.clientId = clientId
-    } catch (err) {
-      errors.push(err)
-    }
-
-    try {
-      this.clientSecret = clientSecret
-    } catch (err) {
-      errors.push(err)
-    }
-
-    try {
-      this.updatedAt = updatedAt
-    } catch (err) {
-      errors.push(err)
-    }
-
-    try {
-      this.disabledAt = disabledAt
-    } catch (err) {
-      errors.push(err)
-    }
-
-    if (errors.length > 1) {
-      throw new AggregateError(errors, 'Invalid OauthProvider')
-    } else if (errors.length === 1) {
-      throw errors[0]
-    } */
+    this.#updatedAt = this.createdAt
   }
 
   set name (name: Name) {
@@ -147,32 +90,32 @@ export default class OauthProvider extends Entity {
     return this.#clientSecret
   }
 
-  set updatedAt (updatedAt: Date) {
-    if (this.#disabledAt) {
-      throw new Error('It\'s disabled')
-    } else if (!(updatedAt instanceof Date)) {
-      throw new TypeError('Invalid updatedAt')
-    }
-
-    this.#updatedAt = updatedAt
-  }
-
   get updatedAt () {
     return this.#updatedAt
   }
 
-  set disabledAt (disabledAt: Date | undefined) {
-    if (!(disabledAt instanceof Date) && typeof disabledAt !== 'undefined') {
-      throw new TypeError('Invalid disabledAt')
-    } else if (this.#disabledAt && disabledAt) {
+  get disabledAt () {
+    return this.#disabledAt
+  }
+
+  disable () {
+    if (this.#disabledAt) {
       throw new Error('It\'s already disabled')
     }
 
-    this.#disabledAt = disabledAt
-    this.#updatedAt = new Date()
+    this.#updatedAt = this.#disabledAt = new Date()
+
+    return this
   }
 
-  get disabledAt () {
-    return this.#disabledAt
+  enable () {
+    if (!this.#disabledAt) {
+      throw new Error('It\'s already enabled')
+    }
+
+    this.#disabledAt = undefined
+    this.#updatedAt = new Date()
+
+    return this
   }
 }
