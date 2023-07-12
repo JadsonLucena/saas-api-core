@@ -1,4 +1,3 @@
-import UUID from '../../../build/domain/VO/UUID.js'
 import Email from '../../../build/domain/VO/Email.js'
 import Name from '../../../build/domain/VO/Name.js'
 
@@ -26,11 +25,7 @@ const MIN_OAUTH = {
 }
 const MAX_OAUTH = {
   ...MIN_OAUTH,
-  id: new UUID(),
-  picture: new URL('https://cdn.example.com/oauth/profile/userId.webp'),
-  createdAt: new Date(),
-  updatedAt: new Date()
-  // disabledAt: new Date()
+  picture: new URL('https://cdn.example.com/oauth/profile/userId.webp')
 }
 const INVALID_INPUT_TYPES = [
   {},
@@ -89,18 +84,6 @@ describe('Constructor', () => {
         ...MAX_OAUTH,
         expiresIn: input
       })).toThrowError(new TypeError('Invalid expiresIn'))
-    })
-    INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new Oauth({
-        ...MAX_OAUTH,
-        updatedAt: input
-      })).toThrowError(new TypeError('Invalid updatedAt'))
-    })
-    INVALID_INPUT_TYPES.forEach(input => {
-      expect(() => new Oauth({
-        ...MAX_OAUTH,
-        disabledAt: input
-      })).toThrowError(new TypeError('Invalid disabledAt'))
     })
 
     // expect(() => new Oauth({
@@ -165,18 +148,20 @@ describe('Attributes', () => {
     expect(oauth.expiresIn).toBe(MAX_OAUTH.expiresIn)
     expect(oauth.updatedAt).not.toBe(updatedAt)
 
-    oauth.updatedAt = MAX_OAUTH.updatedAt
-    expect(oauth.updatedAt).toBe(MAX_OAUTH.updatedAt)
+    updatedAt = oauth.updatedAt
+    oauth.disable()
+    expect(oauth.disabledAt).toBe(oauth.updatedAt)
+    expect(oauth.updatedAt).not.toBe(updatedAt)
 
     updatedAt = oauth.updatedAt
-    oauth.disabledAt = MAX_OAUTH.disabledAt
-    expect(oauth.disabledAt).toBe(MAX_OAUTH.disabledAt)
+    oauth.enable()
+    expect(oauth.disabledAt).toBeUndefined()
     expect(oauth.updatedAt).not.toBe(updatedAt)
   })
   test('Given that we want to disable the entity', () => {
     const oauth = new Oauth(MIN_OAUTH)
 
-    oauth.disabledAt = new Date()
+    oauth.disable()
 
     expect(() => {
       oauth.name = MAX_OAUTH.name
@@ -194,15 +179,15 @@ describe('Attributes', () => {
       oauth.expiresIn = MAX_OAUTH.expiresIn
     }).toThrowError(new Error('It\'s disabled'))
     expect(() => {
-      oauth.updatedAt = MAX_OAUTH.updatedAt
-    }).toThrowError(new Error('It\'s disabled'))
-    expect(() => {
-      oauth.disabledAt = new Date()
+      oauth.disable()
     }).toThrowError(new Error('It\'s already disabled'))
 
     expect(() => {
-      oauth.disabledAt = undefined
+      oauth.enable()
     }).not.toThrow()
+    expect(() => {
+      oauth.enable()
+    }).toThrowError(new Error('It\'s already enabled'))
 
     expect(oauth.disabledAt).toBeUndefined()
   })

@@ -1,4 +1,3 @@
-import UUID from '../VO/UUID.js'
 import Email from '../VO/Email.js'
 import Name from '../VO/Name.js'
 
@@ -18,33 +17,22 @@ export default class Oauth extends Entity {
 
   constructor ({
     provider,
-    id,
     name,
     username,
     picture,
     accessToken,
     refreshToken,
-    expiresIn,
-    createdAt,
-    updatedAt,
-    disabledAt
+    expiresIn
   }: {
     provider: OauthProvider,
-    id?: UUID,
     name: Name,
     username: Email,
     picture?: URL,
     accessToken: string,
     refreshToken: string,
-    expiresIn: Date,
-    createdAt?: Date,
-    updatedAt?: Date,
-    disabledAt?: Date
+    expiresIn: Date
   }) {
-    super({
-      id,
-      createdAt
-    })
+    super()
 
     if (!(provider instanceof OauthProvider) || !provider) {
       throw new TypeError('Invalid provider')
@@ -60,8 +48,7 @@ export default class Oauth extends Entity {
     this.accessToken = accessToken
     this.refreshToken = refreshToken
     this.expiresIn = expiresIn
-    this.disabledAt = disabledAt
-    this.updatedAt = updatedAt ?? this.createdAt
+    this.#updatedAt = this.createdAt
   }
 
   get provider () {
@@ -150,32 +137,32 @@ export default class Oauth extends Entity {
     return this.#expiresIn
   }
 
-  set updatedAt (updatedAt: Date) {
-    if (this.#disabledAt) {
-      throw new Error('It\'s disabled')
-    } else if (!(updatedAt instanceof Date)) {
-      throw new TypeError('Invalid updatedAt')
-    }
-
-    this.#updatedAt = updatedAt
-  }
-
   get updatedAt () {
     return this.#updatedAt
   }
 
-  set disabledAt (disabledAt: Date | undefined) {
-    if (!(disabledAt instanceof Date) && typeof disabledAt !== 'undefined') {
-      throw new TypeError('Invalid disabledAt')
-    } else if (this.#disabledAt && disabledAt) {
+  get disabledAt () {
+    return this.#disabledAt
+  }
+
+  disable () {
+    if (this.#disabledAt) {
       throw new Error('It\'s already disabled')
     }
 
-    this.#disabledAt = disabledAt
-    this.#updatedAt = new Date()
+    this.#updatedAt = this.#disabledAt = new Date()
+
+    return this
   }
 
-  get disabledAt () {
-    return this.#disabledAt
+  enable () {
+    if (!this.#disabledAt) {
+      throw new Error('It\'s already enabled')
+    }
+
+    this.#disabledAt = undefined
+    this.#updatedAt = new Date()
+
+    return this
   }
 }
