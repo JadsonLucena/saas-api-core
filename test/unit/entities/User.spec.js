@@ -1,12 +1,9 @@
-import UUID from '../../../build/domain/VO/UUID.js'
 import Name from '../../../build/domain/VO/Name.js'
-import EmailVO from '../../../build/domain/VO/Email.js'
-import PhoneVO from '../../../build/domain/VO/Phone.js'
+import Email from '../../../build/domain/VO/Email.js'
+import Phone from '../../../build/domain/VO/Phone.js'
 import Password from '../../../build/domain/VO/Password.js'
 
 import User from '../../../build/domain/entities/User.js'
-import Email from '../../../build/domain/entities/Email.js'
-import Phone from '../../../build/domain/entities/Phone.js'
 import OauthProvider from '../../../build/domain/entities/OauthProvider.js'
 import Oauth from '../../../build/domain/entities/Oauth.js'
 
@@ -14,7 +11,7 @@ const ONE_YEAR = 31622400000
 
 const MIN_USER = {
   name: new Name('John Doe'),
-  username: new EmailVO('john.doe', false),
+  username: new Email('john.doe', false),
   password: new Password('pJHx60N+je6-KAOK)b')
 }
 const MAX_USER = {
@@ -151,34 +148,37 @@ describe('Methods', () => {
   test('Given that we want to add emails', () => {
     const user = new User(MIN_USER)
 
-    const email = new Email({
-      value: new EmailVO('john.doe@example.com')
-    })
-    const emailUpperCase = new Email({
-      value: new EmailVO('JOHN.DOE@example.com')
-    })
+    const email = new Email('john.doe@example.com')
+    const emailUpperCase = new Email('john.doe@example.com')
+    const otherEmail = new Email('username@example.com')
 
-    user
-      .addEmail(email)
-      .addEmail(emailUpperCase)
+    user.addEmail(email)
+
+    expect(() => user.addEmail(emailUpperCase)).toThrowError(new Error('It\'s already added'))
 
     expect(user.emails.length).toBe(1)
-    expect(user.emails).toContain(email)
-    expect(user.emails).not.toContain(emailUpperCase)
-
-    const otherEmail = new Email({
-      value: new EmailVO('username@example.com')
-    })
+    expect(user.emails).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        email
+      })
+    ]))
+    expect(user.emails).not.toEqual(expect.not.arrayContaining([
+      expect.objectContaining({
+        email: emailUpperCase
+      })
+    ]))
 
     user.addEmail(otherEmail)
 
     expect(user.emails.length).toBe(2)
-    expect(user.emails).toContain(otherEmail)
+    expect(user.emails).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        email: otherEmail
+      })
+    ]))
 
-    expect(() => user.addEmail(new EmailVO('login@example.com'))).toThrowError(new TypeError('Invalid email'))
-    expect(() => user.addEmail(new Email({
-      value: new EmailVO('login', false)
-    }))).toThrowError(new TypeError('Domain required'))
+    expect(() => user.addEmail(email.toString())).toThrowError(new TypeError('Invalid email'))
+    expect(() => user.addEmail(new Email('login', false))).toThrowError(new TypeError('Domain required'))
 
     user.disable()
 
@@ -187,108 +187,109 @@ describe('Methods', () => {
   test('Given that we want to confirm emails', () => {
     const user = new User(MIN_USER)
 
-    const email = new Email({
-      value: new EmailVO('john.doe@example.com')
-    })
+    const email = new Email('john.doe@example.com')
+    const otherEmail = new Email('username@example.com')
 
     user
       .addEmail(email)
-      .confirmEmail(email.id)
+      .confirmEmail(email)
 
     expect(user.emails[0].confirmedAt).toBeDefined()
 
-    expect(() => user.confirmEmail('id')).toThrowError(new TypeError('Invalid id'))
-    expect(() => user.confirmEmail(new UUID())).toThrowError(new Error('Not found'))
+    expect(() => user.confirmEmail(email)).toThrowError(new Error('It\'s already confirmed'))
+    expect(() => user.confirmEmail(email.toString())).toThrowError(new TypeError('Invalid email'))
+    expect(() => user.confirmEmail(otherEmail)).toThrowError(new Error('Not found'))
 
     user.disable()
 
-    expect(() => user.confirmEmail(email.id)).toThrowError(new Error('User is disabled'))
+    expect(() => user.confirmEmail(email)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to disable emails', () => {
     const user = new User(MIN_USER)
 
-    const email = new Email({
-      value: new EmailVO('john.doe@example.com')
-    })
+    const email = new Email('john.doe@example.com')
+    const otherEmail = new Email('username@example.com')
 
     user
       .addEmail(email)
-      .disableEmail(email.id)
+      .disableEmail(email)
 
     expect(user.emails[0].disabledAt).toBeDefined()
 
-    expect(() => user.disableEmail('id')).toThrowError(new TypeError('Invalid id'))
-    expect(() => user.disableEmail(new UUID())).toThrowError(new Error('Not found'))
+    expect(() => user.disableEmail(email)).toThrowError(new Error('It\'s already disabled'))
+    expect(() => user.disableEmail(email.toString())).toThrowError(new TypeError('Invalid email'))
+    expect(() => user.disableEmail(otherEmail)).toThrowError(new Error('Not found'))
 
     user.disable()
 
-    expect(() => user.disableEmail(email.id)).toThrowError(new Error('User is disabled'))
+    expect(() => user.disableEmail(email)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to enable emails', () => {
     const user = new User(MIN_USER)
 
-    const email = new Email({
-      value: new EmailVO('john.doe@example.com')
-    })
+    const email = new Email('john.doe@example.com')
+    const otherEmail = new Email('username@example.com')
 
     user
       .addEmail(email)
-      .disableEmail(email.id)
-      .enableEmail(email.id)
+      .disableEmail(email)
+      .enableEmail(email)
 
     expect(user.emails[0].disabledAt).toBeUndefined()
 
-    expect(() => user.enableEmail('id')).toThrowError(new TypeError('Invalid id'))
-    expect(() => user.enableEmail(new UUID())).toThrowError(new Error('Not found'))
+    expect(() => user.enableEmail(email)).toThrowError(new Error('It\'s already enabled'))
+    expect(() => user.enableEmail(email.toString())).toThrowError(new TypeError('Invalid email'))
+    expect(() => user.enableEmail(otherEmail)).toThrowError(new Error('Not found'))
 
     user.disable()
 
-    expect(() => user.enableEmail(email.id)).toThrowError(new Error('User is disabled'))
+    expect(() => user.enableEmail(email)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to delete emails', () => {
     const user = new User(MIN_USER)
 
-    const email = new Email({
-      value: new EmailVO('john.doe@example.com')
-    })
+    const email = new Email('john.doe@example.com')
+    const otherEmail = new Email('username@example.com')
 
     user.addEmail(email)
 
-    expect(user.deleteEmail(new UUID())).toBeFalsy()
-    expect(user.deleteEmail(email.id)).toBeTruthy()
+    expect(() => user.deleteEmail(email.toString())).toThrowError(new TypeError('Invalid email'))
+    expect(user.deleteEmail(otherEmail)).toBeFalsy()
+    expect(user.deleteEmail(email)).toBeTruthy()
     expect(user.emails.length).toBe(0)
-
-    expect(() => user.deleteEmail('id')).toThrowError(new TypeError('Invalid id'))
 
     user.disable()
 
-    expect(() => user.deleteEmail(email.id)).toThrowError(new Error('User is disabled'))
+    expect(() => user.deleteEmail(email)).toThrowError(new Error('User is disabled'))
   })
 
   test('Given that we want to add phones', () => {
     const user = new User(MIN_USER)
 
-    const phone = new Phone({
-      value: new PhoneVO('+0 (1) 234-5678')
-    })
+    const phone = new Phone('+0 (1) 234-5678')
+    const otherPhone = new Phone('+01-234 (123) 67890-1234')
 
-    user
-      .addPhone(phone)
-      .addPhone(phone)
+    user.addPhone(phone)
+
+    expect(() => user.addPhone(phone)).toThrowError(new Error('It\'s already added'))
 
     expect(user.phones.length).toBe(1)
-    expect(user.phones).toContain(phone)
+    expect(user.phones).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        phone
+      })
+    ]))
 
-    const otherPhone = new Phone({
-      value: new PhoneVO('+01-234 (123) 67890-1234')
-    })
+    expect(() => user.addPhone(phone.toString())).toThrowError(new TypeError('Invalid phone'))
 
     user.addPhone(otherPhone)
 
     expect(user.phones.length).toBe(2)
-    expect(user.phones).toContain(otherPhone)
-
-    expect(() => user.addPhone(new PhoneVO('+01-234 (123) 67890-1234'))).toThrowError(new TypeError('Invalid phone'))
+    expect(user.phones).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        phone: otherPhone
+      })
+    ]))
 
     user.disable()
 
@@ -297,82 +298,80 @@ describe('Methods', () => {
   test('Given that we want to confirm phones', () => {
     const user = new User(MIN_USER)
 
-    const phone = new Phone({
-      value: new PhoneVO('+0 (1) 234-5678')
-    })
+    const phone = new Phone('+0 (1) 234-5678')
+    const otherPhone = new Phone('+01-234 (123) 67890-1234')
 
     user
       .addPhone(phone)
-      .confirmPhone(phone.id)
+      .confirmPhone(phone)
 
     expect(user.phones[0].confirmedAt).toBeDefined()
 
-    expect(() => user.confirmPhone('id')).toThrowError(new TypeError('Invalid id'))
-    expect(() => user.confirmPhone(new UUID())).toThrowError(new Error('Not found'))
+    expect(() => user.confirmPhone(phone)).toThrowError(new Error('It\'s already confirmed'))
+    expect(() => user.confirmPhone(phone.toString())).toThrowError(new TypeError('Invalid phone'))
+    expect(() => user.confirmPhone(otherPhone)).toThrowError(new Error('Not found'))
 
     user.disable()
 
-    expect(() => user.confirmPhone(phone.id)).toThrowError(new Error('User is disabled'))
+    expect(() => user.confirmPhone(phone)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to disable phones', () => {
     const user = new User(MIN_USER)
 
-    const phone = new Phone({
-      value: new PhoneVO('+0 (1) 234-5678')
-    })
+    const phone = new Phone('+0 (1) 234-5678')
+    const otherPhone = new Phone('+01-234 (123) 67890-1234')
 
     user
       .addPhone(phone)
-      .disablePhone(phone.id)
+      .disablePhone(phone)
 
     expect(user.phones[0].disabledAt).toBeDefined()
 
-    expect(() => user.disablePhone('id')).toThrowError(new TypeError('Invalid id'))
-    expect(() => user.disablePhone(new UUID())).toThrowError(new Error('Not found'))
+    expect(() => user.disablePhone(phone)).toThrowError(new Error('It\'s already disabled'))
+    expect(() => user.disablePhone(phone.toString())).toThrowError(new TypeError('Invalid phone'))
+    expect(() => user.disablePhone(otherPhone)).toThrowError(new Error('Not found'))
 
     user.disable()
 
-    expect(() => user.disablePhone(phone.id)).toThrowError(new Error('User is disabled'))
+    expect(() => user.disablePhone(phone)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to enable phones', () => {
     const user = new User(MIN_USER)
 
-    const phone = new Phone({
-      value: new PhoneVO('+0 (1) 234-5678')
-    })
+    const phone = new Phone('+0 (1) 234-5678')
+    const otherPhone = new Phone('+01-234 (123) 67890-1234')
 
     user
       .addPhone(phone)
-      .disablePhone(phone.id)
-      .enablePhone(phone.id)
+      .disablePhone(phone)
+      .enablePhone(phone)
 
     expect(user.phones[0].disabledAt).toBeUndefined()
 
-    expect(() => user.enablePhone('id')).toThrowError(new TypeError('Invalid id'))
-    expect(() => user.enablePhone(new UUID())).toThrowError(new Error('Not found'))
+    expect(() => user.enablePhone(phone)).toThrowError(new Error('It\'s already enabled'))
+    expect(() => user.enablePhone(phone.toString())).toThrowError(new TypeError('Invalid phone'))
+    expect(() => user.enablePhone(otherPhone)).toThrowError(new Error('Not found'))
 
     user.disable()
 
-    expect(() => user.enablePhone(phone.id)).toThrowError(new Error('User is disabled'))
+    expect(() => user.enablePhone(phone)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to delete phones', () => {
     const user = new User(MIN_USER)
 
-    const phone = new Phone({
-      value: new PhoneVO('+0 (1) 234-5678')
-    })
+    const phone = new Phone('+0 (1) 234-5678')
+    const otherPhone = new Phone('+01-234 (123) 67890-1234')
 
     user.addPhone(phone)
 
-    expect(user.deletePhone(new UUID())).toBeFalsy()
-    expect(user.deletePhone(phone.id)).toBeTruthy()
+    expect(() => user.deletePhone(phone.toString())).toThrowError(new TypeError('Invalid phone'))
+    expect(user.deletePhone(otherPhone)).toBeFalsy()
+    expect(user.deletePhone(phone)).toBeTruthy()
     expect(user.phones.length).toBe(0)
-
-    expect(() => user.deletePhone('id')).toThrowError(new TypeError('Invalid id'))
 
     user.disable()
 
-    expect(() => user.deletePhone(phone.id)).toThrowError(new Error('User is disabled'))
+    expect(() => user.deletePhone(phone)).toThrowError(new Error('User is disabled'))
   })
 
   test('Given that we want to add oauths', () => {
@@ -391,7 +390,17 @@ describe('Methods', () => {
       name: new Name('John Doe', {
         minAmountOfLastNames: 0
       }),
-      username: new EmailVO('john.doe@example.com', false),
+      username: new Email('john.doe@example.com', false),
+      accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
+      refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
+      expiresIn: new Date(Date.now() + ONE_YEAR)
+    })
+    const otherOauth = new Oauth({
+      provider: oauthProvider,
+      name: new Name('John', {
+        minAmountOfLastNames: 0
+      }),
+      username: new Email('john@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
       expiresIn: new Date(Date.now() + ONE_YEAR)
@@ -401,29 +410,18 @@ describe('Methods', () => {
       name: new Name('John Doe', {
         minAmountOfLastNames: 0
       }),
-      username: new EmailVO('JOHN.DOE@example.com', false),
+      username: new Email('JOHN.DOE@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
       expiresIn: new Date(Date.now() + ONE_YEAR)
     })
 
-    user
-      .addOauth(oauth)
-      .addOauth(oauthUpperCase)
+    user.addOauth(oauth)
+
+    expect(() => user.addOauth(oauthUpperCase)).toThrowError(new Error('It\'s already added'))
 
     expect(user.oauths.length).toBe(1)
     expect(user.oauths).toContain(oauth)
-
-    const otherOauth = new Oauth({
-      provider: oauthProvider,
-      name: new Name('John', {
-        minAmountOfLastNames: 0
-      }),
-      username: new EmailVO('john@example.com', false),
-      accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
-      refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
-      expiresIn: new Date(Date.now() + ONE_YEAR)
-    })
 
     user.addOauth(otherOauth)
 
@@ -452,7 +450,17 @@ describe('Methods', () => {
       name: new Name('John Doe', {
         minAmountOfLastNames: 0
       }),
-      username: new EmailVO('john.doe@example.com', false),
+      username: new Email('john.doe@example.com', false),
+      accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
+      refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
+      expiresIn: new Date(Date.now() + ONE_YEAR)
+    })
+    const otherOauth = new Oauth({
+      provider: oauthProvider,
+      name: new Name('John', {
+        minAmountOfLastNames: 0
+      }),
+      username: new Email('john@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
       expiresIn: new Date(Date.now() + ONE_YEAR)
@@ -469,7 +477,7 @@ describe('Methods', () => {
 
     user
       .addOauth(oauth)
-      .updateOauth(oauth.id, data)
+      .updateOauth(oauth, data)
 
     expect(user.oauths.length).toBe(1)
     expect(user.oauths).toContain(oauth)
@@ -478,12 +486,12 @@ describe('Methods', () => {
     expect(user.oauths[0].refreshToken).toBe(data.refreshToken)
     expect(user.oauths[0].expiresIn).toBe(data.expiresIn)
 
-    expect(() => user.updateOauth('id', data)).toThrowError(new TypeError('Invalid id'))
-    expect(() => user.updateOauth(new UUID(), data)).toThrowError(new Error('Not found'))
+    expect(() => user.updateOauth(oauth.id, data)).toThrowError(new TypeError('Invalid oauth'))
+    expect(() => user.updateOauth(otherOauth, data)).toThrowError(new Error('Not found'))
 
     user.disable()
 
-    expect(() => user.updateOauth(oauth.id, data)).toThrowError(new Error('User is disabled'))
+    expect(() => user.updateOauth(oauth, data)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to disable oauths', () => {
     const user = new User(MIN_USER)
@@ -501,7 +509,17 @@ describe('Methods', () => {
       name: new Name('John Doe', {
         minAmountOfLastNames: 0
       }),
-      username: new EmailVO('john.doe@example.com', false),
+      username: new Email('john.doe@example.com', false),
+      accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
+      refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
+      expiresIn: new Date(Date.now() + ONE_YEAR)
+    })
+    const otherOauth = new Oauth({
+      provider: oauthProvider,
+      name: new Name('John', {
+        minAmountOfLastNames: 0
+      }),
+      username: new Email('john@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
       expiresIn: new Date(Date.now() + ONE_YEAR)
@@ -509,16 +527,17 @@ describe('Methods', () => {
 
     user
       .addOauth(oauth)
-      .disableOauth(oauth.id)
+      .disableOauth(oauth)
 
     expect(user.oauths[0].disabledAt).toBeDefined()
 
-    expect(() => user.disableOauth('id')).toThrowError(new TypeError('Invalid id'))
-    expect(() => user.disableOauth(new UUID())).toThrowError(new Error('Not found'))
+    expect(() => user.disableOauth(oauth.id)).toThrowError(new TypeError('Invalid oauth'))
+    expect(() => user.disableOauth(oauth)).toThrowError(new Error('It\'s already disabled'))
+    expect(() => user.disableOauth(otherOauth)).toThrowError(new Error('Not found'))
 
     user.disable()
 
-    expect(() => user.disableOauth(oauth.id)).toThrowError(new Error('User is disabled'))
+    expect(() => user.disableOauth(oauth)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to enable oauths', () => {
     const user = new User(MIN_USER)
@@ -536,7 +555,17 @@ describe('Methods', () => {
       name: new Name('John Doe', {
         minAmountOfLastNames: 0
       }),
-      username: new EmailVO('john.doe@example.com', false),
+      username: new Email('john.doe@example.com', false),
+      accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
+      refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
+      expiresIn: new Date(Date.now() + ONE_YEAR)
+    })
+    const otherOauth = new Oauth({
+      provider: oauthProvider,
+      name: new Name('John', {
+        minAmountOfLastNames: 0
+      }),
+      username: new Email('john@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
       expiresIn: new Date(Date.now() + ONE_YEAR)
@@ -544,17 +573,18 @@ describe('Methods', () => {
 
     user
       .addOauth(oauth)
-      .disableOauth(oauth.id)
-      .enableOauth(oauth.id)
+      .disableOauth(oauth)
+      .enableOauth(oauth)
 
     expect(user.oauths[0].disabledAt).toBeUndefined()
 
-    expect(() => user.enableOauth('id')).toThrowError(new TypeError('Invalid id'))
-    expect(() => user.enableOauth(new UUID())).toThrowError(new Error('Not found'))
+    expect(() => user.enableOauth(oauth.id)).toThrowError(new TypeError('Invalid oauth'))
+    expect(() => user.enableOauth(oauth)).toThrowError(new Error('It\'s already enabled'))
+    expect(() => user.enableOauth(otherOauth)).toThrowError(new Error('Not found'))
 
     user.disable()
 
-    expect(() => user.enableOauth(oauth.id)).toThrowError(new Error('User is disabled'))
+    expect(() => user.enableOauth(oauth)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to delete oauths', () => {
     const user = new User(MIN_USER)
@@ -572,7 +602,17 @@ describe('Methods', () => {
       name: new Name('John Doe', {
         minAmountOfLastNames: 0
       }),
-      username: new EmailVO('john.doe@example.com', false),
+      username: new Email('john.doe@example.com', false),
+      accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
+      refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
+      expiresIn: new Date(Date.now() + ONE_YEAR)
+    })
+    const otherOauth = new Oauth({
+      provider: oauthProvider,
+      name: new Name('John', {
+        minAmountOfLastNames: 0
+      }),
+      username: new Email('john@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
       expiresIn: new Date(Date.now() + ONE_YEAR)
@@ -580,14 +620,14 @@ describe('Methods', () => {
 
     user.addOauth(oauth)
 
-    expect(user.deleteOauth(new UUID())).toBeFalsy()
-    expect(user.deleteOauth(oauth.id)).toBeTruthy()
+    expect(user.deleteOauth(otherOauth)).toBeFalsy()
+    expect(user.deleteOauth(oauth)).toBeTruthy()
     expect(user.oauths.length).toBe(0)
 
-    expect(() => user.deleteOauth('id')).toThrowError(new TypeError('Invalid id'))
+    expect(() => user.deleteOauth(oauth.id)).toThrowError(new TypeError('Invalid oauth'))
 
     user.disable()
 
-    expect(() => user.deleteOauth(oauth.id)).toThrowError(new Error('User is disabled'))
+    expect(() => user.deleteOauth(oauth)).toThrowError(new Error('User is disabled'))
   })
 })

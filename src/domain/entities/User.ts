@@ -1,21 +1,36 @@
 import UUID from '../VO/UUID.js'
 import Name from '../VO/Name.js'
-import EmailVO from '../VO/Email.js'
+import Email from '../VO/Email.js'
+import Phone from '../VO/Phone.js'
 import Password from '../VO/Password.js'
 
 import Entity from './Entity.js'
 import Oauth from './Oauth.js'
-import Email from './Email.js'
-import Phone from './Phone.js'
+// import Email from './Email.js'
+// import Phone from './Phone.js'
+
+export type emailDTO = {
+  id: UUID,
+  createdAt: Date,
+  confirmedAt?: Date,
+  disabledAt?: Date
+}
+
+export type phoneDTO = {
+  id: UUID,
+  createdAt: Date,
+  confirmedAt?: Date,
+  disabledAt?: Date
+}
 
 export default class User extends Entity {
   #name: Name
-  #phones: Phone[] = []
-  #emails: Email[] = []
-  #username: EmailVO
+  #phones: Map<string, emailDTO> = new Map<string, emailDTO>()
+  #emails: Map<string, phoneDTO> = new Map<string, phoneDTO>()
+  #username: Email
   #password: Password
   #picture?: URL
-  #oauths: Oauth[] = []
+  #oauths: { [key: string]: Oauth } = {}
   #tfa: Boolean
   #updatedAt: Date
   #disabledAt?: Date
@@ -28,14 +43,14 @@ export default class User extends Entity {
     picture
   }: {
     name: Name,
-    username: EmailVO,
+    username: Email,
     password: Password,
     picture?: URL,
     tfa?: boolean
   }) {
     super()
 
-    if (!(username instanceof EmailVO)) {
+    if (!(username instanceof Email)) {
       throw new TypeError('Invalid username')
     }
 
@@ -62,12 +77,12 @@ export default class User extends Entity {
     return this.#name
   }
 
-  get phones () {
-    return this.#phones
+  get phones (): phoneDTO[] {
+    return Array.from(this.#phones.keys()).map(phone => Object.assign({ phone: new Phone(phone) }, this.#phones.get(phone)))
   }
 
-  get emails () {
-    return this.#emails
+  get emails (): emailDTO[] {
+    return Array.from(this.#emails.keys()).map(email => Object.assign({ email: new Email(email) }, this.#emails.get(email)))
   }
 
   get username () {
@@ -105,7 +120,7 @@ export default class User extends Entity {
   }
 
   get oauths () {
-    return this.#oauths
+    return Object.values(this.#oauths)
   }
 
   set tfa (tfa: Boolean) {
@@ -135,6 +150,8 @@ export default class User extends Entity {
     }
 
     this.#updatedAt = this.#disabledAt = new Date()
+
+    return this
   }
 
   enable () {
@@ -144,6 +161,8 @@ export default class User extends Entity {
 
     this.#disabledAt = undefined
     this.#updatedAt = new Date()
+
+    return this
   }
 
   addEmail (email: Email) {
@@ -151,90 +170,98 @@ export default class User extends Entity {
       throw new Error('User is disabled')
     } else if (!(email instanceof Email)) {
       throw new TypeError('Invalid email')
+    } else if (!email.parse().domain) {
+      throw new Error('Domain required')
     }
 
-    if (!this.#emails.some(e => e.value.localeCompare(email.value.toString(), undefined, { sensitivity: 'accent' }) === 0)) {
-      this.#emails.push(email)
-      this.#updatedAt = new Date()
+    const key = email.toString().toLowerCase()
+
+    if (this.#emails.get(key)) {
+      throw new Error('It\'s already added')
     }
+
+    this.#emails.set(key, {
+      id: new UUID(),
+      createdAt: new Date()
+    })
+
+    this.#updatedAt = new Date()
 
     return this
   }
 
-  confirmEmail (id: UUID) {
+  confirmEmail (email: Email) {
     if (this.#disabledAt) {
       throw new Error('User is disabled')
-    } else if (!(id instanceof UUID)) {
-      throw new TypeError('Invalid id')
+    } else if (!(email instanceof Email)) {
+      throw new TypeError('Invalid email')
     }
 
-    const index = this.#emails.findIndex(email => email.id.localeCompare(id.toString(), undefined, { sensitivity: 'accent' }) === 0)
+    const _email = this.#emails.get(email.toString().toLowerCase())
 
-    if (index === -1) {
+    if (!_email) {
       throw new Error('Not found')
+    } else if (_email.confirmedAt) {
+      throw new Error('It\'s already confirmed')
     }
 
-    this.#emails[index].confirmedAt = new Date()
-    this.#updatedAt = new Date()
+    this.#updatedAt = _email.confirmedAt = new Date()
 
     return this
   }
 
-  disableEmail (id: UUID) {
+  disableEmail (email: Email) {
     if (this.#disabledAt) {
       throw new Error('User is disabled')
-    } else if (!(id instanceof UUID)) {
-      throw new TypeError('Invalid id')
+    } else if (!(email instanceof Email)) {
+      throw new TypeError('Invalid email')
     }
 
-    const index = this.#emails.findIndex(email => email.id.localeCompare(id.toString(), undefined, { sensitivity: 'accent' }) === 0)
+    const _email = this.#emails.get(email.toString().toLowerCase())
 
-    if (index === -1) {
+    if (!_email) {
       throw new Error('Not found')
+    } else if (_email.disabledAt) {
+      throw new Error('It\'s already disabled')
     }
 
-    this.#emails[index].disabledAt = new Date()
-    this.#updatedAt = new Date()
+    this.#updatedAt = _email.disabledAt = new Date()
 
     return this
   }
 
-  enableEmail (id: UUID) {
+  enableEmail (email: Email) {
     if (this.#disabledAt) {
       throw new Error('User is disabled')
-    } else if (!(id instanceof UUID)) {
-      throw new TypeError('Invalid id')
+    } else if (!(email instanceof Email)) {
+      throw new TypeError('Invalid email')
     }
 
-    const index = this.#emails.findIndex(email => email.id.localeCompare(id.toString(), undefined, { sensitivity: 'accent' }) === 0)
+    const _email = this.#emails.get(email.toString().toLowerCase())
 
-    if (index === -1) {
+    if (!_email) {
       throw new Error('Not found')
+    } else if (!_email.disabledAt) {
+      throw new Error('It\'s already enabled')
     }
 
-    this.#emails[index].disabledAt = undefined
+    _email.disabledAt = undefined
     this.#updatedAt = new Date()
 
     return this
   }
 
-  deleteEmail (id: UUID) {
+  deleteEmail (email: Email) {
     if (this.#disabledAt) {
       throw new Error('User is disabled')
-    } else if (!(id instanceof UUID)) {
-      throw new TypeError('Invalid id')
+    } else if (!(email instanceof Email)) {
+      throw new TypeError('Invalid email')
     }
 
-    const index = this.#emails.findIndex(email => email.id.localeCompare(id.toString(), undefined, { sensitivity: 'accent' }) === 0)
-
-    if (index === -1) {
-      return false
-    }
-
-    this.#emails.splice(index, 1)
+    const res = this.#emails.delete(email.toString().toLowerCase())
     this.#updatedAt = new Date()
 
-    return true
+    return res
   }
 
   addPhone (phone: Phone) {
@@ -244,88 +271,94 @@ export default class User extends Entity {
       throw new TypeError('Invalid phone')
     }
 
-    if (!this.#phones.some(p => p.value.toString() === phone.value.toString())) {
-      this.#phones.push(phone)
-      this.#updatedAt = new Date()
+    const key = phone.toString().toLowerCase()
+
+    if (this.#phones.get(key)) {
+      throw new Error('It\'s already added')
     }
+
+    this.#phones.set(key, {
+      id: new UUID(),
+      createdAt: new Date()
+    })
+
+    this.#updatedAt = new Date()
 
     return this
   }
 
-  confirmPhone (id: UUID) {
+  confirmPhone (phone: Phone) {
     if (this.#disabledAt) {
       throw new Error('User is disabled')
-    } else if (!(id instanceof UUID)) {
-      throw new TypeError('Invalid id')
+    } else if (!(phone instanceof Phone)) {
+      throw new TypeError('Invalid phone')
     }
 
-    const index = this.#phones.findIndex(phone => phone.id.localeCompare(id.toString(), undefined, { sensitivity: 'accent' }) === 0)
+    const _phone = this.#phones.get(phone.toString().toLowerCase())
 
-    if (index === -1) {
+    if (!_phone) {
       throw new Error('Not found')
+    } else if (_phone.confirmedAt) {
+      throw new Error('It\'s already confirmed')
     }
 
-    this.#phones[index].confirmedAt = new Date()
-    this.#updatedAt = new Date()
+    this.#updatedAt = _phone.confirmedAt = new Date()
 
     return this
   }
 
-  disablePhone (id: UUID) {
+  disablePhone (phone: Phone) {
     if (this.#disabledAt) {
       throw new Error('User is disabled')
-    } else if (!(id instanceof UUID)) {
-      throw new TypeError('Invalid id')
+    } else if (!(phone instanceof Phone)) {
+      throw new TypeError('Invalid phone')
     }
 
-    const index = this.#phones.findIndex(phone => phone.id.localeCompare(id.toString(), undefined, { sensitivity: 'accent' }) === 0)
+    const _phone = this.#phones.get(phone.toString().toLowerCase())
 
-    if (index === -1) {
+    if (!_phone) {
       throw new Error('Not found')
+    } else if (_phone.disabledAt) {
+      throw new Error('It\'s already disabled')
     }
 
-    this.#phones[index].disabledAt = new Date()
-    this.#updatedAt = new Date()
+    this.#updatedAt = _phone.disabledAt = new Date()
 
     return this
   }
 
-  enablePhone (id: UUID) {
+  enablePhone (phone: Phone) {
     if (this.#disabledAt) {
       throw new Error('User is disabled')
-    } else if (!(id instanceof UUID)) {
-      throw new TypeError('Invalid id')
+    } else if (!(phone instanceof Phone)) {
+      throw new TypeError('Invalid phone')
     }
 
-    const index = this.#phones.findIndex(phone => phone.id.localeCompare(id.toString(), undefined, { sensitivity: 'accent' }) === 0)
+    const _phone = this.#phones.get(phone.toString().toLowerCase())
 
-    if (index === -1) {
+    if (!_phone) {
       throw new Error('Not found')
+    } else if (!_phone.disabledAt) {
+      throw new Error('It\'s already enabled')
     }
 
-    this.#phones[index].disabledAt = undefined
+    _phone.disabledAt = undefined
     this.#updatedAt = new Date()
 
     return this
   }
 
-  deletePhone (id: UUID) {
+  deletePhone (phone: Phone) {
     if (this.#disabledAt) {
       throw new Error('User is disabled')
-    } else if (!(id instanceof UUID)) {
-      throw new TypeError('Invalid id')
+    } else if (!(phone instanceof Phone)) {
+      throw new TypeError('Invalid phone')
     }
 
-    const index = this.#phones.findIndex(phone => phone.id.localeCompare(id.toString(), undefined, { sensitivity: 'accent' }) === 0)
-
-    if (index === -1) {
-      return false
-    }
-
-    this.#phones.splice(index, 1)
+    const res = this.#phones.delete(phone.toString().toLowerCase())
     this.#updatedAt = new Date()
 
-    return true
+    return res
   }
 
   addOauth (oauth: Oauth) {
@@ -335,18 +368,22 @@ export default class User extends Entity {
       throw new TypeError('Invalid oauth')
     }
 
-    if (!this.#oauths.some(o => (
-      o.username.localeCompare(oauth.username.toString(), undefined, { sensitivity: 'accent' }) === 0 &&
-      o.provider.id.localeCompare(oauth.provider.id.toString(), undefined, { sensitivity: 'accent' }) === 0
-    ))) {
-      this.#oauths.push(oauth)
-      this.#updatedAt = new Date()
+    const key = oauth.username.toString().toLowerCase()
+
+    if (
+      key in this.#oauths &&
+      this.#oauths[key].provider.id.toString().toLowerCase() === oauth.provider.id.toString().toLowerCase()
+    ) {
+      throw new Error('It\'s already added')
     }
+
+    this.#oauths[key] = oauth
+    this.#updatedAt = new Date()
 
     return this
   }
 
-  updateOauth (id: Oauth, {
+  updateOauth (oauth: Oauth, {
     name,
     picture,
     accessToken,
@@ -361,81 +398,81 @@ export default class User extends Entity {
   }) {
     if (this.#disabledAt) {
       throw new Error('User is disabled')
-    } else if (!(id instanceof UUID)) {
-      throw new TypeError('Invalid id')
+    } else if (!(oauth instanceof Oauth)) {
+      throw new TypeError('Invalid oauth')
     }
 
-    const index = this.#oauths.findIndex(oauth => oauth.id.localeCompare(id.toString(), undefined, { sensitivity: 'accent' }) === 0)
+    const key = oauth.username.toString().toLowerCase()
 
-    if (index === -1) {
+    if (!(key in this.#oauths)) {
       throw new Error('Not found')
     }
 
-    this.#oauths[index].name = name
-    this.#oauths[index].picture = picture
-    this.#oauths[index].accessToken = accessToken
-    this.#oauths[index].refreshToken = refreshToken
-    this.#oauths[index].expiresIn = expiresIn
+    this.#oauths[key].name = name
+    this.#oauths[key].picture = picture
+    this.#oauths[key].accessToken = accessToken
+    this.#oauths[key].refreshToken = refreshToken
+    this.#oauths[key].expiresIn = expiresIn
 
     this.#updatedAt = new Date()
 
     return this
   }
 
-  disableOauth (id: Oauth) {
+  disableOauth (oauth: Oauth) {
     if (this.#disabledAt) {
       throw new Error('User is disabled')
-    } else if (!(id instanceof UUID)) {
-      throw new TypeError('Invalid id')
+    } else if (!(oauth instanceof Oauth)) {
+      throw new TypeError('Invalid oauth')
     }
 
-    const index = this.#oauths.findIndex(oauth => oauth.id.localeCompare(id.toString(), undefined, { sensitivity: 'accent' }) === 0)
+    const key = oauth.username.toString().toLowerCase()
 
-    if (index === -1) {
+    if (!(key in this.#oauths)) {
       throw new Error('Not found')
     }
 
-    this.#oauths[index].disable()
+    this.#oauths[key].disable()
     this.#updatedAt = new Date()
 
     return this
   }
 
-  enableOauth (id: Oauth) {
+  enableOauth (oauth: Oauth) {
     if (this.#disabledAt) {
       throw new Error('User is disabled')
-    } else if (!(id instanceof UUID)) {
-      throw new TypeError('Invalid id')
+    } else if (!(oauth instanceof Oauth)) {
+      throw new TypeError('Invalid oauth')
     }
 
-    const index = this.#oauths.findIndex(oauth => oauth.id.localeCompare(id.toString(), undefined, { sensitivity: 'accent' }) === 0)
+    const key = oauth.username.toString().toLowerCase()
 
-    if (index === -1) {
+    if (!(key in this.#oauths)) {
       throw new Error('Not found')
     }
 
-    this.#oauths[index].enable()
+    this.#oauths[key].enable()
     this.#updatedAt = new Date()
 
     return this
   }
 
-  deleteOauth (id: UUID) {
+  deleteOauth (oauth: Oauth) {
     if (this.#disabledAt) {
       throw new Error('User is disabled')
-    } else if (!(id instanceof UUID)) {
-      throw new TypeError('Invalid id')
+    } else if (!(oauth instanceof Oauth)) {
+      throw new TypeError('Invalid oauth')
     }
 
-    const index = this.#oauths.findIndex(oauth => oauth.id.localeCompare(id.toString(), undefined, { sensitivity: 'accent' }) === 0)
+    const key = oauth.username.toString().toLowerCase()
 
-    if (index === -1) {
+    if (!(key in this.#oauths)) {
       return false
     }
 
-    this.#oauths.splice(index, 1)
+    const res = delete this.#oauths[key]
     this.#updatedAt = new Date()
 
-    return true
+    return res
   }
 }
