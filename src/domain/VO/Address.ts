@@ -1,4 +1,4 @@
-export type addressDTO = {
+export type AddressDTO = {
   city: string,
   complement?: string,
   country: string,
@@ -12,7 +12,7 @@ export type addressDTO = {
 export default class Address extends String {
   private static readonly pattern = /^\p{Z}*(?:(?<number>\p{N}[\p{N}.]*\p{N})\p{Z}*,\p{Z}*)?(?<street>[\p{L}\p{N}\p{P}](?<![,(])(?:(?:[\p{Z}\p{L}\p{N}\p{P}](?<![,(]))*[\p{L}\p{N}\p{P}](?<![,(]))?)(?:\p{Z}*\u0028\p{Z}*(?<complement>[\p{L}\p{N}\p{P}](?:[\p{Z}\p{L}\p{N}\p{P}]*[\p{L}\p{N}\p{P}])?)\p{Z}*\u0029)?\p{Z}*,\p{Z}*(?:(?<district>[\p{L}\p{N}\p{P}](?<!,)(?:(?:[\p{Z}\p{L}\p{N}\p{P}](?<!,))*[\p{L}\p{N}\p{P}](?<!,))?)\p{Z}*,\p{Z}*)?(?<city>[\p{L}\p{P}](?<!,)(?:(?:[\p{Z}\p{L}\p{P}](?<!,))*[\p{L}\p{P}](?<!,))?)\p{Z}*,\p{Z}*(?<state>[\p{L}\p{P}](?<!,)(?:(?:[\p{Z}\p{L}\p{P}](?<!,))*[\p{L}\p{P}](?<!,))?)\p{Z}*,\p{Z}*(?<postalCode>(?:[\p{N}\p{L}\p{P}](?<!,))+)\p{Z}*,\p{Z}*(?<country>[\p{L}\p{P}](?<!,)(?:(?:[\p{Z}\p{L}\p{P}](?<!,))*[\p{L}\p{P}](?<!,))?)\p{Z}*$/iu
 
-  constructor (address: String | addressDTO) {
+  constructor (address: String | AddressDTO) {
     if (!Address.verify(address)) {
       throw new TypeError('Invalid address')
     }
@@ -21,7 +21,7 @@ export default class Address extends String {
       (address instanceof String) ||
       typeof address === 'string'
     ) {
-      address = Address.parse(address) as addressDTO
+      address = Address.parse(address) as AddressDTO
     }
 
     super(Address.stringify(address))
@@ -29,7 +29,7 @@ export default class Address extends String {
     Object.freeze(this)
   }
 
-  private static stringify (address: addressDTO) {
+  private static stringify (address: AddressDTO) {
     let formattedAddress = Number.isFinite(address.number) ? `${address.number}, ` : ''
 
     formattedAddress += address.street
@@ -63,10 +63,10 @@ export default class Address extends String {
   }
 
   parse = () => {
-    return Address.parse(this) as addressDTO
+    return Address.parse(this) as AddressDTO
   }
 
-  static verify (address: String | addressDTO) {
+  static verify (address: String | AddressDTO) {
     if (
       typeof address === 'object' &&
       !(address instanceof String) &&

@@ -6,7 +6,7 @@
 
 import crypto from 'node:crypto'
 
-export type passwordDTO = {
+export type PasswordDTO = {
   algorithm: string,
   iterations: number,
   salt: string,
@@ -125,7 +125,7 @@ export default class Password extends String {
   }
 
   parse = () => {
-    return Password.parse(this) as passwordDTO
+    return Password.parse(this) as PasswordDTO
   }
 
   static verify (password: String, {

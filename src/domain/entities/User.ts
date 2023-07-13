@@ -9,14 +9,14 @@ import Oauth from './Oauth.js'
 // import Email from './Email.js'
 // import Phone from './Phone.js'
 
-export type emailDTO = {
+export type EmailDTO = {
   id: UUID,
   createdAt: Date,
   confirmedAt?: Date,
   disabledAt?: Date
 }
 
-export type phoneDTO = {
+export type PhoneDTO = {
   id: UUID,
   createdAt: Date,
   confirmedAt?: Date,
@@ -25,8 +25,8 @@ export type phoneDTO = {
 
 export default class User extends Entity {
   #name: Name
-  #phones: Map<string, emailDTO> = new Map<string, emailDTO>()
-  #emails: Map<string, phoneDTO> = new Map<string, phoneDTO>()
+  #phones: Map<string, EmailDTO> = new Map<string, EmailDTO>()
+  #emails: Map<string, PhoneDTO> = new Map<string, PhoneDTO>()
   #username: Email
   #password: Password
   #picture?: URL
@@ -77,11 +77,11 @@ export default class User extends Entity {
     return this.#name
   }
 
-  get phones (): phoneDTO[] {
+  get phones (): PhoneDTO[] {
     return Array.from(this.#phones.keys()).map(phone => Object.assign({ phone: new Phone(phone) }, this.#phones.get(phone)))
   }
 
-  get emails (): emailDTO[] {
+  get emails (): EmailDTO[] {
     return Array.from(this.#emails.keys()).map(email => Object.assign({ email: new Email(email) }, this.#emails.get(email)))
   }
 
