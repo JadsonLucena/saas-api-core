@@ -5,7 +5,7 @@
 
 import dns from 'node:dns'
 
-export type emailDTO = {
+export type EmailDTO = {
   username: string,
   domain?: string
 }
@@ -32,7 +32,7 @@ export default class Email extends String {
   }
 
   parse = () => {
-    return Email.parse(this) as emailDTO
+    return Email.parse(this) as EmailDTO
   }
 
   static verify (email: String, domainRequired: boolean = true) {

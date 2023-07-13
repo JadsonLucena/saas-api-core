@@ -1,4 +1,4 @@
-export type nameDTO = {
+export type NameDTO = {
   firstName: string,
   lastName?: string
 }
@@ -6,7 +6,7 @@ export type nameDTO = {
 export default class Name extends String {
   private static readonly pattern = /^\p{Z}*(?<firstName>[\p{L}\p{P}]+)(?:\p{Z}+(?<lastName>[\p{L}\p{P}](?:[\p{Z}\p{L}\p{P}]*[\p{L}\p{P}])?))?\p{Z}*$/iu
 
-  constructor (name: String | nameDTO, {
+  constructor (name: String | NameDTO, {
     minLength,
     maxLength,
     minAmountOfLastNames
@@ -28,7 +28,7 @@ export default class Name extends String {
     Object.freeze(this)
   }
 
-  private static stringify (name: String | nameDTO) {
+  private static stringify (name: String | NameDTO) {
     if (
       !(name instanceof String) &&
       typeof name !== 'string'
@@ -57,10 +57,10 @@ export default class Name extends String {
   }
 
   parse = () => {
-    return Name.parse(this) as nameDTO
+    return Name.parse(this) as NameDTO
   }
 
-  static verify (name: String | nameDTO, {
+  static verify (name: String | NameDTO, {
     minLength = 1,
     maxLength = 256,
     minAmountOfLastNames = 1

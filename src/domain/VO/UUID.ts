@@ -21,7 +21,7 @@
 
 import crypto from 'node:crypto'
 
-export type uuidDTO = {
+export type UUIDDTO = {
   time_low: string,
   time_mid: string,
   time_high_and_version: string,
@@ -79,7 +79,7 @@ export default class UUID extends String {
   }
 
   parse = () => {
-    return UUID.parse(this) as uuidDTO
+    return UUID.parse(this) as UUIDDTO
   }
 
   toBinary = () => {
