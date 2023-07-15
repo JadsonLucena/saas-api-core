@@ -1,3 +1,4 @@
+import UUID from '../VO/UUID.js'
 import Name from '../VO/Name.js'
 
 import Entity from './Entity.js'
@@ -11,23 +12,42 @@ export default class OauthProvider extends Entity {
   #disabledAt?: Date
 
   constructor ({
+    id,
     name,
     picture,
     clientId,
-    clientSecret
+    clientSecret,
+    createdAt,
+    updatedAt,
+    disabledAt
   }: {
+    id?: UUID,
     name: Name,
     picture?: URL,
     clientId: string,
-    clientSecret: string
+    clientSecret: string,
+    createdAt?: Date,
+    updatedAt?: Date,
+    disabledAt?: Date
   }) {
-    super()
+    super({
+      id,
+      createdAt
+    })
+
+    if (!(disabledAt instanceof Date) && typeof disabledAt !== 'undefined') {
+      throw new TypeError('Invalid disabledAt')
+    }
+    if (!(updatedAt instanceof Date) && typeof updatedAt !== 'undefined') {
+      throw new TypeError('Invalid updatedAt')
+    }
 
     this.name = name
     this.picture = picture
     this.clientId = clientId
     this.clientSecret = clientSecret
-    this.#updatedAt = this.createdAt
+    this.#disabledAt = disabledAt
+    this.#updatedAt = updatedAt ?? this.createdAt
   }
 
   set name (name: Name) {

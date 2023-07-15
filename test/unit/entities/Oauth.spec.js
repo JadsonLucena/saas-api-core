@@ -1,3 +1,4 @@
+import UUID from '../../../build/domain/VO/UUID.js'
 import Email from '../../../build/domain/VO/Email.js'
 import Name from '../../../build/domain/VO/Name.js'
 
@@ -25,7 +26,11 @@ const MIN_OAUTH = {
 }
 const MAX_OAUTH = {
   ...MIN_OAUTH,
-  picture: new URL('https://cdn.example.com/oauth/profile/userId.webp')
+  id: new UUID(),
+  picture: new URL('https://cdn.example.com/oauth/profile/userId.webp'),
+  createdAt: new Date(),
+  updatedAt: new Date()
+  // disabledAt: new Date()
 }
 const INVALID_INPUT_TYPES = [
   {},
@@ -79,11 +84,23 @@ describe('Constructor', () => {
         refreshToken: input
       })).toThrowError(new TypeError('Invalid refreshToken'))
     })
-    INVALID_INPUT_TYPES.concat(undefined, null).filter(input => input != null).forEach(input => {
+    INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
       expect(() => new Oauth({
         ...MAX_OAUTH,
         expiresIn: input
       })).toThrowError(new TypeError('Invalid expiresIn'))
+    })
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => new Oauth({
+        ...MAX_OAUTH,
+        updatedAt: input
+      })).toThrowError(new TypeError('Invalid updatedAt'))
+    })
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => new Oauth({
+        ...MAX_OAUTH,
+        disabledAt: input
+      })).toThrowError(new TypeError('Invalid disabledAt'))
     })
 
     // expect(() => new Oauth({
