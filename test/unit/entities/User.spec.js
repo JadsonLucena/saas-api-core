@@ -1,3 +1,4 @@
+import UUID from '../../../build/domain/VO/UUID.js'
 import Name from '../../../build/domain/VO/Name.js'
 import Email from '../../../build/domain/VO/Email.js'
 import Phone from '../../../build/domain/VO/Phone.js'
@@ -16,8 +17,12 @@ const MIN_USER = {
 }
 const MAX_USER = {
   ...MIN_USER,
+  id: new UUID(),
   picture: new URL('file://path/to/file.webp'),
-  tfa: true
+  tfa: true,
+  createdAt: new Date(),
+  updatedAt: new Date()
+  // disabledAt: new Date()
 }
 const INVALID_INPUT_TYPES = [
   {},
@@ -58,6 +63,18 @@ describe('Constructor', () => {
         ...MAX_USER,
         picture: input
       })).toThrowError(new TypeError('Invalid picture'))
+    })
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => new User({
+        ...MAX_USER,
+        updatedAt: input
+      })).toThrowError(new TypeError('Invalid updatedAt'))
+    })
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => new User({
+        ...MAX_USER,
+        disabledAt: input
+      })).toThrowError(new TypeError('Invalid disabledAt'))
     })
   })
 
@@ -152,6 +169,9 @@ describe('Methods', () => {
     const emailUpperCase = new Email('john.doe@example.com')
     const otherEmail = new Email('username@example.com')
 
+    expect(() => user.addEmail(email.toString())).toThrowError(new TypeError('Invalid email'))
+    expect(() => user.addEmail(new Email('login', false))).toThrowError(new TypeError('Domain required'))
+
     user.addEmail(email)
 
     expect(() => user.addEmail(emailUpperCase)).toThrowError(new Error('It\'s already added'))
@@ -168,6 +188,22 @@ describe('Methods', () => {
       })
     ]))
 
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => user.addEmail(otherEmail, {
+        createdAt: input
+      })).toThrowError(new TypeError('Invalid createdAt'))
+    })
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => user.addEmail(otherEmail, {
+        confirmedAt: input
+      })).toThrowError(new TypeError('Invalid confirmedAt'))
+    })
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => user.addEmail(otherEmail, {
+        disabledAt: input
+      })).toThrowError(new TypeError('Invalid disabledAt'))
+    })
+
     user.addEmail(otherEmail)
 
     expect(user.emails.length).toBe(2)
@@ -176,9 +212,6 @@ describe('Methods', () => {
         email: otherEmail
       })
     ]))
-
-    expect(() => user.addEmail(email.toString())).toThrowError(new TypeError('Invalid email'))
-    expect(() => user.addEmail(new Email('login', false))).toThrowError(new TypeError('Domain required'))
 
     user.disable()
 
@@ -269,6 +302,8 @@ describe('Methods', () => {
     const phone = new Phone('+0 (1) 234-5678')
     const otherPhone = new Phone('+01-234 (123) 67890-1234')
 
+    expect(() => user.addPhone(phone.toString())).toThrowError(new TypeError('Invalid phone'))
+
     user.addPhone(phone)
 
     expect(() => user.addPhone(phone)).toThrowError(new Error('It\'s already added'))
@@ -280,7 +315,21 @@ describe('Methods', () => {
       })
     ]))
 
-    expect(() => user.addPhone(phone.toString())).toThrowError(new TypeError('Invalid phone'))
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => user.addPhone(otherPhone, {
+        createdAt: input
+      })).toThrowError(new TypeError('Invalid createdAt'))
+    })
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => user.addPhone(otherPhone, {
+        confirmedAt: input
+      })).toThrowError(new TypeError('Invalid confirmedAt'))
+    })
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => user.addPhone(otherPhone, {
+        disabledAt: input
+      })).toThrowError(new TypeError('Invalid disabledAt'))
+    })
 
     user.addPhone(otherPhone)
 

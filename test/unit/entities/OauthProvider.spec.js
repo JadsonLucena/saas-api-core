@@ -14,9 +14,13 @@ const MAX_OAUTH_PROVIDER = {
   name: new Name('Linkedin', {
     minAmountOfLastNames: 0
   }),
+  id: new UUID(),
   picture: new URL('https://cdn.example.com/oauth/linkedin.webp'),
   clientId: '28cjjwaxaz7c15',
-  clientSecret: 'OaNGp7Lf9AKmJ4Se'
+  clientSecret: 'OaNGp7Lf9AKmJ4Se',
+  createdAt: new Date(),
+  updatedAt: new Date()
+  // disabledAt: new Date()
 }
 const INVALID_INPUT_TYPES = [
   {},
@@ -57,6 +61,18 @@ describe('Constructor', () => {
         ...MAX_OAUTH_PROVIDER,
         clientSecret: input
       })).toThrowError(new TypeError('Invalid clientSecret'))
+    })
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => new OauthProvider({
+        ...MAX_OAUTH_PROVIDER,
+        updatedAt: input
+      })).toThrowError(new TypeError('Invalid updatedAt'))
+    })
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => new OauthProvider({
+        ...MAX_OAUTH_PROVIDER,
+        disabledAt: input
+      })).toThrowError(new TypeError('Invalid disabledAt'))
     })
 
     // expect(() => new OauthProvider({

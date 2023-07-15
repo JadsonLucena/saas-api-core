@@ -10,48 +10,65 @@ import Oauth from './Oauth.js'
 // import Phone from './Phone.js'
 
 export type EmailDTO = {
-  id: UUID,
-  createdAt: Date,
+  email: Email,
+  createdAt?: Date,
   confirmedAt?: Date,
   disabledAt?: Date
 }
 
 export type PhoneDTO = {
-  id: UUID,
-  createdAt: Date,
+  phone: Phone,
+  createdAt?: Date,
   confirmedAt?: Date,
   disabledAt?: Date
 }
 
 export default class User extends Entity {
   #name: Name
-  #phones: Map<string, EmailDTO> = new Map<string, EmailDTO>()
-  #emails: Map<string, PhoneDTO> = new Map<string, PhoneDTO>()
   #username: Email
   #password: Password
   #picture?: URL
-  #oauths: { [key: string]: Oauth } = {}
   #tfa: Boolean
+  #emails: Map<string, Omit<EmailDTO, 'email'>> = new Map<string, Omit<EmailDTO, 'email'>>()
+  #phones: Map<string, Omit<PhoneDTO, 'phone'>> = new Map<string, Omit<PhoneDTO, 'phone'>>()
+  #oauths: { [key: string]: Oauth } = {}
   #updatedAt: Date
   #disabledAt?: Date
 
   constructor ({
+    id,
     name,
     username,
     password,
     tfa = false,
-    picture
+    picture,
+    createdAt,
+    updatedAt,
+    disabledAt
   }: {
+    id?: UUID,
     name: Name,
     username: Email,
     password: Password,
     picture?: URL,
-    tfa?: boolean
+    tfa?: boolean,
+    createdAt?: Date,
+    updatedAt?: Date,
+    disabledAt?: Date
   }) {
-    super()
+    super({
+      id,
+      createdAt
+    })
 
     if (!(username instanceof Email)) {
       throw new TypeError('Invalid username')
+    }
+    if (!(disabledAt instanceof Date) && typeof disabledAt !== 'undefined') {
+      throw new TypeError('Invalid disabledAt')
+    }
+    if (!(updatedAt instanceof Date) && typeof updatedAt !== 'undefined') {
+      throw new TypeError('Invalid updatedAt')
     }
 
     this.name = name
@@ -59,7 +76,8 @@ export default class User extends Entity {
     this.password = password
     this.picture = picture
     this.tfa = tfa
-    this.#updatedAt = this.createdAt
+    this.#disabledAt = disabledAt
+    this.#updatedAt = updatedAt ?? this.createdAt
   }
 
   set name (name: Name) {
@@ -165,13 +183,23 @@ export default class User extends Entity {
     return this
   }
 
-  addEmail (email: Email) {
+  addEmail (email: Email, {
+    createdAt = new Date(),
+    confirmedAt,
+    disabledAt
+  }: Omit<EmailDTO, 'email'> = {}) {
     if (this.#disabledAt) {
       throw new Error('User is disabled')
     } else if (!(email instanceof Email)) {
       throw new TypeError('Invalid email')
     } else if (!email.parse().domain) {
       throw new Error('Domain required')
+    } else if (!(createdAt instanceof Date) && typeof createdAt !== 'undefined') {
+      throw new TypeError('Invalid createdAt')
+    } else if (!(confirmedAt instanceof Date) && typeof confirmedAt !== 'undefined') {
+      throw new TypeError('Invalid confirmedAt')
+    } else if (!(disabledAt instanceof Date) && typeof disabledAt !== 'undefined') {
+      throw new TypeError('Invalid disabledAt')
     }
 
     const key = email.toString().toLowerCase()
@@ -181,8 +209,9 @@ export default class User extends Entity {
     }
 
     this.#emails.set(key, {
-      id: new UUID(),
-      createdAt: new Date()
+      createdAt,
+      confirmedAt,
+      disabledAt
     })
 
     this.#updatedAt = new Date()
@@ -264,11 +293,21 @@ export default class User extends Entity {
     return res
   }
 
-  addPhone (phone: Phone) {
+  addPhone (phone: Phone, {
+    createdAt = new Date(),
+    confirmedAt,
+    disabledAt
+  }: Omit<PhoneDTO, 'phone'> = {}) {
     if (this.#disabledAt) {
       throw new Error('User is disabled')
     } else if (!(phone instanceof Phone)) {
       throw new TypeError('Invalid phone')
+    } else if (!(createdAt instanceof Date) && typeof createdAt !== 'undefined') {
+      throw new TypeError('Invalid createdAt')
+    } else if (!(confirmedAt instanceof Date) && typeof confirmedAt !== 'undefined') {
+      throw new TypeError('Invalid confirmedAt')
+    } else if (!(disabledAt instanceof Date) && typeof disabledAt !== 'undefined') {
+      throw new TypeError('Invalid disabledAt')
     }
 
     const key = phone.toString().toLowerCase()
@@ -278,8 +317,9 @@ export default class User extends Entity {
     }
 
     this.#phones.set(key, {
-      id: new UUID(),
-      createdAt: new Date()
+      createdAt,
+      confirmedAt,
+      disabledAt
     })
 
     this.#updatedAt = new Date()
