@@ -19,7 +19,6 @@ const MAX_USER = {
   ...MIN_USER,
   id: new UUID(),
   picture: new URL('file://path/to/file.webp'),
-  tfa: true,
   createdAt: new Date(),
   updatedAt: new Date()
   // disabledAt: new Date()
@@ -110,9 +109,9 @@ describe('Attributes', () => {
     expect(user.updatedAt).not.toBe(updatedAt)
 
     updatedAt = user.updatedAt
-    user.tfa = MAX_USER.tfa
-    expect(user.tfa).toBe(MAX_USER.tfa)
-    expect(user.updatedAt).not.toBe(updatedAt)
+    expect(() => { user.tfa = true }).toThrowError(new Error('The User must have at least one active phone'))
+    expect(user.tfa).toBeFalsy()
+    expect(user.updatedAt).toBe(updatedAt)
 
     updatedAt = user.updatedAt
     user.picture = MAX_USER.picture
@@ -381,7 +380,7 @@ describe('Methods', () => {
 
     user.disable()
 
-    expect(() => user.confirmPhone(phone)).toThrowError(new Error('User is disabled'))
+    expect(() => user.confirmPhone(otherPhone)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to disable phones', () => {
     const user = new User(MIN_USER)
@@ -399,9 +398,26 @@ describe('Methods', () => {
     expect(() => user.disablePhone(phone.toString())).toThrowError(new TypeError('Invalid phone'))
     expect(() => user.disablePhone(otherPhone)).toThrowError(new Error('Not found'))
 
+    user
+      .confirmPhone(phone)
+      .addPhone(otherPhone)
+
+    expect(() => { user.tfa = true }).toThrowError(new Error('The User must have at least one active phone'))
+
+    user.enablePhone(phone)
+
+    user.tfa = true
+
+    expect(() => user.disablePhone(phone)).toThrowError(new Error('TFA active. The User must have at least one active phone'))
+    expect(() => user.disablePhone(otherPhone)).not.toThrow()
+
+    user.tfa = false
+
+    user.disablePhone(phone)
+
     user.disable()
 
-    expect(() => user.disablePhone(phone)).toThrowError(new Error('User is disabled'))
+    expect(() => user.disablePhone(otherPhone)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to enable phones', () => {
     const user = new User(MIN_USER)
@@ -422,7 +438,7 @@ describe('Methods', () => {
 
     user.disable()
 
-    expect(() => user.enablePhone(phone)).toThrowError(new Error('User is disabled'))
+    expect(() => user.enablePhone(otherPhone)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to delete phones', () => {
     const user = new User(MIN_USER)
@@ -437,9 +453,23 @@ describe('Methods', () => {
     expect(user.deletePhone(phone)).toBeTruthy()
     expect(user.phones.length).toBe(0)
 
+    user
+      .addPhone(phone)
+      .confirmPhone(phone)
+      .tfa = true
+
+    user.addPhone(otherPhone)
+
+    expect(() => user.deletePhone(phone)).toThrowError(new Error('TFA active. The User must have at least one active phone'))
+    expect(user.deletePhone(otherPhone)).toBeTruthy()
+
+    user.tfa = false
+
+    expect(user.deletePhone(phone)).toBeTruthy()
+
     user.disable()
 
-    expect(() => user.deletePhone(phone)).toThrowError(new Error('User is disabled'))
+    expect(() => user.deletePhone(otherPhone)).toThrowError(new Error('User is disabled'))
   })
 
   test('Given that we want to add oauths', () => {

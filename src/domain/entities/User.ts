@@ -28,7 +28,7 @@ export default class User extends Entity {
   #username: Email
   #password: Password
   #picture?: URL
-  #tfa: Boolean
+  #tfa: Boolean = false
   #emails: Map<string, Omit<EmailDTO, 'email'>> = new Map<string, Omit<EmailDTO, 'email'>>()
   #phones: Map<string, Omit<PhoneDTO, 'phone'>> = new Map<string, Omit<PhoneDTO, 'phone'>>()
   #oauths: { [key: string]: Oauth } = {}
@@ -40,7 +40,6 @@ export default class User extends Entity {
     name,
     username,
     password,
-    tfa = false,
     picture,
     createdAt,
     updatedAt,
@@ -51,7 +50,6 @@ export default class User extends Entity {
     username: Email,
     password: Password,
     picture?: URL,
-    tfa?: boolean,
     createdAt?: Date,
     updatedAt?: Date,
     disabledAt?: Date
@@ -75,7 +73,6 @@ export default class User extends Entity {
     this.#username = username
     this.password = password
     this.picture = picture
-    this.tfa = tfa
     this.#disabledAt = disabledAt
     this.#updatedAt = updatedAt ?? this.createdAt
   }
@@ -144,6 +141,8 @@ export default class User extends Entity {
   set tfa (tfa: Boolean) {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
+    } else if (tfa && !Array.from(this.#phones.values()).some(phone => phone.confirmedAt && !phone.disabledAt)) {
+      throw new Error('The User must have at least one active phone')
     }
 
     this.#tfa = Boolean(tfa)
@@ -291,15 +290,14 @@ export default class User extends Entity {
       throw new Error('User is disabled')
     } else if (!(email instanceof Email)) {
       throw new TypeError('Invalid email')
-    }
-
-    if (!this.#emails.get(email.toString().toLowerCase())) {
-      return false
-    } else if (Array.from(this.#emails.keys()).filter(key => (
-      key !== email.toString().toLowerCase() &&
-      this.#emails.get(key)?.confirmedAt &&
-      !this.#emails.get(key)?.disabledAt
-    )).length < 1) {
+    } else if (
+      this.#emails.get(email.toString().toLowerCase()) &&
+      Array.from(this.#emails.keys()).filter(key => (
+        key !== email.toString().toLowerCase() &&
+        this.#emails.get(key)?.confirmedAt &&
+        !this.#emails.get(key)?.disabledAt
+      )).length < 1
+    ) {
       throw new Error('The User must have at least one active email')
     }
 
@@ -376,6 +374,12 @@ export default class User extends Entity {
       throw new Error('Not found')
     } else if (_phone.disabledAt) {
       throw new Error('It\'s already disabled')
+    } else if (this.#tfa && Array.from(this.#phones.keys()).filter(key => (
+      key !== phone.toString().toLowerCase() &&
+      this.#phones.get(key)?.confirmedAt &&
+      !this.#phones.get(key)?.disabledAt
+    )).length < 1) {
+      throw new Error('TFA active. The User must have at least one active phone')
     }
 
     this.#updatedAt = _phone.disabledAt = new Date()
@@ -409,6 +413,16 @@ export default class User extends Entity {
       throw new Error('User is disabled')
     } else if (!(phone instanceof Phone)) {
       throw new TypeError('Invalid phone')
+    } else if (
+      this.#phones.get(phone.toString().toLowerCase()) &&
+      this.#tfa &&
+      Array.from(this.#phones.keys()).filter(key => (
+        key !== phone.toString().toLowerCase() &&
+        this.#phones.get(key)?.confirmedAt &&
+        !this.#phones.get(key)?.disabledAt
+      )).length < 1
+    ) {
+      throw new Error('TFA active. The User must have at least one active phone')
     }
 
     const res = this.#phones.delete(phone.toString().toLowerCase())
