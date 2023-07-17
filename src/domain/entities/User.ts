@@ -252,6 +252,12 @@ export default class User extends Entity {
       throw new Error('Not found')
     } else if (_email.disabledAt) {
       throw new Error('It\'s already disabled')
+    } else if (Array.from(this.#emails.keys()).filter(key => (
+      key !== email.toString().toLowerCase() &&
+      this.#emails.get(key)?.confirmedAt &&
+      !this.#emails.get(key)?.disabledAt
+    )).length < 1) {
+      throw new Error('The User must have at least one active email')
     }
 
     this.#updatedAt = _email.disabledAt = new Date()
@@ -285,6 +291,16 @@ export default class User extends Entity {
       throw new Error('User is disabled')
     } else if (!(email instanceof Email)) {
       throw new TypeError('Invalid email')
+    }
+
+    if (!this.#emails.get(email.toString().toLowerCase())) {
+      return false
+    } else if (Array.from(this.#emails.keys()).filter(key => (
+      key !== email.toString().toLowerCase() &&
+      this.#emails.get(key)?.confirmedAt &&
+      !this.#emails.get(key)?.disabledAt
+    )).length < 1) {
+      throw new Error('The User must have at least one active email')
     }
 
     const res = this.#emails.delete(email.toString().toLowerCase())

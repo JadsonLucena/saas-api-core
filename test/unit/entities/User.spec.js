@@ -235,7 +235,7 @@ describe('Methods', () => {
 
     user.disable()
 
-    expect(() => user.confirmEmail(email)).toThrowError(new Error('User is disabled'))
+    expect(() => user.confirmEmail(otherEmail)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to disable emails', () => {
     const user = new User(MIN_USER)
@@ -243,19 +243,25 @@ describe('Methods', () => {
     const email = new Email('john.doe@example.com')
     const otherEmail = new Email('username@example.com')
 
-    user
-      .addEmail(email)
-      .disableEmail(email)
+    user.addEmail(email)
 
-    expect(user.emails[0].disabledAt).toBeDefined()
-
-    expect(() => user.disableEmail(email)).toThrowError(new Error('It\'s already disabled'))
+    expect(() => user.disableEmail(email)).toThrowError(new Error('The User must have at least one active email'))
     expect(() => user.disableEmail(email.toString())).toThrowError(new TypeError('Invalid email'))
     expect(() => user.disableEmail(otherEmail)).toThrowError(new Error('Not found'))
 
+    user
+      .addEmail(otherEmail)
+      .confirmEmail(otherEmail)
+
+    expect(() => user.disableEmail(email)).not.toThrow()
+    expect(() => user.disableEmail(otherEmail)).toThrowError(new Error('The User must have at least one active email'))
+    expect(user.emails[0].disabledAt).toBeDefined()
+
+    expect(() => user.disableEmail(email)).toThrowError(new Error('It\'s already disabled'))
+
     user.disable()
 
-    expect(() => user.disableEmail(email)).toThrowError(new Error('User is disabled'))
+    expect(() => user.disableEmail(otherEmail)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to enable emails', () => {
     const user = new User(MIN_USER)
@@ -263,20 +269,26 @@ describe('Methods', () => {
     const email = new Email('john.doe@example.com')
     const otherEmail = new Email('username@example.com')
 
+    user.addEmail(email)
+
+    expect(() => user.enableEmail(email.toString())).toThrowError(new TypeError('Invalid email'))
+    expect(() => user.enableEmail(otherEmail)).toThrowError(new Error('Not found'))
+
     user
-      .addEmail(email)
+      .addEmail(otherEmail)
+      .confirmEmail(otherEmail)
+
+    user
       .disableEmail(email)
       .enableEmail(email)
 
     expect(user.emails[0].disabledAt).toBeUndefined()
 
     expect(() => user.enableEmail(email)).toThrowError(new Error('It\'s already enabled'))
-    expect(() => user.enableEmail(email.toString())).toThrowError(new TypeError('Invalid email'))
-    expect(() => user.enableEmail(otherEmail)).toThrowError(new Error('Not found'))
 
     user.disable()
 
-    expect(() => user.enableEmail(email)).toThrowError(new Error('User is disabled'))
+    expect(() => user.enableEmail(otherEmail)).toThrowError(new Error('User is disabled'))
   })
   test('Given that we want to delete emails', () => {
     const user = new User(MIN_USER)
@@ -286,14 +298,21 @@ describe('Methods', () => {
 
     user.addEmail(email)
 
+    expect(() => user.deleteEmail(email)).toThrowError(new TypeError('The User must have at least one active email'))
     expect(() => user.deleteEmail(email.toString())).toThrowError(new TypeError('Invalid email'))
     expect(user.deleteEmail(otherEmail)).toBeFalsy()
+
+    user
+      .addEmail(otherEmail)
+      .confirmEmail(otherEmail)
+
     expect(user.deleteEmail(email)).toBeTruthy()
-    expect(user.emails.length).toBe(0)
+    expect(() => user.deleteEmail(otherEmail)).toThrowError(new TypeError('The User must have at least one active email'))
+    expect(user.emails.length).toBe(1)
 
     user.disable()
 
-    expect(() => user.deleteEmail(email)).toThrowError(new Error('User is disabled'))
+    expect(() => user.deleteEmail(otherEmail)).toThrowError(new Error('User is disabled'))
   })
 
   test('Given that we want to add phones', () => {
