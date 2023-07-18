@@ -4,8 +4,9 @@
  - [x] If entity is disabled, no attributes can be updated
  - [x] The email must have a domain
  - [x] It will only be possible to disable or remove an email if it has at least one other email confirmed and enabled
- - [ ] You can only enable TFA for a phone if it is confirmed and enabled
- - [ ] It will only be possible to disable or remove a phone if it has not linked to TFA
+ - [ ] The user can have MFA (MultiFactor Authentication)
+ - [ ] You can only enable MFA for a phone if it is confirmed and enabled
+ - [ ] It will only be possible to disable or remove a phone if it has not linked to MFA
 */
 
 import UUID from '../VO/UUID.js'
