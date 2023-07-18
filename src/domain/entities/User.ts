@@ -1,3 +1,13 @@
+/* Business Rules
+ - [x] If updatedAt is not set in entity creation, then it will be the same as createdAt
+ - [x] Whenever you update something in the entity, the updatedAt attribute must be updated
+ - [x] If entity is disabled, no attributes can be updated
+ - [x] The email must have a domain
+ - [x] It will only be possible to disable or remove an email if it has at least one other email confirmed and enabled
+ - [ ] You can only enable TFA for a phone if it is confirmed and enabled
+ - [ ] It will only be possible to disable or remove a phone if it has not linked to TFA
+*/
+
 import UUID from '../VO/UUID.js'
 import Name from '../VO/Name.js'
 import Email from '../VO/Email.js'
@@ -6,8 +16,6 @@ import Password from '../VO/Password.js'
 
 import Entity from './Entity.js'
 import Oauth from './Oauth.js'
-// import Email from './Email.js'
-// import Phone from './Phone.js'
 
 export type EmailDTO = {
   email: Email,
