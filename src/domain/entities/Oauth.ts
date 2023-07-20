@@ -2,7 +2,7 @@ import UUID from '../VO/UUID.js'
 import Email from '../VO/Email.js'
 import Name from '../VO/Name.js'
 
-import Entity from './Entity.js'
+import Entity from './AbstractEntity.js'
 import OauthProvider from './OauthProvider.js'
 
 export default class Oauth extends Entity {

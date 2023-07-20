@@ -1,6 +1,6 @@
 import UUID from '../../../build/domain/VO/UUID.js'
 
-import Entity from '../../../build/domain/entities/Entity.js'
+import Entity from '../../../build/domain/entities/AbstractEntity.js'
 
 class Test extends Entity {
   name

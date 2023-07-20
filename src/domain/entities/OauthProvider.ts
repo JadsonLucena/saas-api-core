@@ -1,7 +1,7 @@
 import UUID from '../VO/UUID.js'
 import Name from '../VO/Name.js'
 
-import Entity from './Entity.js'
+import Entity from './AbstractEntity.js'
 
 export default class OauthProvider extends Entity {
   #name: Name

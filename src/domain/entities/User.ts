@@ -15,7 +15,7 @@ import Email from '../VO/Email.js'
 import Phone from '../VO/Phone.js'
 import Password from '../VO/Password.js'
 
-import Entity from './Entity.js'
+import Entity from './AbstractEntity.js'
 import Oauth from './Oauth.js'
 
 export type EmailDTO = {
