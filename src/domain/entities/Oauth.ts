@@ -11,8 +11,9 @@ export default class Oauth extends Entity {
   #username: Email
   #picture?: URL
   #accessToken: string
-  #refreshToken: string
   #expiresIn: Date
+  #refreshToken?: string
+  #refreshTokenExpiresIn?: Date
   #updatedAt: Date
   #disabledAt?: Date
 
@@ -23,8 +24,9 @@ export default class Oauth extends Entity {
     username,
     picture,
     accessToken,
-    refreshToken,
     expiresIn,
+    refreshToken,
+    refreshTokenExpiresIn,
     createdAt,
     updatedAt,
     disabledAt
@@ -35,8 +37,9 @@ export default class Oauth extends Entity {
     username: Email,
     picture?: URL,
     accessToken: string,
-    refreshToken: string,
     expiresIn: Date,
+    refreshToken?: string,
+    refreshTokenExpiresIn?: Date,
     createdAt?: Date,
     updatedAt?: Date,
     disabledAt?: Date
@@ -66,6 +69,7 @@ export default class Oauth extends Entity {
     this.accessToken = accessToken
     this.refreshToken = refreshToken
     this.expiresIn = expiresIn
+    this.refreshTokenExpiresIn = refreshTokenExpiresIn
     this.#disabledAt = disabledAt
     this.#updatedAt = updatedAt ?? this.createdAt
   }
@@ -123,10 +127,10 @@ export default class Oauth extends Entity {
     return this.#accessToken
   }
 
-  set refreshToken (refreshToken: string) {
+  set refreshToken (refreshToken: string | undefined) {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
-    } else if (typeof refreshToken !== 'string' || !refreshToken) {
+    } else if (typeof refreshToken !== 'string' && typeof refreshToken !== 'undefined') {
       throw new TypeError('Invalid refreshToken')
     }
 
@@ -154,6 +158,24 @@ export default class Oauth extends Entity {
 
   get expiresIn () {
     return this.#expiresIn
+  }
+
+  set refreshTokenExpiresIn (refreshTokenExpiresIn: Date | undefined) {
+    if (this.#disabledAt) {
+      throw new Error('It\'s disabled')
+    } else if (
+      (!(refreshTokenExpiresIn instanceof Date) || refreshTokenExpiresIn.getTime() <= Date.now()) &&
+      typeof refreshTokenExpiresIn !== 'undefined'
+    ) {
+      throw new TypeError('Invalid refreshTokenExpiresIn')
+    }
+
+    this.#refreshTokenExpiresIn = refreshTokenExpiresIn
+    this.#updatedAt = new Date()
+  }
+
+  get refreshTokenExpiresIn () {
+    return this.#refreshTokenExpiresIn
   }
 
   get updatedAt () {
