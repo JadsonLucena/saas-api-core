@@ -19,6 +19,7 @@ const MAX_USER = {
   ...MIN_USER,
   id: new UUID(),
   picture: new URL('file://path/to/file.webp'),
+  tfa: new Phone('+0 (1) 234-5678'),
   createdAt: new Date(),
   updatedAt: new Date()
   // disabledAt: new Date()
@@ -109,8 +110,11 @@ describe('Attributes', () => {
     expect(user.updatedAt).not.toBe(updatedAt)
 
     updatedAt = user.updatedAt
-    expect(() => { user.tfa = true }).toThrowError(new Error('The User must have at least one active phone'))
-    expect(user.tfa).toBeFalsy()
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => { user.tfa = input }).toThrowError(new Error('Invalid phone'))
+    })
+    expect(() => { user.tfa = MAX_USER.tfa }).toThrowError(new Error('The phone must be confirmed and enabled'))
+    expect(user.tfa).toBeUndefined()
     expect(user.updatedAt).toBe(updatedAt)
 
     updatedAt = user.updatedAt
@@ -317,7 +321,7 @@ describe('Methods', () => {
   test('Given that we want to add phones', () => {
     const user = new User(MIN_USER)
 
-    const phone = new Phone('+0 (1) 234-5678')
+    const phone = MAX_USER.tfa
     const otherPhone = new Phone('+01-234 (123) 67890-1234')
 
     expect(() => user.addPhone(phone.toString())).toThrowError(new TypeError('Invalid phone'))
@@ -365,7 +369,7 @@ describe('Methods', () => {
   test('Given that we want to confirm phones', () => {
     const user = new User(MIN_USER)
 
-    const phone = new Phone('+0 (1) 234-5678')
+    const phone = MAX_USER.tfa
     const otherPhone = new Phone('+01-234 (123) 67890-1234')
 
     user
@@ -385,7 +389,7 @@ describe('Methods', () => {
   test('Given that we want to disable phones', () => {
     const user = new User(MIN_USER)
 
-    const phone = new Phone('+0 (1) 234-5678')
+    const phone = MAX_USER.tfa
     const otherPhone = new Phone('+01-234 (123) 67890-1234')
 
     user
@@ -402,16 +406,16 @@ describe('Methods', () => {
       .confirmPhone(phone)
       .addPhone(otherPhone)
 
-    expect(() => { user.tfa = true }).toThrowError(new Error('The User must have at least one active phone'))
+    expect(() => { user.tfa = phone }).toThrowError(new Error('The phone must be confirmed and enabled'))
 
     user.enablePhone(phone)
 
-    user.tfa = true
+    user.tfa = phone
 
-    expect(() => user.disablePhone(phone)).toThrowError(new Error('TFA active. The User must have at least one active phone'))
+    expect(() => user.disablePhone(phone)).toThrowError(new Error('Two-Factor Authentication is enabled'))
     expect(() => user.disablePhone(otherPhone)).not.toThrow()
 
-    user.tfa = false
+    user.tfa = undefined
 
     user.disablePhone(phone)
 
@@ -422,7 +426,7 @@ describe('Methods', () => {
   test('Given that we want to enable phones', () => {
     const user = new User(MIN_USER)
 
-    const phone = new Phone('+0 (1) 234-5678')
+    const phone = MAX_USER.tfa
     const otherPhone = new Phone('+01-234 (123) 67890-1234')
 
     user
@@ -443,7 +447,7 @@ describe('Methods', () => {
   test('Given that we want to delete phones', () => {
     const user = new User(MIN_USER)
 
-    const phone = new Phone('+0 (1) 234-5678')
+    const phone = MAX_USER.tfa
     const otherPhone = new Phone('+01-234 (123) 67890-1234')
 
     user.addPhone(phone)
@@ -456,14 +460,14 @@ describe('Methods', () => {
     user
       .addPhone(phone)
       .confirmPhone(phone)
-      .tfa = true
+      .tfa = phone
 
     user.addPhone(otherPhone)
 
-    expect(() => user.deletePhone(phone)).toThrowError(new Error('TFA active. The User must have at least one active phone'))
+    expect(() => user.deletePhone(phone)).toThrowError(new Error('Two-Factor Authentication is enabled'))
     expect(user.deletePhone(otherPhone)).toBeTruthy()
 
-    user.tfa = false
+    user.tfa = undefined
 
     expect(user.deletePhone(phone)).toBeTruthy()
 

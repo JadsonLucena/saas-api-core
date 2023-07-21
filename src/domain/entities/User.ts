@@ -5,8 +5,8 @@
  - [x] The email must have a domain
  - [x] It will only be possible to disable or remove an email if it has at least one other email confirmed and enabled
  - [ ] The user can have MFA (MultiFactor Authentication)
- - [ ] You can only enable MFA for a phone if it is confirmed and enabled
- - [ ] It will only be possible to disable or remove a phone if it has not linked to MFA
+ - [x] You can only enable MFA for a phone if it is confirmed and enabled
+ - [x] It will only be possible to disable or remove a phone if it has not linked to MFA
 */
 
 import UUID from '../VO/UUID.js'
@@ -37,7 +37,7 @@ export default class User extends Entity {
   #username: Email
   #password: Password
   #picture?: URL
-  #tfa: Boolean = false
+  #tfa?: Phone
   #emails: Map<string, Omit<EmailDTO, 'email'>> = new Map<string, Omit<EmailDTO, 'email'>>()
   #phones: Map<string, Omit<PhoneDTO, 'phone'>> = new Map<string, Omit<PhoneDTO, 'phone'>>()
   #oauths: { [key: string]: Oauth } = {}
@@ -147,14 +147,26 @@ export default class User extends Entity {
     return Object.values(this.#oauths)
   }
 
-  set tfa (tfa: Boolean) {
+  set tfa (phone: Phone | undefined) {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
-    } else if (tfa && !Array.from(this.#phones.values()).some(phone => phone.confirmedAt && !phone.disabledAt)) {
-      throw new Error('The User must have at least one active phone')
+    } else if (!(phone instanceof Phone) && typeof phone !== 'undefined') {
+      throw new TypeError('Invalid phone')
     }
 
-    this.#tfa = Boolean(tfa)
+    if (phone) {
+      const _phone = this.#phones.get(phone.toString())
+
+      if (
+        !_phone ||
+        !_phone.confirmedAt ||
+        _phone.disabledAt
+      ) {
+        throw new Error('The phone must be confirmed and enabled')
+      }
+    }
+
+    this.#tfa = phone
     this.#updatedAt = new Date()
   }
 
@@ -333,7 +345,7 @@ export default class User extends Entity {
       throw new TypeError('Invalid disabledAt')
     }
 
-    const key = phone.toString().toLowerCase()
+    const key = phone.toString()
 
     if (this.#phones.get(key)) {
       throw new Error('It\'s already added')
@@ -357,7 +369,7 @@ export default class User extends Entity {
       throw new TypeError('Invalid phone')
     }
 
-    const _phone = this.#phones.get(phone.toString().toLowerCase())
+    const _phone = this.#phones.get(phone.toString())
 
     if (!_phone) {
       throw new Error('Not found')
@@ -377,18 +389,14 @@ export default class User extends Entity {
       throw new TypeError('Invalid phone')
     }
 
-    const _phone = this.#phones.get(phone.toString().toLowerCase())
+    const _phone = this.#phones.get(phone.toString())
 
     if (!_phone) {
       throw new Error('Not found')
     } else if (_phone.disabledAt) {
       throw new Error('It\'s already disabled')
-    } else if (this.#tfa && Array.from(this.#phones.keys()).filter(key => (
-      key !== phone.toString().toLowerCase() &&
-      this.#phones.get(key)?.confirmedAt &&
-      !this.#phones.get(key)?.disabledAt
-    )).length < 1) {
-      throw new Error('TFA active. The User must have at least one active phone')
+    } else if (this.#tfa && this.#tfa.toString() === phone.toString()) {
+      throw new Error('Two-Factor Authentication is enabled')
     }
 
     this.#updatedAt = _phone.disabledAt = new Date()
@@ -403,7 +411,7 @@ export default class User extends Entity {
       throw new TypeError('Invalid phone')
     }
 
-    const _phone = this.#phones.get(phone.toString().toLowerCase())
+    const _phone = this.#phones.get(phone.toString())
 
     if (!_phone) {
       throw new Error('Not found')
@@ -422,19 +430,11 @@ export default class User extends Entity {
       throw new Error('User is disabled')
     } else if (!(phone instanceof Phone)) {
       throw new TypeError('Invalid phone')
-    } else if (
-      this.#phones.get(phone.toString().toLowerCase()) &&
-      this.#tfa &&
-      Array.from(this.#phones.keys()).filter(key => (
-        key !== phone.toString().toLowerCase() &&
-        this.#phones.get(key)?.confirmedAt &&
-        !this.#phones.get(key)?.disabledAt
-      )).length < 1
-    ) {
-      throw new Error('TFA active. The User must have at least one active phone')
+    } else if (this.#tfa && this.#tfa.toString() === phone.toString()) {
+      throw new Error('Two-Factor Authentication is enabled')
     }
 
-    const res = this.#phones.delete(phone.toString().toLowerCase())
+    const res = this.#phones.delete(phone.toString())
     this.#updatedAt = new Date()
 
     return res
