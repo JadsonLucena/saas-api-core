@@ -28,6 +28,7 @@ const MAX_OAUTH = {
   ...MIN_OAUTH,
   id: new UUID(),
   picture: new URL('https://cdn.example.com/oauth/profile/userId.webp'),
+  refreshTokenExpiresIn: new Date(Date.now() + ONE_YEAR),
   createdAt: new Date(),
   updatedAt: new Date()
   // disabledAt: new Date()
@@ -35,7 +36,6 @@ const MAX_OAUTH = {
 const INVALID_INPUT_TYPES = [
   {},
   [],
-  '',
   0,
   Infinity,
   NaN,
@@ -81,14 +81,20 @@ describe('Constructor', () => {
     INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
       expect(() => new Oauth({
         ...MAX_OAUTH,
+        expiresIn: input
+      })).toThrowError(new TypeError('Invalid expiresIn'))
+    })
+    INVALID_INPUT_TYPES.forEach(input => {
+      expect(() => new Oauth({
+        ...MAX_OAUTH,
         refreshToken: input
       })).toThrowError(new TypeError('Invalid refreshToken'))
     })
-    INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
+    INVALID_INPUT_TYPES.forEach(input => {
       expect(() => new Oauth({
         ...MAX_OAUTH,
-        expiresIn: input
-      })).toThrowError(new TypeError('Invalid expiresIn'))
+        refreshTokenExpiresIn: input
+      })).toThrowError(new TypeError('Invalid refreshTokenExpiresIn'))
     })
     INVALID_INPUT_TYPES.forEach(input => {
       expect(() => new Oauth({
@@ -166,6 +172,11 @@ describe('Attributes', () => {
     expect(oauth.updatedAt).not.toBe(updatedAt)
 
     updatedAt = oauth.updatedAt
+    oauth.refreshTokenExpiresIn = MAX_OAUTH.refreshTokenExpiresIn
+    expect(oauth.refreshTokenExpiresIn).toBe(MAX_OAUTH.refreshTokenExpiresIn)
+    expect(oauth.updatedAt).not.toBe(updatedAt)
+
+    updatedAt = oauth.updatedAt
     oauth.disable()
     expect(oauth.disabledAt).toBe(oauth.updatedAt)
     expect(oauth.updatedAt).not.toBe(updatedAt)
@@ -194,6 +205,9 @@ describe('Attributes', () => {
     }).toThrowError(new Error('It\'s disabled'))
     expect(() => {
       oauth.expiresIn = MAX_OAUTH.expiresIn
+    }).toThrowError(new Error('It\'s disabled'))
+    expect(() => {
+      oauth.refreshTokenExpiresIn = MAX_OAUTH.refreshTokenExpiresIn
     }).toThrowError(new Error('It\'s disabled'))
     expect(() => {
       oauth.disable()
