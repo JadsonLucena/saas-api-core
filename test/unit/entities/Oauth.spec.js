@@ -6,6 +6,7 @@ import OauthProvider from '../../../build/domain/entities/OauthProvider.js'
 import Oauth from '../../../build/domain/entities/Oauth.js'
 
 const ONE_YEAR = 31622400000
+const ONE_HOUR = 3600000
 
 const OAUTH_PROVIDER = new OauthProvider({
   name: new Name('Github', {
@@ -22,7 +23,7 @@ const MIN_OAUTH = {
   username: new Email('john.doe@example.com'),
   accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
   refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
-  expiresIn: new Date(Date.now() + ONE_YEAR)
+  expiresIn: new Date(Date.now() + ONE_HOUR)
 }
 const MAX_OAUTH = {
   ...MIN_OAUTH,
@@ -39,28 +40,29 @@ const INVALID_INPUT_TYPES = [
   0,
   Infinity,
   NaN,
-  false
+  false,
+  null
 ]
 
 describe('Constructor', () => {
   test('Given that one wants to instantiate the object with an invalid argument', () => {
-    INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
+    INVALID_INPUT_TYPES.concat(undefined).forEach(input => {
       expect(() => new Oauth(input)).toThrowError()
     })
 
-    INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
+    INVALID_INPUT_TYPES.concat(undefined, '').forEach(input => {
       expect(() => new Oauth({
         ...MAX_OAUTH,
         provider: input
       })).toThrowError(new TypeError('Invalid provider'))
     })
-    INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
+    INVALID_INPUT_TYPES.concat(undefined).forEach(input => {
       expect(() => new Oauth({
         ...MAX_OAUTH,
         name: input
       })).toThrowError(new TypeError('Invalid name'))
     })
-    INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
+    INVALID_INPUT_TYPES.concat(undefined).forEach(input => {
       expect(() => new Oauth({
         ...MAX_OAUTH,
         username: input
@@ -72,37 +74,37 @@ describe('Constructor', () => {
         picture: input
       })).toThrowError(new TypeError('Invalid picture'))
     })
-    INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
+    INVALID_INPUT_TYPES.concat(undefined).forEach(input => {
       expect(() => new Oauth({
         ...MAX_OAUTH,
         accessToken: input
       })).toThrowError(new TypeError('Invalid accessToken'))
     })
-    INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
+    INVALID_INPUT_TYPES.concat(undefined, '').forEach(input => {
       expect(() => new Oauth({
         ...MAX_OAUTH,
         expiresIn: input
       })).toThrowError(new TypeError('Invalid expiresIn'))
     })
-    INVALID_INPUT_TYPES.forEach(input => {
+    INVALID_INPUT_TYPES.concat(undefined).forEach(input => {
       expect(() => new Oauth({
         ...MAX_OAUTH,
         refreshToken: input
       })).toThrowError(new TypeError('Invalid refreshToken'))
     })
-    INVALID_INPUT_TYPES.forEach(input => {
+    INVALID_INPUT_TYPES.concat('').forEach(input => {
       expect(() => new Oauth({
         ...MAX_OAUTH,
         refreshTokenExpiresIn: input
       })).toThrowError(new TypeError('Invalid refreshTokenExpiresIn'))
     })
-    INVALID_INPUT_TYPES.forEach(input => {
+    INVALID_INPUT_TYPES.concat('').forEach(input => {
       expect(() => new Oauth({
         ...MAX_OAUTH,
         updatedAt: input
       })).toThrowError(new TypeError('Invalid updatedAt'))
     })
-    INVALID_INPUT_TYPES.forEach(input => {
+    INVALID_INPUT_TYPES.concat('').forEach(input => {
       expect(() => new Oauth({
         ...MAX_OAUTH,
         disabledAt: input
@@ -110,10 +112,10 @@ describe('Constructor', () => {
     })
 
     // expect(() => new Oauth({
-    //   name: INVALID_INPUT_TYPES.concat(undefined, null)[Math.floor(Math.random() * INVALID_INPUT_TYPES.concat(undefined, null).length)],
+    //   name: INVALID_INPUT_TYPES.concat(undefined)[Math.floor(Math.random() * INVALID_INPUT_TYPES.concat(undefined).length)],
     //   picture: INVALID_INPUT_TYPES[Math.floor(Math.random() * INVALID_INPUT_TYPES.length)],
-    //   clientId: INVALID_INPUT_TYPES.concat(undefined, null)[Math.floor(Math.random() * INVALID_INPUT_TYPES.concat(undefined, null).length)],
-    //   clientSecret: INVALID_INPUT_TYPES.concat(undefined, null)[Math.floor(Math.random() * INVALID_INPUT_TYPES.concat(undefined, null).length)],
+    //   clientId: INVALID_INPUT_TYPES.concat(undefined)[Math.floor(Math.random() * INVALID_INPUT_TYPES.concat(undefined).length)],
+    //   clientSecret: INVALID_INPUT_TYPES.concat(undefined)[Math.floor(Math.random() * INVALID_INPUT_TYPES.concat(undefined).length)],
     //   updatedAt: INVALID_INPUT_TYPES[Math.floor(Math.random() * INVALID_INPUT_TYPES.length)],
     //   disabledAt: INVALID_INPUT_TYPES[Math.floor(Math.random() * INVALID_INPUT_TYPES.length)]
     // })).toThrow(AggregateError)

@@ -9,6 +9,7 @@ import OauthProvider from '../../../build/domain/entities/OauthProvider.js'
 import Oauth from '../../../build/domain/entities/Oauth.js'
 
 const ONE_YEAR = 31622400000
+const ONE_HOUR = 3600000
 
 const MIN_USER = {
   name: new Name('John Doe'),
@@ -31,7 +32,8 @@ const INVALID_INPUT_TYPES = [
   0,
   Infinity,
   NaN,
-  false
+  false,
+  null
 ]
 
 describe('Constructor', () => {
@@ -40,19 +42,19 @@ describe('Constructor', () => {
       expect(() => new User(input)).toThrowError()
     })
 
-    INVALID_INPUT_TYPES.forEach(input => {
+    INVALID_INPUT_TYPES.concat(undefined).forEach(input => {
       expect(() => new User({
         ...MAX_USER,
         name: input
       })).toThrowError(new TypeError('Invalid name'))
     })
-    INVALID_INPUT_TYPES.forEach(input => {
+    INVALID_INPUT_TYPES.concat(undefined).forEach(input => {
       expect(() => new User({
         ...MAX_USER,
         username: input
       })).toThrowError(new TypeError('Invalid username'))
     })
-    INVALID_INPUT_TYPES.forEach(input => {
+    INVALID_INPUT_TYPES.concat(undefined).forEach(input => {
       expect(() => new User({
         ...MAX_USER,
         password: input
@@ -495,7 +497,8 @@ describe('Methods', () => {
       username: new Email('john.doe@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
-      expiresIn: new Date(Date.now() + ONE_YEAR)
+      expiresIn: new Date(Date.now() + ONE_HOUR),
+      refreshTokenExpiresIn: new Date(Date.now() + ONE_YEAR)
     })
     const otherOauth = new Oauth({
       provider: oauthProvider,
@@ -505,7 +508,8 @@ describe('Methods', () => {
       username: new Email('john@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
-      expiresIn: new Date(Date.now() + ONE_YEAR)
+      expiresIn: new Date(Date.now() + ONE_HOUR),
+      refreshTokenExpiresIn: new Date(Date.now() + ONE_YEAR)
     })
     const oauthUpperCase = new Oauth({
       provider: oauthProvider,
@@ -515,7 +519,8 @@ describe('Methods', () => {
       username: new Email('JOHN.DOE@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
-      expiresIn: new Date(Date.now() + ONE_YEAR)
+      expiresIn: new Date(Date.now() + ONE_HOUR),
+      refreshTokenExpiresIn: new Date(Date.now() + ONE_YEAR)
     })
 
     user.addOauth(oauth)
@@ -555,7 +560,8 @@ describe('Methods', () => {
       username: new Email('john.doe@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
-      expiresIn: new Date(Date.now() + ONE_YEAR)
+      expiresIn: new Date(Date.now() + ONE_HOUR),
+      refreshTokenExpiresIn: new Date(Date.now() + ONE_YEAR)
     })
     const otherOauth = new Oauth({
       provider: oauthProvider,
@@ -565,7 +571,8 @@ describe('Methods', () => {
       username: new Email('john@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
-      expiresIn: new Date(Date.now() + ONE_YEAR)
+      expiresIn: new Date(Date.now() + ONE_HOUR),
+      refreshTokenExpiresIn: new Date(Date.now() + ONE_YEAR)
     })
 
     const data = {
@@ -574,7 +581,8 @@ describe('Methods', () => {
       }),
       accessToken: 'gho_A8Fde42F291c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_27fa0581e0084597a85632afe4a103aa',
-      expiresIn: new Date(Date.now() + ONE_YEAR)
+      expiresIn: new Date(Date.now() + ONE_HOUR),
+      refreshTokenExpiresIn: new Date(Date.now() + ONE_YEAR)
     }
 
     user
@@ -614,7 +622,8 @@ describe('Methods', () => {
       username: new Email('john.doe@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
-      expiresIn: new Date(Date.now() + ONE_YEAR)
+      expiresIn: new Date(Date.now() + ONE_HOUR),
+      refreshTokenExpiresIn: new Date(Date.now() + ONE_YEAR)
     })
     const otherOauth = new Oauth({
       provider: oauthProvider,
@@ -624,7 +633,8 @@ describe('Methods', () => {
       username: new Email('john@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
-      expiresIn: new Date(Date.now() + ONE_YEAR)
+      expiresIn: new Date(Date.now() + ONE_HOUR),
+      refreshTokenExpiresIn: new Date(Date.now() + ONE_YEAR)
     })
 
     user
@@ -660,7 +670,8 @@ describe('Methods', () => {
       username: new Email('john.doe@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
-      expiresIn: new Date(Date.now() + ONE_YEAR)
+      expiresIn: new Date(Date.now() + ONE_HOUR),
+      refreshTokenExpiresIn: new Date(Date.now() + ONE_YEAR)
     })
     const otherOauth = new Oauth({
       provider: oauthProvider,
@@ -670,7 +681,8 @@ describe('Methods', () => {
       username: new Email('john@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
-      expiresIn: new Date(Date.now() + ONE_YEAR)
+      expiresIn: new Date(Date.now() + ONE_HOUR),
+      refreshTokenExpiresIn: new Date(Date.now() + ONE_YEAR)
     })
 
     user
@@ -707,7 +719,8 @@ describe('Methods', () => {
       username: new Email('john.doe@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
-      expiresIn: new Date(Date.now() + ONE_YEAR)
+      expiresIn: new Date(Date.now() + ONE_HOUR),
+      refreshTokenExpiresIn: new Date(Date.now() + ONE_YEAR)
     })
     const otherOauth = new Oauth({
       provider: oauthProvider,
@@ -717,7 +730,8 @@ describe('Methods', () => {
       username: new Email('john@example.com', false),
       accessToken: 'gho_16C7e42F292c6912E7710c838347Ae178B4a',
       refreshToken: 'ghr_1882EdB3e71C470cbeAd9c6B5118c8bc',
-      expiresIn: new Date(Date.now() + ONE_YEAR)
+      expiresIn: new Date(Date.now() + ONE_HOUR),
+      refreshTokenExpiresIn: new Date(Date.now() + ONE_YEAR)
     })
 
     user.addOauth(oauth)

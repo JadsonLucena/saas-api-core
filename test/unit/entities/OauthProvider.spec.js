@@ -29,16 +29,17 @@ const INVALID_INPUT_TYPES = [
   0,
   Infinity,
   NaN,
-  false
+  false,
+  null
 ]
 
 describe('Constructor', () => {
   test('Given that one wants to instantiate the object with an invalid argument', () => {
-    INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
+    INVALID_INPUT_TYPES.concat(undefined).forEach(input => {
       expect(() => new OauthProvider(input)).toThrowError()
     })
 
-    INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
+    INVALID_INPUT_TYPES.concat(undefined).forEach(input => {
       expect(() => new OauthProvider({
         ...MAX_OAUTH_PROVIDER,
         name: input
@@ -50,13 +51,13 @@ describe('Constructor', () => {
         picture: input
       })).toThrowError(new TypeError('Invalid picture'))
     })
-    INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
+    INVALID_INPUT_TYPES.concat(undefined).forEach(input => {
       expect(() => new OauthProvider({
         ...MAX_OAUTH_PROVIDER,
         clientId: input
       })).toThrowError(new TypeError('Invalid clientId'))
     })
-    INVALID_INPUT_TYPES.concat(undefined, null).forEach(input => {
+    INVALID_INPUT_TYPES.concat(undefined).forEach(input => {
       expect(() => new OauthProvider({
         ...MAX_OAUTH_PROVIDER,
         clientSecret: input
@@ -76,10 +77,10 @@ describe('Constructor', () => {
     })
 
     // expect(() => new OauthProvider({
-    //   name: INVALID_INPUT_TYPES.concat(undefined, null)[Math.floor(Math.random() * INVALID_INPUT_TYPES.concat(undefined, null).length)],
+    //   name: INVALID_INPUT_TYPES.concat(undefined)[Math.floor(Math.random() * INVALID_INPUT_TYPES.concat(undefined).length)],
     //   picture: INVALID_INPUT_TYPES[Math.floor(Math.random() * INVALID_INPUT_TYPES.length)],
-    //   clientId: INVALID_INPUT_TYPES.concat(undefined, null)[Math.floor(Math.random() * INVALID_INPUT_TYPES.concat(undefined, null).length)],
-    //   clientSecret: INVALID_INPUT_TYPES.concat(undefined, null)[Math.floor(Math.random() * INVALID_INPUT_TYPES.concat(undefined, null).length)],
+    //   clientId: INVALID_INPUT_TYPES.concat(undefined)[Math.floor(Math.random() * INVALID_INPUT_TYPES.concat(undefined).length)],
+    //   clientSecret: INVALID_INPUT_TYPES.concat(undefined)[Math.floor(Math.random() * INVALID_INPUT_TYPES.concat(undefined).length)],
     //   updatedAt: INVALID_INPUT_TYPES[Math.floor(Math.random() * INVALID_INPUT_TYPES.length)],
     //   disabledAt: INVALID_INPUT_TYPES[Math.floor(Math.random() * INVALID_INPUT_TYPES.length)]
     // })).toThrow(AggregateError)
