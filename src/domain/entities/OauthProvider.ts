@@ -1,3 +1,5 @@
+import { isUndefined, isDate, isURL, isToken } from '../service/TypeGuard.js'
+
 import UUID from '../VO/UUID.js'
 import Name from '../VO/Name.js'
 
@@ -35,10 +37,10 @@ export default class OauthProvider extends Entity {
       createdAt
     })
 
-    if (!(disabledAt instanceof Date) && typeof disabledAt !== 'undefined') {
+    if (!isDate(disabledAt) && !isUndefined(disabledAt)) {
       throw new TypeError('Invalid disabledAt')
     }
-    if (!(updatedAt instanceof Date) && typeof updatedAt !== 'undefined') {
+    if (!isDate(updatedAt) && !isUndefined(updatedAt)) {
       throw new TypeError('Invalid updatedAt')
     }
 
@@ -68,7 +70,7 @@ export default class OauthProvider extends Entity {
   set picture (picture: URL | undefined) {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
-    } else if (!(picture instanceof URL) && typeof picture !== 'undefined') {
+    } else if (!isURL(picture) && !isUndefined(picture)) {
       throw new TypeError('Invalid picture')
     }
 
@@ -83,7 +85,7 @@ export default class OauthProvider extends Entity {
   set clientId (clientId: string) {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
-    } else if (typeof clientId !== 'string' || !clientId) {
+    } else if (!isToken(clientId) || !clientId) {
       throw new TypeError('Invalid clientId')
     }
 
@@ -98,7 +100,7 @@ export default class OauthProvider extends Entity {
   set clientSecret (clientSecret: string) {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
-    } else if (typeof clientSecret !== 'string' || !clientSecret) {
+    } else if (!isToken(clientSecret) || !clientSecret) {
       throw new TypeError('Invalid clientSecret')
     }
 

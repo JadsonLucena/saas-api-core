@@ -1,3 +1,5 @@
+import { isUndefined, isDate, isURL, isToken } from '../service/TypeGuard.js'
+
 import UUID from '../VO/UUID.js'
 import Email from '../VO/Email.js'
 import Name from '../VO/Name.js'
@@ -12,7 +14,7 @@ export default class Oauth extends Entity {
   #picture?: URL
   #accessToken: string
   #expiresIn: Date
-  #refreshToken?: string
+  #refreshToken: string
   #refreshTokenExpiresIn?: Date
   #updatedAt: Date
   #disabledAt?: Date
@@ -38,7 +40,7 @@ export default class Oauth extends Entity {
     picture?: URL,
     accessToken: string,
     expiresIn: Date,
-    refreshToken?: string,
+    refreshToken: string,
     refreshTokenExpiresIn?: Date,
     createdAt?: Date,
     updatedAt?: Date,
@@ -55,10 +57,10 @@ export default class Oauth extends Entity {
     if (!(username instanceof Email) || !username) {
       throw new TypeError('Invalid username')
     }
-    if (!(disabledAt instanceof Date) && typeof disabledAt !== 'undefined') {
+    if (!isDate(disabledAt) && !isUndefined(disabledAt)) {
       throw new TypeError('Invalid disabledAt')
     }
-    if (!(updatedAt instanceof Date) && typeof updatedAt !== 'undefined') {
+    if (!isDate(updatedAt) && !isUndefined(updatedAt)) {
       throw new TypeError('Invalid updatedAt')
     }
 
@@ -67,8 +69,8 @@ export default class Oauth extends Entity {
     this.#username = username
     this.picture = picture
     this.accessToken = accessToken
-    this.refreshToken = refreshToken
     this.expiresIn = expiresIn
+    this.refreshToken = refreshToken
     this.refreshTokenExpiresIn = refreshTokenExpiresIn
     this.#disabledAt = disabledAt
     this.#updatedAt = updatedAt ?? this.createdAt
@@ -100,7 +102,7 @@ export default class Oauth extends Entity {
   set picture (picture: URL | undefined) {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
-    } else if (!(picture instanceof URL) && typeof picture !== 'undefined') {
+    } else if (!isURL(picture) && !isUndefined(picture)) {
       throw new TypeError('Invalid picture')
     }
 
@@ -115,7 +117,7 @@ export default class Oauth extends Entity {
   set accessToken (accessToken: string) {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
-    } else if (typeof accessToken !== 'string' || !accessToken) {
+    } else if (!isToken(accessToken) || !accessToken) {
       throw new TypeError('Invalid accessToken')
     }
 
@@ -127,10 +129,10 @@ export default class Oauth extends Entity {
     return this.#accessToken
   }
 
-  set refreshToken (refreshToken: string | undefined) {
+  set refreshToken (refreshToken: string) {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
-    } else if (typeof refreshToken !== 'string' && typeof refreshToken !== 'undefined') {
+    } else if (!isToken(refreshToken) || !refreshToken) {
       throw new TypeError('Invalid refreshToken')
     }
 
@@ -146,7 +148,7 @@ export default class Oauth extends Entity {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
     } else if (
-      !(expiresIn instanceof Date) ||
+      !isDate(expiresIn) ||
       expiresIn.getTime() <= Date.now()
     ) {
       throw new TypeError('Invalid expiresIn')
@@ -164,8 +166,8 @@ export default class Oauth extends Entity {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
     } else if (
-      (!(refreshTokenExpiresIn instanceof Date) || refreshTokenExpiresIn.getTime() <= Date.now()) &&
-      typeof refreshTokenExpiresIn !== 'undefined'
+      (!isDate(refreshTokenExpiresIn) || refreshTokenExpiresIn.getTime() <= Date.now()) &&
+      !isUndefined(refreshTokenExpiresIn)
     ) {
       throw new TypeError('Invalid refreshTokenExpiresIn')
     }

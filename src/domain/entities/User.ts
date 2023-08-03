@@ -7,7 +7,9 @@
  - [ ] The user can have MFA (MultiFactor Authentication)
  - [x] You can only enable MFA for a phone if it is confirmed and enabled
  - [x] It will only be possible to disable or remove a phone if it has not linked to MFA
+ - [ ] check if the mediatype is of an image in picture
 */
+import { isUndefined, isDate, isURL } from '../service/TypeGuard.js'
 
 import UUID from '../VO/UUID.js'
 import Name from '../VO/Name.js'
@@ -71,10 +73,10 @@ export default class User extends Entity {
     if (!(username instanceof Email)) {
       throw new TypeError('Invalid username')
     }
-    if (!(disabledAt instanceof Date) && typeof disabledAt !== 'undefined') {
+    if (!isDate(disabledAt) && !isUndefined(disabledAt)) {
       throw new TypeError('Invalid disabledAt')
     }
-    if (!(updatedAt instanceof Date) && typeof updatedAt !== 'undefined') {
+    if (!isDate(updatedAt) && !isUndefined(updatedAt)) {
       throw new TypeError('Invalid updatedAt')
     }
 
@@ -131,7 +133,7 @@ export default class User extends Entity {
   set picture (picture: URL | undefined) {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
-    } else if (!(picture instanceof URL) && typeof picture !== 'undefined') {
+    } else if (!isURL(picture) && !isUndefined(picture)) {
       throw new TypeError('Invalid picture')
     }
 
@@ -150,7 +152,7 @@ export default class User extends Entity {
   set tfa (phone: Phone | undefined) {
     if (this.#disabledAt) {
       throw new Error('It\'s disabled')
-    } else if (!(phone instanceof Phone) && typeof phone !== 'undefined') {
+    } else if (!(phone instanceof Phone) && !isUndefined(phone)) {
       throw new TypeError('Invalid phone')
     }
 
@@ -214,11 +216,11 @@ export default class User extends Entity {
       throw new TypeError('Invalid email')
     } else if (!email.parse().domain) {
       throw new Error('Domain required')
-    } else if (!(createdAt instanceof Date) && typeof createdAt !== 'undefined') {
+    } else if (!isDate(createdAt) && !isUndefined(createdAt)) {
       throw new TypeError('Invalid createdAt')
-    } else if (!(confirmedAt instanceof Date) && typeof confirmedAt !== 'undefined') {
+    } else if (!isDate(confirmedAt) && !isUndefined(confirmedAt)) {
       throw new TypeError('Invalid confirmedAt')
-    } else if (!(disabledAt instanceof Date) && typeof disabledAt !== 'undefined') {
+    } else if (!isDate(disabledAt) && !isUndefined(disabledAt)) {
       throw new TypeError('Invalid disabledAt')
     }
 
@@ -337,11 +339,11 @@ export default class User extends Entity {
       throw new Error('User is disabled')
     } else if (!(phone instanceof Phone)) {
       throw new TypeError('Invalid phone')
-    } else if (!(createdAt instanceof Date) && typeof createdAt !== 'undefined') {
+    } else if (!isDate(createdAt) && !isUndefined(createdAt)) {
       throw new TypeError('Invalid createdAt')
-    } else if (!(confirmedAt instanceof Date) && typeof confirmedAt !== 'undefined') {
+    } else if (!isDate(confirmedAt) && !isUndefined(confirmedAt)) {
       throw new TypeError('Invalid confirmedAt')
-    } else if (!(disabledAt instanceof Date) && typeof disabledAt !== 'undefined') {
+    } else if (!isDate(disabledAt) && !isUndefined(disabledAt)) {
       throw new TypeError('Invalid disabledAt')
     }
 
@@ -466,14 +468,16 @@ export default class User extends Entity {
     name,
     picture,
     accessToken,
+    expiresIn,
     refreshToken,
-    expiresIn
+    refreshTokenExpiresIn
   }: {
     name: Name,
     picture?: URL,
     accessToken: string,
-    refreshToken: string,
     expiresIn: Date
+    refreshToken: string,
+    refreshTokenExpiresIn?: Date
   }) {
     if (this.#disabledAt) {
       throw new Error('User is disabled')
@@ -490,8 +494,9 @@ export default class User extends Entity {
     this.#oauths[key].name = name
     this.#oauths[key].picture = picture
     this.#oauths[key].accessToken = accessToken
-    this.#oauths[key].refreshToken = refreshToken
     this.#oauths[key].expiresIn = expiresIn
+    this.#oauths[key].refreshToken = refreshToken
+    this.#oauths[key].refreshTokenExpiresIn = refreshTokenExpiresIn
 
     this.#updatedAt = new Date()
 
