@@ -40,8 +40,8 @@ export default class User extends Entity {
   #password: Password
   #picture?: URL
   #tfa?: Phone
-  #emails: Map<string, Omit<EmailDTO, 'email'>> = new Map<string, Omit<EmailDTO, 'email'>>()
-  #phones: Map<string, Omit<PhoneDTO, 'phone'>> = new Map<string, Omit<PhoneDTO, 'phone'>>()
+  #emails: { [key: string]: Omit<EmailDTO, 'email'> } = {}
+  #phones: { [key: string]: Omit<PhoneDTO, 'phone'> } = {}
   #oauths: { [key: string]: Oauth } = {}
   #updatedAt: Date
   #disabledAt?: Date
@@ -104,11 +104,11 @@ export default class User extends Entity {
   }
 
   get phones (): PhoneDTO[] {
-    return Array.from(this.#phones.keys()).map(phone => Object.assign({ phone: new Phone(phone) }, this.#phones.get(phone)))
+    return Object.keys(this.#phones).map(phone => Object.assign({ phone: new Phone(phone) }, this.#phones[phone]))
   }
 
   get emails (): EmailDTO[] {
-    return Array.from(this.#emails.keys()).map(email => Object.assign({ email: new Email(email) }, this.#emails.get(email)))
+    return Object.keys(this.#emails).map(email => Object.assign({ email: new Email(email) }, this.#emails[email]))
   }
 
   get username () {
@@ -157,7 +157,7 @@ export default class User extends Entity {
     }
 
     if (phone) {
-      const _phone = this.#phones.get(phone.toString())
+      const _phone = this.#phones[phone.toString()]
 
       if (
         !_phone ||
@@ -226,15 +226,15 @@ export default class User extends Entity {
 
     const key = email.toString().toLowerCase()
 
-    if (this.#emails.get(key)) {
+    if (key in this.#emails) {
       throw new Error('It\'s already added')
     }
 
-    this.#emails.set(key, {
+    this.#emails[key] = {
       createdAt,
       confirmedAt,
       disabledAt
-    })
+    }
 
     this.#updatedAt = new Date()
 
@@ -248,15 +248,15 @@ export default class User extends Entity {
       throw new TypeError('Invalid email')
     }
 
-    const _email = this.#emails.get(email.toString().toLowerCase())
+    const key = email.toString().toLowerCase()
 
-    if (!_email) {
+    if (!(key in this.#emails)) {
       throw new Error('Not found')
-    } else if (_email.confirmedAt) {
+    } else if (this.#emails[key].confirmedAt) {
       throw new Error('It\'s already confirmed')
     }
 
-    this.#updatedAt = _email.confirmedAt = new Date()
+    this.#updatedAt = this.#emails[key].confirmedAt = new Date()
 
     return this
   }
@@ -268,21 +268,21 @@ export default class User extends Entity {
       throw new TypeError('Invalid email')
     }
 
-    const _email = this.#emails.get(email.toString().toLowerCase())
+    const key = email.toString().toLowerCase()
 
-    if (!_email) {
+    if (!(key in this.#emails)) {
       throw new Error('Not found')
-    } else if (_email.disabledAt) {
+    } else if (this.#emails[key].disabledAt) {
       throw new Error('It\'s already disabled')
-    } else if (Array.from(this.#emails.keys()).filter(key => (
-      key !== email.toString().toLowerCase() &&
-      this.#emails.get(key)?.confirmedAt &&
-      !this.#emails.get(key)?.disabledAt
-    )).length < 1) {
+    } else if (!Object.keys(this.#emails).some(email => (
+      email !== key &&
+      this.#emails[email]?.confirmedAt &&
+      !this.#emails[email]?.disabledAt
+    ))) {
       throw new Error('The User must have at least one active email')
     }
 
-    this.#updatedAt = _email.disabledAt = new Date()
+    this.#updatedAt = this.#emails[key].disabledAt = new Date()
 
     return this
   }
@@ -294,15 +294,15 @@ export default class User extends Entity {
       throw new TypeError('Invalid email')
     }
 
-    const _email = this.#emails.get(email.toString().toLowerCase())
+    const key = email.toString().toLowerCase()
 
-    if (!_email) {
+    if (!(key in this.#emails)) {
       throw new Error('Not found')
-    } else if (!_email.disabledAt) {
+    } else if (!this.#emails[key].disabledAt) {
       throw new Error('It\'s already enabled')
     }
 
-    _email.disabledAt = undefined
+    this.#emails[key].disabledAt = undefined
     this.#updatedAt = new Date()
 
     return this
@@ -313,18 +313,21 @@ export default class User extends Entity {
       throw new Error('User is disabled')
     } else if (!(email instanceof Email)) {
       throw new TypeError('Invalid email')
-    } else if (
-      this.#emails.get(email.toString().toLowerCase()) &&
-      Array.from(this.#emails.keys()).filter(key => (
-        key !== email.toString().toLowerCase() &&
-        this.#emails.get(key)?.confirmedAt &&
-        !this.#emails.get(key)?.disabledAt
-      )).length < 1
-    ) {
+    }
+
+    const key = email.toString().toLowerCase()
+
+    if (!(key in this.#emails)) {
+      return false
+    } else if (!Object.keys(this.#emails).some(email => (
+      email !== key &&
+      this.#emails[email]?.confirmedAt &&
+      !this.#emails[email]?.disabledAt
+    ))) {
       throw new Error('The User must have at least one active email')
     }
 
-    const res = this.#emails.delete(email.toString().toLowerCase())
+    const res = delete this.#emails[key]
     this.#updatedAt = new Date()
 
     return res
@@ -349,15 +352,15 @@ export default class User extends Entity {
 
     const key = phone.toString()
 
-    if (this.#phones.get(key)) {
+    if (key in this.#phones) {
       throw new Error('It\'s already added')
     }
 
-    this.#phones.set(key, {
+    this.#phones[key] = {
       createdAt,
       confirmedAt,
       disabledAt
-    })
+    }
 
     this.#updatedAt = new Date()
 
@@ -371,15 +374,15 @@ export default class User extends Entity {
       throw new TypeError('Invalid phone')
     }
 
-    const _phone = this.#phones.get(phone.toString())
+    const key = phone.toString()
 
-    if (!_phone) {
+    if (!(key in this.#phones)) {
       throw new Error('Not found')
-    } else if (_phone.confirmedAt) {
+    } else if (this.#phones[key].confirmedAt) {
       throw new Error('It\'s already confirmed')
     }
 
-    this.#updatedAt = _phone.confirmedAt = new Date()
+    this.#updatedAt = this.#phones[key].confirmedAt = new Date()
 
     return this
   }
@@ -391,17 +394,17 @@ export default class User extends Entity {
       throw new TypeError('Invalid phone')
     }
 
-    const _phone = this.#phones.get(phone.toString())
+    const key = phone.toString()
 
-    if (!_phone) {
+    if (!(key in this.#phones)) {
       throw new Error('Not found')
-    } else if (_phone.disabledAt) {
+    } else if (this.#phones[key].disabledAt) {
       throw new Error('It\'s already disabled')
-    } else if (this.#tfa && this.#tfa.toString() === phone.toString()) {
+    } else if (this.#tfa && this.#tfa.toString() === key) {
       throw new Error('Two-Factor Authentication is enabled')
     }
 
-    this.#updatedAt = _phone.disabledAt = new Date()
+    this.#updatedAt = this.#phones[key].disabledAt = new Date()
 
     return this
   }
@@ -413,15 +416,15 @@ export default class User extends Entity {
       throw new TypeError('Invalid phone')
     }
 
-    const _phone = this.#phones.get(phone.toString())
+    const key = phone.toString()
 
-    if (!_phone) {
+    if (!(key in this.#phones)) {
       throw new Error('Not found')
-    } else if (!_phone.disabledAt) {
+    } else if (!this.#phones[key].disabledAt) {
       throw new Error('It\'s already enabled')
     }
 
-    _phone.disabledAt = undefined
+    this.#phones[key].disabledAt = undefined
     this.#updatedAt = new Date()
 
     return this
@@ -432,11 +435,17 @@ export default class User extends Entity {
       throw new Error('User is disabled')
     } else if (!(phone instanceof Phone)) {
       throw new TypeError('Invalid phone')
-    } else if (this.#tfa && this.#tfa.toString() === phone.toString()) {
+    }
+
+    const key = phone.toString()
+
+    if (!(key in this.#phones)) {
+      return false
+    } else if (this.#tfa && this.#tfa.toString() === key) {
       throw new Error('Two-Factor Authentication is enabled')
     }
 
-    const res = this.#phones.delete(phone.toString())
+    const res = delete this.#phones[key]
     this.#updatedAt = new Date()
 
     return res
