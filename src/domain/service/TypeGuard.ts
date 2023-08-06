@@ -1,7 +1,11 @@
 export * from 'node:util/types'
 
-export function isObject (value: any): value is URL {
-  return value !== null && typeof value === 'object'
+export function isObject (value: any, atLeastOne: any[] = []): value is Object {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    (!atLeastOne.length || atLeastOne.some(key => key in value))
+  )
 }
 
 export function isNumber (value: any): value is number {

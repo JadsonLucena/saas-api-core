@@ -1,3 +1,5 @@
+import { isDate } from '../service/TypeGuard.js'
+
 import UUID from '../VO/UUID.js'
 
 export default abstract class Entity {
@@ -14,7 +16,7 @@ export default abstract class Entity {
     if (!(id instanceof UUID)) {
       throw new TypeError('Invalid id')
     }
-    if (!(createdAt instanceof Date)) {
+    if (!isDate(createdAt)) {
       throw new TypeError('Invalid createdAt')
     }
 
