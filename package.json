@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Worry about developing only your application's business rules. Extend this core API in Typescript to manage users, projects and payment plans. The design of this project was based on the principles of clean architecture and Domain-Driven Design (DDD)",
   "engines": {
-    "node": ">=19"
+    "node": ">=20.6"
   },
   "type": "module",
   "main": "./build/index.js",
@@ -12,7 +12,7 @@
     "lint": "eslint ./src ./test --ext .ts,.js",
     "pretest": "npm run build",
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest ./test --onlyChanged",
-    "start": "node ./build/index"
+    "start": "node --env-file=config.env ./build/index"
   },
   "keywords": [],
   "author": "",
