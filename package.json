@@ -1,0 +1,53 @@
+{
+  "name": "api-core",
+  "version": "1.0.0",
+  "description": "Get an API with the features you need to develop any service",
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "module",
+  "main": "./build/index.js",
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "lint": "eslint .",
+    "test": "jest ./test --onlyChanged",
+    "prestart": "npm run build",
+    "start": "node --env-file=.env build/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JadsonLucena/api-core.git"
+  },
+  "keywords": [
+    "api",
+    "http",
+    "http2",
+    "rest",
+    "soap",
+    "graphql",
+    "grpc"
+  ],
+  "author": "JadsonLucena",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JadsonLucena/api-core/issues"
+  },
+  "homepage": "https://github.com/JadsonLucena/api-core#readme",
+  "devDependencies": {
+    "@commitlint/cli": "latest",
+    "@commitlint/config-conventional": "latest",
+    "@eslint/js": "latest",
+    "@types/jest": "latest",
+    "@types/node": "latest",
+    "eslint": "latest",
+    "eslint-plugin-jest": "latest",
+    "jest": "latest",
+    "jest-environment-node": "latest",
+    "ts-jest": "latest",
+    "tsc-alias": "latest",
+    "typescript": "latest",
+    "typescript-eslint": "latest"
+  },
+  "dependencies": {
+  }
+}
