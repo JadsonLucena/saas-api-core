@@ -64,7 +64,7 @@ CREATE TABLE "phone" (
   
 	CHECK(confirmed_at > created_at),
 	CHECK(disabled_at > created_at),
-  PRIMARY KEY ("user_id", "value"),
+  PRIMARY KEY ("user_id", "phone"),
   FOREIGN KEY ("user_id") REFERENCES "user" ("id")
 );
 
@@ -104,7 +104,7 @@ CREATE TABLE "email" (
 
 	CHECK(confirmed_at > created_at),
 	CHECK(disabled_at > created_at),
-  PRIMARY KEY ("user_id", "value"),
+  PRIMARY KEY ("user_id", "email"),
   FOREIGN KEY ("user_id") REFERENCES "user" ("id")
 );
 
@@ -277,7 +277,7 @@ CREATE TABLE "oauth" (
 );
 
 CREATE TABLE "oauth_access_token" (
-  "value" varchar(255) PRIMARY KEY NOT NULL,
+  "token" varchar(255) PRIMARY KEY NOT NULL,
   "expires_in" timestamp NOT NULL,
   "oauth_id" uuid NOT NULL,
   "member_id" uuid NOT NULL,
@@ -294,7 +294,7 @@ CREATE TABLE "oauth_access_token" (
 );
 
 CREATE TABLE "oauth_refresh_token" (
-  "value" varchar(255) PRIMARY KEY NOT NULL,
+  "token" varchar(255) PRIMARY KEY NOT NULL,
   "expires_in" timestamp NOT NULL,
   "oauth_id" uuid NOT NULL,
   "member_id" uuid NOT NULL,
@@ -307,7 +307,7 @@ CREATE TABLE "oauth_refresh_token" (
 	UNIQUE ("oauth_id", "member_id", "oauth_access_token"),
   FOREIGN KEY ("oauth_id") REFERENCES "oauth" ("id"),
   FOREIGN KEY ("member_id") REFERENCES "member" ("id"),
-  FOREIGN KEY ("oauth_access_token") REFERENCES "oauth_access_token" ("value")
+  FOREIGN KEY ("oauth_access_token") REFERENCES "oauth_access_token" ("token")
 );
 
 CREATE TABLE "customer" (
