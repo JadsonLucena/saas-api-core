@@ -52,7 +52,7 @@ CREATE TABLE "user" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(disabled_at > created_at)
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "phone" (
@@ -62,8 +62,8 @@ CREATE TABLE "phone" (
   "confirmed_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
   
-	CHECK(confirmed_at > created_at),
-	CHECK(disabled_at > created_at),
+  CHECK(confirmed_at > created_at),
+  CHECK(disabled_at > created_at),
   PRIMARY KEY ("user_id", "phone"),
   FOREIGN KEY ("user_id") REFERENCES "user" ("id")
 );
@@ -78,20 +78,21 @@ CREATE TABLE "phone_message_provider" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(disabled_at > created_at)
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "phone_message" (
   "phone_message_provider_id" int NOT NULL,
+  "user_id" uuid NOT NULL,
   "phone" varchar(255) NOT NULL,
   "mfa" boolean DEFAULT false,
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(disabled_at > created_at),
+  CHECK(disabled_at > created_at),
   PRIMARY KEY ("phone_message_provider_id", "phone"),
   FOREIGN KEY ("phone_message_provider_id") REFERENCES "phone_message_provider" ("id"),
-  FOREIGN KEY ("phone") REFERENCES "phone" ("phone")
+  FOREIGN KEY ("user_id", "phone") REFERENCES "phone" ("user_id", "phone")
 );
 
 CREATE TABLE "email" (
@@ -102,8 +103,8 @@ CREATE TABLE "email" (
   "confirmed_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(confirmed_at > created_at),
-	CHECK(disabled_at > created_at),
+  CHECK(confirmed_at > created_at),
+  CHECK(disabled_at > created_at),
   PRIMARY KEY ("user_id", "email"),
   FOREIGN KEY ("user_id") REFERENCES "user" ("id")
 );
@@ -120,10 +121,10 @@ CREATE TABLE "otp" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(length > 0),
-	CHECK(variation >= 0),
-	CHECK(disabled_at > created_at),
-	UNIQUE ("secret", "digestAlgorithm", "length", "type"),
+  CHECK(length > 0),
+  CHECK(variation >= 0),
+  CHECK(disabled_at > created_at),
+  UNIQUE ("secret", "digestAlgorithm", "length", "type"),
   FOREIGN KEY ("user_id") REFERENCES "user" ("id")
 );
 
@@ -135,7 +136,7 @@ CREATE TABLE "passkey" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(disabled_at > created_at),
+  CHECK(disabled_at > created_at),
   FOREIGN KEY ("user_id") REFERENCES "user" ("id")
 );
 
@@ -149,7 +150,7 @@ CREATE TABLE "identity_provider" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(disabled_at > created_at)
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "sign_in_with" (
@@ -166,10 +167,10 @@ CREATE TABLE "sign_in_with" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
   
-	CHECK(expires_in > now()),
-	CHECK(refresh_token_expires_in > now()),
-	CHECK(disabled_at > created_at),
-	UNIQUE ("identity_provider_id", "username"),
+  CHECK(expires_in > now()),
+  CHECK(refresh_token_expires_in > now()),
+  CHECK(disabled_at > created_at),
+  UNIQUE ("identity_provider_id", "username"),
   PRIMARY KEY ("identity_provider_id", "user_id", "username"),
   FOREIGN KEY ("identity_provider_id") REFERENCES "identity_provider" ("id"),
   FOREIGN KEY ("user_id") REFERENCES "user" ("id")
@@ -183,7 +184,7 @@ CREATE TABLE "account" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(disabled_at > created_at)
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "scope" (
@@ -193,7 +194,7 @@ CREATE TABLE "scope" (
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(disabled_at > created_at)
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "role" (
@@ -204,8 +205,8 @@ CREATE TABLE "role" (
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(disabled_at > created_at),
-	UNIQUE ("name", "account_id", "user_id"),
+  CHECK(disabled_at > created_at),
+  UNIQUE ("name", "account_id", "user_id"),
   FOREIGN KEY ("account_id") REFERENCES "account" ("id"),
   FOREIGN KEY ("user_id") REFERENCES "user" ("id")
 );
@@ -229,9 +230,9 @@ CREATE TABLE "member" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(confirmed_at > created_at),
-	CHECK(disabled_at > created_at),
-	UNIQUE ("account_id", "user_id"),
+  CHECK(confirmed_at > created_at),
+  CHECK(disabled_at > created_at),
+  UNIQUE ("account_id", "user_id"),
   FOREIGN KEY ("account_id") REFERENCES "account" ("id"),
   FOREIGN KEY ("user_id") REFERENCES "user" ("id"),
   FOREIGN KEY ("role_id") REFERENCES "role" ("id")
@@ -246,8 +247,8 @@ CREATE TABLE "token" (
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(expires_in > now()),
-	CHECK(disabled_at > created_at),
+  CHECK(expires_in > now()),
+  CHECK(disabled_at > created_at),
   FOREIGN KEY ("member_id") REFERENCES "member" ("id"),
   FOREIGN KEY ("role_id") REFERENCES "role" ("id")
 );
@@ -270,8 +271,8 @@ CREATE TABLE "oauth" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(disabled_at > created_at),
-	UNIQUE ("name", "member_id"),
+  CHECK(disabled_at > created_at),
+  UNIQUE ("name", "member_id"),
   FOREIGN KEY ("member_id") REFERENCES "member" ("id"),
   FOREIGN KEY ("role_id") REFERENCES "role" ("id")
 );
@@ -285,9 +286,9 @@ CREATE TABLE "oauth_access_token" (
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(expires_in > NOW()),
-	CHECK(disabled_at > created_at),
-	UNIQUE ("oauth_id", "member_id"),
+  CHECK(expires_in > NOW()),
+  CHECK(disabled_at > created_at),
+  UNIQUE ("oauth_id", "member_id"),
   FOREIGN KEY ("oauth_id") REFERENCES "oauth" ("id"),
   FOREIGN KEY ("member_id") REFERENCES "member" ("id"),
   FOREIGN KEY ("role_id") REFERENCES "role" ("id")
@@ -302,9 +303,9 @@ CREATE TABLE "oauth_refresh_token" (
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(expires_in > NOW()),
-	CHECK(disabled_at > created_at),
-	UNIQUE ("oauth_id", "member_id", "oauth_access_token"),
+  CHECK(expires_in > NOW()),
+  CHECK(disabled_at > created_at),
+  UNIQUE ("oauth_id", "member_id", "oauth_access_token"),
   FOREIGN KEY ("oauth_id") REFERENCES "oauth" ("id"),
   FOREIGN KEY ("member_id") REFERENCES "member" ("id"),
   FOREIGN KEY ("oauth_access_token") REFERENCES "oauth_access_token" ("token")
@@ -319,7 +320,7 @@ CREATE TABLE "customer" (
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(disabled_at > created_at),
+  CHECK(disabled_at > created_at),
   FOREIGN KEY ("member_id") REFERENCES "member" ("id")
 );
 
@@ -332,8 +333,8 @@ CREATE TABLE "credit_card" (
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(expires_in > now()),
-	CHECK(disabled_at > created_at),
+  CHECK(expires_in > now()),
+  CHECK(disabled_at > created_at),
   FOREIGN KEY ("customer_id") REFERENCES "customer" ("id")
 );
 
@@ -348,7 +349,7 @@ CREATE TABLE "address" (
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(disabled_at > created_at)
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "customer_address" (
@@ -367,8 +368,8 @@ CREATE TABLE "consumption" (
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(amount >= 0),
-	CHECK(disabled_at > created_at),
+  CHECK(amount >= 0),
+  CHECK(disabled_at > created_at),
   FOREIGN KEY ("account_id") REFERENCES "account" ("id")
 );
 
@@ -384,10 +385,10 @@ CREATE TABLE "discount" (
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(amount >= 0),
-	CHECK(quantity > 0),
-	CHECK(expires_in > now()),
-	CHECK(disabled_at > created_at)
+  CHECK(amount >= 0),
+  CHECK(quantity > 0),
+  CHECK(expires_in > now()),
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "coupon" (
@@ -399,8 +400,8 @@ CREATE TABLE "coupon" (
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(expires_in > now()),
-	CHECK(disabled_at > created_at),
+  CHECK(expires_in > now()),
+  CHECK(disabled_at > created_at),
   FOREIGN KEY ("discount_id") REFERENCES "discount" ("id")
 );
 
@@ -418,10 +419,10 @@ CREATE TABLE "product" (
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(price >= 0),
-	CHECK(quantity > 0),
-	CHECK(expires_in > now()),
-	CHECK(disabled_at > created_at),
+  CHECK(price >= 0),
+  CHECK(quantity > 0),
+  CHECK(expires_in > now()),
+  CHECK(disabled_at > created_at),
   FOREIGN KEY ("discount_id") REFERENCES "discount" ("id")
 );
 
@@ -435,8 +436,8 @@ CREATE TABLE "order" (
   "confirmed_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(confirmed_at > created_at),
-	CHECK(disabled_at > created_at),
+  CHECK(confirmed_at > created_at),
+  CHECK(disabled_at > created_at),
   FOREIGN KEY ("account_id") REFERENCES "account" ("id"),
   FOREIGN KEY ("user_id") REFERENCES "user" ("id"),
   FOREIGN KEY ("coupon_id") REFERENCES "coupon" ("id")
@@ -459,8 +460,8 @@ CREATE TABLE "item" (
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
-	CHECK(quantity >= 1),
-	CHECK(disabled_at > created_at),
+  CHECK(quantity >= 1),
+  CHECK(disabled_at > created_at),
   FOREIGN KEY ("order_id") REFERENCES "order" ("id"),
   FOREIGN KEY ("product_id") REFERENCES "product" ("id")
 );
