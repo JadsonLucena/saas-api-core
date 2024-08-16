@@ -57,7 +57,7 @@ CREATE TABLE "user" (
 
 CREATE TABLE "phone" (
   "user_id" uuid NOT NULL,
-  "value" varchar(255) NOT NULL,
+  "phone" varchar(255) NOT NULL,
   "created_at" timestamp DEFAULT now(),
   "confirmed_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
@@ -83,19 +83,20 @@ CREATE TABLE "phone_message_provider" (
 
 CREATE TABLE "phone_message" (
   "phone_message_provider_id" int NOT NULL,
-  "phone" varchar(255) NOT NULL UNIQUE,
+  "phone" varchar(255) NOT NULL,
   "mfa" boolean DEFAULT false,
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp DEFAULT now(),
 
 	CHECK(disabled_at > created_at),
   PRIMARY KEY ("phone_message_provider_id", "phone"),
-  FOREIGN KEY ("phone_message_provider_id") REFERENCES "phone_message_provider" ("id")
+  FOREIGN KEY ("phone_message_provider_id") REFERENCES "phone_message_provider" ("id"),
+  FOREIGN KEY ("phone") REFERENCES "phone" ("phone")
 );
 
 CREATE TABLE "email" (
   "user_id" uuid NOT NULL,
-  "value" varchar(255) NOT NULL,
+  "email" varchar(255) NOT NULL,
   "mfa" boolean DEFAULT false,
   "created_at" timestamp DEFAULT now(),
   "confirmed_at" timestamp DEFAULT now(),
@@ -238,7 +239,7 @@ CREATE TABLE "member" (
 
 CREATE TABLE "token" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "value" text NOT NULL UNIQUE,
+  "token" text NOT NULL UNIQUE,
   "member_id" uuid NOT NULL,
   "role_id" uuid NOT NULL,
   "expires_in" timestamp NOT NULL,
