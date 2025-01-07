@@ -6,13 +6,17 @@
     "node": ">=20"
   },
   "type": "module",
-  "main": "./build/index.js",
+  "main": "./src/index.ts",
   "scripts": {
-    "build": "tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json",
-    "lint": "eslint .",
-    "test": "jest ./test --onlyChanged",
-    "prestart": "npm run build",
-    "start": "node --env-file=.env build/index.js"
+    "start:dev": "node --trace-warnings --env-file=.env --experimental-strip-types --watch ./src/index.ts",
+    "start": "node --trace-warnings --experimental-strip-types ./src/index.ts",
+    "test": "node --env-file=.env --test --experimental-strip-types test/**/*.test.ts",
+    "pretest:E2E": "openssl req -new -newkey rsa:4096 -x509 -sha256 -days 1 -nodes -out ./Cert.pem -keyout ./Key.pem -subj '/C=UA/ST=Some-State/L=/O=Internet Widgits Pty Ltd/OU=/CN=' > /dev/null 2>&1 && docker-compose --env-file=.env up -d --build && rm -f ./Cert.pem ./Key.pem",
+    "posttest:E2E": "docker-compose down -v",
+    "test:E2E": "NODE_TLS_REJECT_UNAUTHORIZED=0 node --env-file=.env --experimental-strip-types --test test/E2E/**/*.test.ts",
+    "test:coverage": "node --env-file=.env --experimental-strip-types --test --experimental-test-coverage test/E2E/**/*.test.ts",
+    "lint": "eslint --flag unstable_ts_config .",
+    "lint:fix": "eslint --flag unstable_ts_config . --fix"
   },
   "repository": {
     "type": "git",
@@ -33,21 +37,17 @@
     "url": "https://github.com/JadsonLucena/api-core/issues"
   },
   "homepage": "https://github.com/JadsonLucena/api-core#readme",
-  "devDependencies": {
-    "@commitlint/cli": "latest",
-    "@commitlint/config-conventional": "latest",
-    "@eslint/js": "latest",
-    "@types/jest": "latest",
-    "@types/node": "latest",
-    "eslint": "latest",
-    "eslint-plugin-jest": "latest",
-    "jest": "latest",
-    "jest-environment-node": "latest",
-    "ts-jest": "latest",
-    "tsc-alias": "latest",
-    "typescript": "latest",
-    "typescript-eslint": "latest"
-  },
   "dependencies": {
+    "@fastify/multipart": "latest",
+    "@fastify/static": "latest",
+    "fastify": "latest"
+  },
+  "devDependencies": {
+    "@eslint/js": "latest",
+    "@types/eslint-plugin-security": "latest",
+    "@types/node": "latest",
+    "eslint-plugin-security": "latest",
+    "jiti": "latest",
+    "typescript-eslint": "latest"
   }
 }
