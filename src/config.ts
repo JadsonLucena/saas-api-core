@@ -1,8 +1,15 @@
+import os from 'node:os'
+
 const LOOPBACK = 'localhost'
 
 export const APP_NAME = process.env.APP_NAME?.trim() ?? 'API'
 
-export const NODE_ENV = process.env.NODE_ENV?.trim() ?? 'development'
+export const NodeEnv = {
+  PRODUCTION: 'production',
+  DEVELOPMENT: 'development'
+} as const
+export type NodeEnv = typeof NodeEnv[keyof typeof NodeEnv]
+export const NODE_ENV: NodeEnv = Object.values(NodeEnv).find(nodeEnv => nodeEnv === process.env.NODE_ENV?.trim()) ?? 'development'
 
 export const HOSTNAME = {
   API: process.env.HOSTNAME_API?.trim()?.toLowerCase() ?? LOOPBACK,
@@ -49,3 +56,7 @@ export const SECURITY = {
 }
 
 export const SPOT_TERMINATION_NOTICE_TIME = parseInt(process.env.SPOT_TERMINATION_NOTICE_TIME?.trim() || '30_000') // In milliseconds
+
+export const CLUSTER = {
+  WORKERS: parseInt(process.env.CLUSTER_WORKERS?.trim() || `${os.cpus().length}`)
+}

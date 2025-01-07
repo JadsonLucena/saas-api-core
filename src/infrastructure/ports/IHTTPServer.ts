@@ -12,7 +12,7 @@ export type IServer = http.Server | http2.Http2Server
 export type ISecureServer = https.Server | http2.Http2SecureServer
 
 export interface IHTTPServer {
-	connectionsCount(): Promise<number>
-	start(): Promise<this>
+	connectionsCount(): number
+	start(): Promise<void>
 	stop(): Promise<void>
 }

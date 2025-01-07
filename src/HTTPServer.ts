@@ -1,18 +1,21 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 import { Duplex } from 'node:stream'
+import path from 'node:path'
 import http from 'node:http'
 import https from 'node:https'
 import http2 from 'node:http2'
-import path from 'node:path'
+import cluster, { Worker } from 'node:cluster'
 
 import {
+  CLUSTER,
   NODE_ENV,
   ORIGIN,
   PORT,
   SECURITY,
   SPOT_TERMINATION_NOTICE_TIME,
   TLS,
-  USE_HTTP2
+  USE_HTTP2,
+  NodeEnv
 } from './config.ts'
 
 import type { IServiceHandler, IRequest, IResponse} from './infrastructure/ports/IServiceHandler.ts'
@@ -20,38 +23,40 @@ import { type IHTTPServer, type IServer, type ISecureServer, ExitStatus } from '
 
 import gracefulShutdown from './infrastructure/services/gracefulShutdown.ts'
 
+const serverProps: IServerProps = {
+  nodeEnv: NODE_ENV,
+  useHttp2: USE_HTTP2,
+  port: {
+    http: PORT.HTTP,
+    https: PORT.HTTPS
+  },
+  tls: {
+    certPath: TLS.CERT_PATH,
+    keyPath: TLS.KEY_PATH
+  },
+  security: {
+    keepAliveTimeout: SECURITY.KEEP_ALIVE_TIMEOUT,
+    maxExecutionTime: SECURITY.MAX_EXECUTION_TIME,
+    maxConnections: SECURITY.MAX_CONNECTIONS
+  },
+  spotTerminationNoticeTime: SPOT_TERMINATION_NOTICE_TIME,
+  origin: {
+    api: {
+      origin: ORIGIN.API
+    }
+  }
+}
+
 export default class HttpServer implements IHTTPServer {
   private readonly protocols: IProtocols
-  private readonly props: IProps
+  private readonly props: IServerProps
   private readonly server: IServer
   private readonly secureServer?: ISecureServer
   private readonly connections = new Set<Duplex>()
 
   constructor(
     protocols: IProtocols,
-    props: IProps = {
-      nodeEnv: NODE_ENV,
-      useHttp2: USE_HTTP2,
-      port: {
-        http: PORT.HTTP,
-        https: PORT.HTTPS
-      },
-      tls: {
-        certPath: TLS.CERT_PATH,
-        keyPath: TLS.KEY_PATH
-      },
-      security: {
-        keepAliveTimeout: SECURITY.KEEP_ALIVE_TIMEOUT,
-        maxExecutionTime: SECURITY.MAX_EXECUTION_TIME,
-        maxConnections: SECURITY.MAX_CONNECTIONS
-      },
-      spotTerminationNoticeTime: SPOT_TERMINATION_NOTICE_TIME,
-      origin: {
-        api: {
-          origin: ORIGIN.API
-        }
-      }
-    }
+    props: IServerProps = serverProps
   ) {
     this.protocols = protocols
     this.props = props
@@ -60,10 +65,7 @@ export default class HttpServer implements IHTTPServer {
       protocols.gRPC &&
       (
         !this.props.useHttp2 ||
-        !(
-          this.props.tls.certPath && this.props.tls.certPath.trim() &&
-          this.props.tls.keyPath && this.props.tls.keyPath.trim()
-        )
+        !this.hasValidTLS()
       )
     ) {
       throw new Error('gRPC requires HTTP2 and TLS')
@@ -86,7 +88,7 @@ export default class HttpServer implements IHTTPServer {
     })
 
     this.secureServer?.prependOnceListener('close', () => {
-      if (this.props.nodeEnv !== 'production') {
+      if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
         console.warn('Secure Server closed')
       }
 
@@ -95,7 +97,7 @@ export default class HttpServer implements IHTTPServer {
       }
     })
     this.server.prependOnceListener('close', () => {
-      if (this.props.nodeEnv !== 'production') {
+      if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
         console.warn('Server closed')
       }
 
@@ -109,7 +111,7 @@ export default class HttpServer implements IHTTPServer {
     process.prependOnceListener('SIGQUIT', signal => this.shutdown(signal))
   }
 
-  async connectionsCount() {
+  connectionsCount() {
     /*const server = this.secureServer ?? this.server
 
     return new Promise<number>((resolve, reject) => {
@@ -125,11 +127,11 @@ export default class HttpServer implements IHTTPServer {
     return this.connections.size
   }
 
-  start() {
-    return Promise.all([
+  async start() {
+    await Promise.all([
       new Promise<void>((resolve, reject) => {
         this.secureServer?.listen(this.props.port.https, () => {
-          if (this.props.nodeEnv !== 'production') {
+          if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
             console.info(`Server http${this.props.useHttp2 ? '/2' : 's/1.1'}`, `listening on port ${this.props.port.https}`)
           }
 
@@ -140,11 +142,8 @@ export default class HttpServer implements IHTTPServer {
       }),
       new Promise<void>((resolve, reject) => {
         this.server.listen(this.props.port.http, () => {
-          if (this.props.nodeEnv !== 'production') {
-            if (
-              this.props.tls.certPath && this.props.tls.certPath.trim() &&
-              this.props.tls.keyPath && this.props.tls.keyPath.trim()
-            ) {
+          if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
+            if (this.hasValidTLS()) {
               console.info(`Server http/1.1`, `listening on port ${this.props.port.http} to redirect to port ${this.props.port.https}`)
             } else {
               console.info(`Server http/1.1`, `listening on port ${this.props.port.http}`)
@@ -156,7 +155,7 @@ export default class HttpServer implements IHTTPServer {
     
         this.server.prependOnceListener('error', reject)
       })
-    ]).then(() => this)
+    ])
   }
 
   stop() {
@@ -190,10 +189,7 @@ export default class HttpServer implements IHTTPServer {
   }
 
   private createSecureServer(): ISecureServer | undefined {
-    if (
-      this.props.tls.certPath && this.props.tls.certPath.trim() &&
-      this.props.tls.keyPath && this.props.tls.keyPath.trim()
-    ) {
+    if (this.hasValidTLS(this.props.tls)) {
       if (this.props.useHttp2) {
         return http2.createSecureServer({
           cert: readFileSync(path.join(path.resolve(), this.props.tls.certPath)),
@@ -253,10 +249,7 @@ export default class HttpServer implements IHTTPServer {
           message: 'OK'
         }))
       } else if (
-        (
-          this.props.tls.certPath && this.props.tls.certPath.trim() &&
-          this.props.tls.keyPath && this.props.tls.keyPath.trim()
-        ) &&
+        this.hasValidTLS() &&
         !encrypted
       ) {
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
@@ -348,13 +341,13 @@ export default class HttpServer implements IHTTPServer {
   }
 
   private async shutdown(signal: NodeJS.Signals) {
-    if (this.props.nodeEnv !== 'production') {
+    if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
       console.warn(`Received ${signal}, forcefully shutting down`)
     }
 
     const forceExit = setTimeout(() => {
       if (this.connections.size > 0) {
-        if (this.props.nodeEnv !== 'production') {
+        if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
           console.error('Could not close connections in time, forcefully shutting down')
         }
         
@@ -372,6 +365,127 @@ export default class HttpServer implements IHTTPServer {
 
     await gracefulShutdown(signal)
   }
+
+  private hasValidTLS(tls: {
+    certPath?: string,
+    keyPath?: string
+  } = this.props.tls): tls is { certPath: string, keyPath: string } {
+    return Boolean((
+      tls.certPath && tls.certPath.trim() &&
+      tls.keyPath && tls.keyPath.trim()
+    ) && (
+      existsSync(path.join(path.resolve(), tls.certPath)) &&
+      existsSync(path.join(path.resolve(), tls.keyPath))
+    ))
+  }
+}
+
+export class HttpServerCluster implements IHTTPServer {
+  private readonly protocols: IProtocols
+	private readonly props: IServerClusterProps
+	private readonly workers = new Set<Worker>()
+  private readonly servers = new Set<HttpServer>()
+
+  constructor(
+    protocols: IProtocols,
+    props: IServerClusterProps = Object.assign(serverProps, {
+      numWorkers: CLUSTER.WORKERS
+    })
+  ) {
+    this.protocols = protocols
+    this.props = props
+  }
+
+  connectionsCount() {
+    let connections = 0
+
+    this.servers.forEach(server => {
+      connections += server.connectionsCount()
+    })
+
+    return connections
+  }
+
+  async start() {
+    if (cluster.isPrimary) {
+      if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
+        console.log(`[Primary] ${process.pid} is running`)
+      }
+
+      for (let i = 0; i < this.props.numWorkers; i++) {
+        this.workers.add(this.createWorker())
+      }
+
+      cluster.on('exit', (worker, code, signal) => {
+        if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
+          console.error(`[Primary] Worker ${worker.process.pid} exited with code ${code} and signal ${signal}. Restarting...`)
+        }
+
+        this.workers.delete(worker)
+
+        this.workers.add(this.createWorker())
+      })
+    } else {
+      const server = new HttpServer(this.protocols, this.props)
+
+      this.servers.add(server)
+
+      await server.start()
+    }
+  }
+
+	async stop() {
+    if (cluster.isPrimary) {
+      if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
+        console.log(`[Primary] Closing cluster...`)
+      }
+
+      await Promise.all(Array.from(this.workers).map(worker => {
+        return new Promise((resolve, reject) => {
+          try {
+            worker.prependOnceListener('exit', resolve)
+            worker.prependOnceListener('error', reject)
+            worker.kill()
+          } catch (err) {
+            reject(err)
+          }
+        }).then(() => {
+          if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
+            console.log(`[Primary] Worker ${worker.process.pid} terminated.`)
+          }
+        })
+      }))
+
+      this.servers.clear()
+
+      if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
+        console.log(`[Primary] Cluster closed.`)
+      }
+    }
+  }
+
+  private createWorker() {
+    const worker = cluster.fork()
+
+    worker.on('message', message => {
+      if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
+        console.log(`[Primary] Message from worker ${worker.process.pid}:`, message)
+      }
+    })
+
+    worker.on('disconnect', () => {
+      console.warn(`Worker ${worker.process.pid} disconnected`);
+      worker.kill()
+    });
+
+    // Tratamento do evento de erro
+    worker.on('error', (err) => {
+      console.error(`Error in worker ${worker.process.pid}:`, err);
+      worker.kill()
+    })
+
+    return worker
+  }
 }
 
 export interface IProtocols {
@@ -381,7 +495,7 @@ export interface IProtocols {
   SOAP?: IServiceHandler
 }
 
-export type IProps = {
+export type IServerProps = {
   nodeEnv: string,
   useHttp2: boolean,
   port: {
@@ -404,3 +518,7 @@ export type IProps = {
     }
   }
 } 
+
+export type IServerClusterProps = IServerProps & {
+	numWorkers: number
+}
