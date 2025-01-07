@@ -1,13 +1,22 @@
 import { NODE_ENV } from './config.ts'
+
 import REST from './infrastructure/presenters/REST/index.ts'
 
-import HttpServer from './HTTPServer.ts'
+/*import HttpServer from './HTTPServer.ts'
 
 const httpServer = new HttpServer({
   REST: new REST()
 })
 
-export default await httpServer.start()
+export default await httpServer.start()*/
+
+import { HttpServerCluster } from './HTTPServer.ts'
+
+const httpServerCluster = new HttpServerCluster({
+  REST: new REST()
+})
+
+export default await httpServerCluster.start()
 
 // process.on('uncaughtException', (err: Error) => {
 process.on('uncaughtExceptionMonitor', (err: Error) => {
