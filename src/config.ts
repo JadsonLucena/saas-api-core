@@ -18,7 +18,7 @@ export const HOSTNAME = {
 }
 
 if (
-  NODE_ENV !== 'development' &&
+  NODE_ENV !== NodeEnv.DEVELOPMENT &&
   HOSTNAME.API.includes(LOOPBACK)
 ) {
   throw new Error('HOSTNAME is required. Please, set the environment variable HOSTNAME with the value of your hostname')
@@ -27,6 +27,22 @@ if (
 export const PORT = {
   HTTP: parseInt(process.env.PORT_HTTP?.trim() ?? '8080'),
   HTTPS: parseInt(process.env.PORT_HTTPS?.trim() ?? '8443')
+}
+
+if (
+  PORT.HTTP === PORT.HTTPS
+) {
+  throw new Error('HTTP and HTTPS ports must be different')
+} else if (
+  PORT.HTTP !== 80 &&
+  (PORT.HTTP < 1024 || PORT.HTTP > 49151)
+) {
+  throw new Error('Invalid HTTP port number')
+} else if (
+  PORT.HTTPS !== 443 &&
+  (PORT.HTTPS < 1024 || PORT.HTTPS > 49151)
+) {
+  throw new Error('Invalid HTTPS port number')
 }
 
 export const TLS = {
@@ -47,16 +63,16 @@ export const ASSETS = {
 }
 
 export const SECURITY = {
-  KEEP_ALIVE_TIMEOUT: parseInt(process.env.SECURITY_KEEP_ALIVE_TIMEOUT?.trim() || '5_000'), // In milliseconds
-  MAX_EXECUTION_TIME: parseInt(process.env.SECURITY_MAX_EXECUTION_TIME?.trim() || '30_000'), // In milliseconds
-  MAX_CONNECTIONS: parseInt(process.env.SECURITY_MAX_CONNECTIONS?.trim() || '1_000'),
-  BODY_MAX_SIZE: parseInt(process.env.SECURITY_POST_MAX_SIZE?.trim() || '10_485_760'), // 10 MB in bytes
-  UPLOAD_MAX_FILESIZE: parseInt(process.env.SECURITY_UPLOAD_MAX_FILESIZE?.trim() || '15_728_640'), // 15 MB  in bytes
+  KEEP_ALIVE_TIMEOUT: Math.max(0, parseInt(process.env.SECURITY_KEEP_ALIVE_TIMEOUT?.trim() || '5_000')), // In milliseconds
+  MAX_EXECUTION_TIME: Math.max(0, parseInt(process.env.SECURITY_MAX_EXECUTION_TIME?.trim() || '30_000')), // In milliseconds
+  MAX_CONNECTIONS: Math.max(1, parseInt(process.env.SECURITY_MAX_CONNECTIONS?.trim() || '1_000')),
+  BODY_MAX_SIZE: Math.max(1, parseInt(process.env.SECURITY_POST_MAX_SIZE?.trim() || '10_485_760')), // 10 MB in bytes
+  UPLOAD_MAX_FILESIZE: Math.max(1, parseInt(process.env.SECURITY_UPLOAD_MAX_FILESIZE?.trim() || '15_728_640')), // 15 MB  in bytes
   PREVENT_HOTLINK: !/^(false|0|undefined|null|NaN|)$/.test(process.env.SECURITY_PREVENT_HOTLINK?.trim() || 'false')
 }
 
-export const SPOT_TERMINATION_NOTICE_TIME = parseInt(process.env.SPOT_TERMINATION_NOTICE_TIME?.trim() || '30_000') // In milliseconds
+export const SPOT_TERMINATION_NOTICE_TIME = Math.max(1, parseInt(process.env.SPOT_TERMINATION_NOTICE_TIME?.trim() || '30_000')) // In milliseconds
 
 export const CLUSTER = {
-  WORKERS: parseInt(process.env.CLUSTER_WORKERS?.trim() || `${os.cpus().length}`)
+  WORKERS: Math.min(os.cpus().length, Math.max(1, parseInt(process.env.CLUSTER_WORKERS?.trim() || `${os.cpus().length}`)))
 }

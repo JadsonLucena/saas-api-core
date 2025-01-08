@@ -106,9 +106,9 @@ export default class HttpServer implements IHTTPServer {
       }
     })
 
-    process.prependOnceListener('SIGINT', signal => this.shutdown(signal))
-    process.prependOnceListener('SIGTERM', signal => this.shutdown(signal))
-    process.prependOnceListener('SIGQUIT', signal => this.shutdown(signal))
+    process.prependOnceListener('SIGINT', () => !cluster.workers?.length && this.stop())
+    process.prependOnceListener('SIGTERM', () => !cluster.workers?.length && this.stop())
+    process.prependOnceListener('SIGQUIT', () => !cluster.workers?.length && this.stop())
   }
 
   connectionsCount() {
@@ -158,7 +158,39 @@ export default class HttpServer implements IHTTPServer {
     ])
   }
 
-  stop() {
+  async stop() {
+    if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
+      console.warn(`forcefully shutting down server`)
+    }
+
+    const forceExit = setTimeout(() => {
+      if (this.connections.size > 0) {
+        if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
+          console.error('Could not close connections in time, forcefully shutting down')
+        }
+        
+        process.exit(ExitStatus.FAILURE)
+      }
+    }, this.props.spotTerminationNoticeTime)
+
+    this.close().catch(err => {
+      if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
+        console.error('Error during shutdown:', err)
+      }
+
+      process.exit(ExitStatus.FAILURE)
+    })
+
+    if (this.connections.size === 0) {
+      clearTimeout(forceExit)
+    }
+
+    await gracefulShutdown()
+
+    process.exit(ExitStatus.SUCCESS)
+  }
+
+  private async close() {
     if (this.secureServer?.listening) {
       return new Promise<void>((resolve, reject) => {
         this.secureServer?.close(err => {
@@ -171,21 +203,19 @@ export default class HttpServer implements IHTTPServer {
 
         this.drain().catch(reject)
       })
-    } else if (this.server.listening) {
-      return new Promise<void>((resolve, reject) => {
-        this.server.close(err => {
-          if (err) {
-            return reject(err)
-          }
-
-          resolve()
-        })
-
-        this.drain().catch(reject)
-      })
     }
 
-    return Promise.resolve()
+    return new Promise<void>((resolve, reject) => {
+      this.server.close(err => {
+        if (err) {
+          return reject(err)
+        }
+
+        resolve()
+      })
+
+      this.drain().catch(reject)
+    })
   }
 
   private createSecureServer(): ISecureServer | undefined {
@@ -340,32 +370,6 @@ export default class HttpServer implements IHTTPServer {
     }))
   }
 
-  private async shutdown(signal: NodeJS.Signals) {
-    if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
-      console.warn(`Received ${signal}, forcefully shutting down`)
-    }
-
-    const forceExit = setTimeout(() => {
-      if (this.connections.size > 0) {
-        if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
-          console.error('Could not close connections in time, forcefully shutting down')
-        }
-        
-        process.exit(ExitStatus.FAILURE)
-      }
-    }, this.props.spotTerminationNoticeTime)
-
-    this.stop().then(() => {
-      if (this.connections.size === 0) {
-        clearTimeout(forceExit)
-      }
-
-      process.exit(ExitStatus.SUCCESS)
-    })
-
-    await gracefulShutdown(signal)
-  }
-
   private hasValidTLS(tls: {
     certPath?: string,
     keyPath?: string
@@ -394,6 +398,20 @@ export class HttpServerCluster implements IHTTPServer {
   ) {
     this.protocols = protocols
     this.props = props
+
+    process.prependOnceListener('SIGINT', () => this.stop())
+    process.prependOnceListener('SIGTERM', signal => {
+      if (this.servers.size) {
+        return this.stop()
+      }
+
+      if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
+        console.log(`[Primary] Received ${signal}, forcefully shutting down cluster...`)
+      }
+
+      process.exit(ExitStatus.SUCCESS)
+    })
+    process.prependOnceListener('SIGQUIT', () => this.stop())
   }
 
   connectionsCount() {
@@ -407,16 +425,24 @@ export class HttpServerCluster implements IHTTPServer {
   }
 
   async start() {
-    if (cluster.isPrimary) {
-      if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
-        console.log(`[Primary] ${process.pid} is running`)
-      }
+    if (!cluster.isPrimary) {
+      const server = new HttpServer(this.protocols, this.props)
 
-      for (let i = 0; i < this.props.numWorkers; i++) {
-        this.workers.add(this.createWorker())
-      }
+      this.servers.add(server)
 
-      cluster.on('exit', (worker, code, signal) => {
+      return server.start()
+    }
+
+    if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
+      console.log(`[Primary] ${process.pid} is running`)
+    }
+
+    for (let i = 0; i < this.props.numWorkers; i++) {
+      this.workers.add(this.createWorker())
+    }
+
+    cluster.on('exit', (worker, code, signal) => {
+      if (this.servers.size) {
         if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
           console.error(`[Primary] Worker ${worker.process.pid} exited with code ${code} and signal ${signal}. Restarting...`)
         }
@@ -424,43 +450,41 @@ export class HttpServerCluster implements IHTTPServer {
         this.workers.delete(worker)
 
         this.workers.add(this.createWorker())
-      })
-    } else {
-      const server = new HttpServer(this.protocols, this.props)
-
-      this.servers.add(server)
-
-      await server.start()
-    }
+      }
+    })
   }
 
 	async stop() {
+    this.servers.clear()
+
     if (cluster.isPrimary) {
       if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
         console.log(`[Primary] Closing cluster...`)
       }
 
-      await Promise.all(Array.from(this.workers).map(worker => {
-        return new Promise((resolve, reject) => {
-          try {
-            worker.prependOnceListener('exit', resolve)
-            worker.prependOnceListener('error', reject)
-            worker.kill()
-          } catch (err) {
-            reject(err)
-          }
-        }).then(() => {
-          if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
-            console.log(`[Primary] Worker ${worker.process.pid} terminated.`)
-          }
-        })
-      }))
+      await Promise.all(Array.from(this.workers).map(worker => new Promise((resolve, reject) => {
+        try {
+          worker.prependOnceListener('exit', resolve)
+          worker.prependOnceListener('error', reject)
+          worker.kill()
+        } catch (err) {
+          reject(err)
+        }
+      }))).catch(err => {
+        if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
+          console.error(`[Primary] Error during shutdown:`, err)
+        }
 
-      this.servers.clear()
+        process.exit(ExitStatus.FAILURE)
+      })
 
       if (this.props.nodeEnv !== NodeEnv.PRODUCTION) {
         console.log(`[Primary] Cluster closed.`)
       }
+
+      this.workers.clear()
+
+      process.exit(ExitStatus.SUCCESS)
     }
   }
 
@@ -478,7 +502,6 @@ export class HttpServerCluster implements IHTTPServer {
       worker.kill()
     });
 
-    // Tratamento do evento de erro
     worker.on('error', (err) => {
       console.error(`Error in worker ${worker.process.pid}:`, err);
       worker.kill()
