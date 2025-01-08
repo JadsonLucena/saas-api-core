@@ -1,31 +1,29 @@
-import { NODE_ENV } from './config.ts'
+import {
+  NODE_ENV,
+  NodeEnv,
+  CLUSTER
+} from './config.ts'
+
+import HttpServer, { HttpServerCluster } from './HTTPServer.ts'
 
 import REST from './infrastructure/presenters/REST/index.ts'
 
-/*import HttpServer from './HTTPServer.ts'
-
-const httpServer = new HttpServer({
+const protocols = {
   REST: new REST()
-})
+}
 
-export default await httpServer.start()*/
+const httpServer = CLUSTER.WORKERS === 1 ? new HttpServer(protocols) : new HttpServerCluster(protocols)
 
-import { HttpServerCluster } from './HTTPServer.ts'
-
-const httpServerCluster = new HttpServerCluster({
-  REST: new REST()
-})
-
-export default await httpServerCluster.start()
+export default await httpServer.start()
 
 // process.on('uncaughtException', (err: Error) => {
 process.on('uncaughtExceptionMonitor', (err: Error) => {
-  if (NODE_ENV !== 'production') {
+  if (NODE_ENV !== NodeEnv.PRODUCTION) {
     console.warn('Uncaught Exception thrown', err)
   }
 })
 process.on('unhandledRejection', (reason, promise) => {
-  if (NODE_ENV !== 'production') {
+  if (NODE_ENV !== NodeEnv.PRODUCTION) {
     console.warn('Unhandled Rejection at:', promise, 'reason:', reason)
   }
 })
