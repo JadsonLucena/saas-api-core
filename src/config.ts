@@ -53,9 +53,9 @@ export const TLS = {
 export const USE_HTTP2 = !/^(false|0|undefined|null|NaN|)$/.test(process.env.USE_HTTP2?.trim() || 'false')
 
 export const ORIGIN = {
-	API: new URL(`${TLS.CERT_PATH && TLS.KEY_PATH ? 'https' : 'http'}://${HOSTNAME.API}:${TLS.CERT_PATH && TLS.KEY_PATH ? PORT.HTTPS : PORT.HTTP}`.replace(/:(80|443)/, '')),
-	GUI: new URL(`${TLS.CERT_PATH && TLS.KEY_PATH ? 'https' : 'http'}://${HOSTNAME.GUI}:${TLS.CERT_PATH && TLS.KEY_PATH ? PORT.HTTPS : PORT.HTTP}`.replace(/:(80|443)/, '')),
-	ASSETS: new URL(`${TLS.CERT_PATH && TLS.KEY_PATH ? 'https' : 'http'}://${HOSTNAME.ASSETS}:${TLS.CERT_PATH && TLS.KEY_PATH ? PORT.HTTPS : PORT.HTTP}`.replace(/:(80|443)/, ''))
+  API: new URL(`${TLS.CERT_PATH && TLS.KEY_PATH ? 'https' : 'http'}://${HOSTNAME.API}:${TLS.CERT_PATH && TLS.KEY_PATH ? PORT.HTTPS : PORT.HTTP}`.replace(/:(80|443)/, '')),
+  GUI: new URL(`${TLS.CERT_PATH && TLS.KEY_PATH ? 'https' : 'http'}://${HOSTNAME.GUI}:${TLS.CERT_PATH && TLS.KEY_PATH ? PORT.HTTPS : PORT.HTTP}`.replace(/:(80|443)/, '')),
+  ASSETS: new URL(`${TLS.CERT_PATH && TLS.KEY_PATH ? 'https' : 'http'}://${HOSTNAME.ASSETS}:${TLS.CERT_PATH && TLS.KEY_PATH ? PORT.HTTPS : PORT.HTTP}`.replace(/:(80|443)/, ''))
 }
 
 export const ASSETS = {
@@ -75,4 +75,60 @@ export const SPOT_TERMINATION_NOTICE_TIME = Math.max(1, parseInt(process.env.SPO
 
 export const CLUSTER = {
   WORKERS: Math.min(os.cpus().length, Math.max(1, parseInt(process.env.CLUSTER_WORKERS?.trim() || `${os.cpus().length}`)))
+}
+
+export const PAGINATION = {
+  SKIP: Math.max(0, parseInt(process.env.PAGINATION_SKIP ?? '0')),
+  TAKE: Math.max(1, parseInt(process.env.PAGINATION_TAKE ?? '50')),
+  MAX_TAKE: Math.max(1, parseInt(process.env.PAGINATION_MAX_TAKE ?? '100'))
+}
+
+export const PROVIDERS = {
+  GOOGLE: 'GOOGLE',
+  AWS: 'AWS',
+  AZURE: 'AZURE'
+} as const
+export type PROVIDERS = typeof PROVIDERS[keyof typeof PROVIDERS]
+
+export const SM: Record<PROVIDERS, Record<string, string | undefined>> & { PROVIDER: PROVIDERS } = {
+  PROVIDER: process.env.SM_PROVIDER?.trim().toUpperCase() as PROVIDERS ?? PROVIDERS.GOOGLE,
+  [PROVIDERS.GOOGLE]: {
+    // PROJECT_ID: process.env.SM_GOOGLE_PROJECT_ID?.trim() ?? '',
+    CREDENTIAL: process.env[`SM_${PROVIDERS.GOOGLE}_CREDENTIAL`]?.trim()
+  },
+  [PROVIDERS.AWS]: {
+    REGION: process.env[`SM_${PROVIDERS.AWS}_REGION`]?.trim() ?? 'us-east-1',
+    CLIENT_ID: process.env[`SM_${PROVIDERS.AWS}_ACCESS_KEY_ID`]?.trim(),
+    CLIENT_SECRET: process.env[`SM_${PROVIDERS.AWS}_SECRET_ACCESS_KEY`]?.trim()
+  },
+  [PROVIDERS.AZURE]: {
+    NAME: process.env[`SM_${PROVIDERS.AZURE}_NAME`]?.trim(),
+    TENANT_ID: process.env[`SM_${PROVIDERS.AZURE}_TENANT_ID`]?.trim(),
+    CLIENT_ID: process.env[`SM_${PROVIDERS.AZURE}_CLIENT_ID`]?.trim(),
+    CLIENT_SECRET: process.env[`SM_${PROVIDERS.AZURE}_CLIENT_SECRET`]?.trim()
+  }
+}
+
+if (!Object.values(PROVIDERS).includes(SM.PROVIDER)) {
+  throw new Error(`Invalid SM provider. Supported providers are: ${Object.values(PROVIDERS).join(', ')}`)
+} else if (
+  SM.PROVIDER === PROVIDERS.GOOGLE &&
+  !SM.GOOGLE.CREDENTIAL
+) {
+  throw new Error('Google SM credentials are required')
+} else if (
+  SM.PROVIDER === PROVIDERS.GOOGLE &&
+  !SM.GOOGLE.CREDENTIAL
+) {
+  throw new Error('Google SM credentials are required')
+} else if (
+  SM.PROVIDER === PROVIDERS.AWS &&
+  (!SM.AWS.CLIENT_ID || !SM.AWS.CLIENT_SECRET)
+) {
+  throw new Error('AWS SM credentials are required')
+} else if (
+  SM.PROVIDER === PROVIDERS.AZURE &&
+  (!SM.AZURE.NAME || !SM.AZURE.TENANT_ID || !SM.AZURE.CLIENT_ID || !SM.AZURE.CLIENT_SECRET)
+) {
+  throw new Error('Azure SM credentials are required')
 }

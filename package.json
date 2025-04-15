@@ -38,8 +38,12 @@
   },
   "homepage": "https://github.com/JadsonLucena/api-core#readme",
   "dependencies": {
+    "@aws-sdk/client-secrets-manager": "latest",
+    "@azure/identity": "latest",
+    "@azure/keyvault-secrets": "latest",
     "@fastify/multipart": "latest",
     "@fastify/static": "latest",
+    "@google-cloud/secret-manager": "latest",
     "fastify": "latest"
   },
   "devDependencies": {
