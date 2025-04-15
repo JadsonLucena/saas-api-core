@@ -1,8 +1,8 @@
 import { SecretClient, type SecretProperties } from '@azure/keyvault-secrets'
 import { ClientSecretCredential } from '@azure/identity'
 
-import type { ISM, SMInfo } from '../../ports/ISM.ts'
-import type { CursorPagination } from '../../ports/IPagination.ts'
+import type { ISM, SMInfo } from '../../../application/ports/ISM.ts'
+import type { CursorPagination } from '../../../application/ports/IPagination.ts'
 import { PAGINATION } from '../../../config.ts'
 
 export default class AzureSM implements ISM {
@@ -78,7 +78,7 @@ export default class AzureSM implements ISM {
 			description: '',
 			tags: secret.tags,
 			rotatesAt: undefined,
-			createAt: secret.createdOn!,
+			createdAt: secret.createdOn!,
 			lastModifiedAt: secret.updatedOn,
 			startsAt: secret.notBefore,
 			expiresAt: secret.expiresOn,
@@ -87,7 +87,7 @@ export default class AzureSM implements ISM {
 					version: version.version!,
 					value: await this.getSecretValue(version.name!),
 					enabled: version.enabled!,
-					createAt: version.createdOn!,
+					createdAt: version.createdOn!,
 					expiresAt: version.expiresOn
 				}
 			}))

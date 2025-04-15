@@ -1,4 +1,10 @@
-import { CursorPagination } from './IPagination.ts'
+export type CursorPagination = Pagination & {
+  cursor?: string
+}
+
+type Pagination = {
+  take?: number
+}
 
 export interface ISM {
   list(pagination?: CursorPagination): AsyncIterable<SMInfo[]>
@@ -11,7 +17,7 @@ export type SMInfo = {
   description: string,
   tags?: Record<string, string>,
   rotatesAt?: Date,
-  createAt: Date,
+  createdAt: Date,
   lastModifiedAt?: Date,
   startsAt?: Date,
   expiresAt?: Date,
@@ -19,7 +25,7 @@ export type SMInfo = {
     version: string,
     value: string,
     enabled: boolean,
-    createAt: Date,
+    createdAt: Date,
     expiresAt?: Date
   }[]
 }
