@@ -1,4 +1,5 @@
 import os from 'node:os'
+import fs from 'node:fs'
 
 const LOOPBACK = 'localhost'
 
@@ -89,46 +90,73 @@ export const PROVIDERS = {
   AZURE: 'AZURE'
 } as const
 export type PROVIDERS = typeof PROVIDERS[keyof typeof PROVIDERS]
+const GOOGLE_CREDENTIAL_TYPE = {
+  SERVICE_ACCOUNT: 'service_account',
+  EXTERNAL_ACCOUNT: 'external_account',
+} as const
+export type GOOGLE_CREDENTIAL_TYPE = typeof GOOGLE_CREDENTIAL_TYPE[keyof typeof GOOGLE_CREDENTIAL_TYPE]
 
-export const SM: Record<PROVIDERS, Record<string, string | undefined>> & { PROVIDER: PROVIDERS } = {
-  PROVIDER: process.env.SM_PROVIDER?.trim().toUpperCase() as PROVIDERS ?? PROVIDERS.GOOGLE,
+export const SM: Record<PROVIDERS, Record<string, string | undefined>> & { PROVIDER?: PROVIDERS } = {
+  PROVIDER: process.env.SM_PROVIDER?.trim().toUpperCase() as PROVIDERS,
   [PROVIDERS.GOOGLE]: {
-    // PROJECT_ID: process.env.SM_GOOGLE_PROJECT_ID?.trim() ?? '',
-    CREDENTIAL: process.env[`SM_${PROVIDERS.GOOGLE}_CREDENTIAL`]?.trim()
+    PROJECT_ID: process.env[`SM_${PROVIDERS.GOOGLE}_CLOUD_PROJECT`]?.trim() ?? process.env[`${PROVIDERS.GOOGLE}_CLOUD_PROJECT`]?.trim(),
+    CREDENTIAL: process.env[`SM_${PROVIDERS.GOOGLE}_APPLICATION_CREDENTIALS`]?.trim() ?? getGoogleCredentialPathByType(GOOGLE_CREDENTIAL_TYPE.SERVICE_ACCOUNT, process.env[`${PROVIDERS.GOOGLE}_APPLICATION_CREDENTIALS`]?.trim()),
+    FEDERATED_TOKEN_FILE: process.env[`SM_${PROVIDERS.GOOGLE}_APPLICATION_CREDENTIALS`]?.trim() ?? getGoogleCredentialPathByType(GOOGLE_CREDENTIAL_TYPE.EXTERNAL_ACCOUNT, process.env[`${PROVIDERS.GOOGLE}_APPLICATION_CREDENTIALS`]?.trim())
   },
   [PROVIDERS.AWS]: {
-    REGION: process.env[`SM_${PROVIDERS.AWS}_REGION`]?.trim() ?? 'us-east-1',
-    CLIENT_ID: process.env[`SM_${PROVIDERS.AWS}_ACCESS_KEY_ID`]?.trim(),
-    CLIENT_SECRET: process.env[`SM_${PROVIDERS.AWS}_SECRET_ACCESS_KEY`]?.trim()
+    API_VERSION: process.env[`SM_${PROVIDERS.AWS}_API_VERSION`]?.trim() ?? '2017-10-17',
+    ROLE_ARN: process.env[`SM_${PROVIDERS.AWS}_ROLE_ARN`]?.trim() ?? process.env[`${PROVIDERS.AWS}_ROLE_ARN`]?.trim(),
+    REGION: (process.env[`SM_${PROVIDERS.AWS}_REGION`]?.trim() ?? process.env[`${PROVIDERS.AWS}_REGION`]) || 'us-east-1',
+    CLIENT_ID: process.env[`SM_${PROVIDERS.AWS}_ACCESS_KEY_ID`]?.trim() ?? process.env[`${PROVIDERS.AWS}_ACCESS_KEY_ID`]?.trim(),
+    CLIENT_SECRET: process.env[`SM_${PROVIDERS.AWS}_SECRET_ACCESS_KEY`]?.trim() ?? process.env[`${PROVIDERS.AWS}_SECRET_ACCESS_KEY`]?.trim(),
+    FEDERATED_TOKEN_FILE: process.env[`SM_${PROVIDERS.AWS}_WEB_IDENTITY_TOKEN_FILE`]?.trim() ?? process.env[`${PROVIDERS.AWS}_WEB_IDENTITY_TOKEN_FILE`]?.trim()
   },
   [PROVIDERS.AZURE]: {
-    NAME: process.env[`SM_${PROVIDERS.AZURE}_NAME`]?.trim(),
-    TENANT_ID: process.env[`SM_${PROVIDERS.AZURE}_TENANT_ID`]?.trim(),
-    CLIENT_ID: process.env[`SM_${PROVIDERS.AZURE}_CLIENT_ID`]?.trim(),
-    CLIENT_SECRET: process.env[`SM_${PROVIDERS.AZURE}_CLIENT_SECRET`]?.trim()
+    URI: process.env[`SM_${PROVIDERS.AZURE}_URI`]?.trim(),
+    REGION: process.env[`SM_${PROVIDERS.AZURE}_LOCATION`]?.trim() ?? process.env[`${PROVIDERS.AZURE}_LOCATION`]?.trim(),
+    CLIENT_ID: process.env[`SM_${PROVIDERS.AZURE}_CLIENT_ID`]?.trim() ?? process.env[`${PROVIDERS.AZURE}_CLIENT_ID`]?.trim(),
+    TENANT_ID: process.env[`SM_${PROVIDERS.AZURE}_TENANT_ID`]?.trim() ?? process.env[`${PROVIDERS.AZURE}_TENANT_ID`]?.trim(),
+    CLIENT_SECRET: process.env[`SM_${PROVIDERS.AZURE}_CLIENT_SECRET`]?.trim() ?? process.env[`${PROVIDERS.AZURE}_CLIENT_SECRET`]?.trim(),
+    FEDERATED_TOKEN_FILE: process.env[`SM_${PROVIDERS.AZURE}_FEDERATED_TOKEN_FILE`]?.trim() ?? process.env[`${PROVIDERS.AZURE}_FEDERATED_TOKEN_FILE`]?.trim()
   }
 }
 
-if (!Object.values(PROVIDERS).includes(SM.PROVIDER)) {
+if (SM.PROVIDER && !Object.values(PROVIDERS).includes(SM.PROVIDER)) {
   throw new Error(`Invalid SM provider. Supported providers are: ${Object.values(PROVIDERS).join(', ')}`)
 } else if (
   SM.PROVIDER === PROVIDERS.GOOGLE &&
-  !SM.GOOGLE.CREDENTIAL
+  (!SM.GOOGLE.CREDENTIAL || !SM.GOOGLE.FEDERATED_TOKEN_FILE)
 ) {
-  throw new Error('Google SM credentials are required')
-} else if (
-  SM.PROVIDER === PROVIDERS.GOOGLE &&
-  !SM.GOOGLE.CREDENTIAL
-) {
-  throw new Error('Google SM credentials are required')
+  throw new Error(`${PROVIDERS.GOOGLE} SM credentials are required`)
 } else if (
   SM.PROVIDER === PROVIDERS.AWS &&
-  (!SM.AWS.CLIENT_ID || !SM.AWS.CLIENT_SECRET)
+  (!SM.AWS.CLIENT_ID || !SM.AWS.CLIENT_SECRET) &&
+  !SM.AWS.FEDERATED_TOKEN_FILE
 ) {
-  throw new Error('AWS SM credentials are required')
+  throw new Error(`${PROVIDERS.AWS} SM credentials are required`)
 } else if (
   SM.PROVIDER === PROVIDERS.AZURE &&
-  (!SM.AZURE.NAME || !SM.AZURE.TENANT_ID || !SM.AZURE.CLIENT_ID || !SM.AZURE.CLIENT_SECRET)
+  (!SM.AZURE.TENANT_ID || !SM.AZURE.CLIENT_ID) &&
+  (!SM.AZURE.CLIENT_SECRET || !SM.AZURE.FEDERATED_TOKEN_FILE)
 ) {
-  throw new Error('Azure SM credentials are required')
+  throw new Error(`${PROVIDERS.AZURE} SM credentials are required`)
+}
+
+function getGoogleCredentialPathByType(type: GOOGLE_CREDENTIAL_TYPE, filePath?: string): string | undefined {
+  try {
+    if (!filePath || !fs.existsSync(filePath)) {
+      return undefined
+    }
+
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const json = JSON.parse(content);
+
+    if (json.type === type) {
+      return filePath
+    }
+  } catch (err) {
+    console.error('Failed to parse GOOGLE_APPLICATION_CREDENTIALS:', err);
+  }
+
+  return undefined
 }

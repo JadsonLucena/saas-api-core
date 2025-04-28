@@ -5,6 +5,7 @@ import * as ENV from '../../../src/config.ts'
 import AwsSM from '../../../src/infrastructure/gateway/SM/AWS.ts'
 
 const awsSM = new AwsSM({
+	apiVersion: ENV.SM.AWS.API_VERSION!,
 	region: ENV.SM.AWS.REGION!,
 	accessKeyId: ENV.SM.AWS.CLIENT_ID!,
 	secretAccessKey: ENV.SM.AWS.CLIENT_SECRET!

@@ -1,5 +1,5 @@
 import { SecretClient, type SecretProperties } from '@azure/keyvault-secrets'
-import { ClientSecretCredential } from '@azure/identity'
+import { WorkloadIdentityCredential, ClientSecretCredential } from '@azure/identity'
 
 import type { ISM, SMInfo } from '../../../application/ports/ISM.ts'
 import type { CursorPagination } from '../../../application/ports/IPagination.ts'
@@ -8,25 +8,27 @@ import { PAGINATION } from '../../../config.ts'
 export default class AzureSM implements ISM {
 	private client: SecretClient
 
-	constructor({
-		name,
-		tenantId,
-		clientId,
-		clientSecret
-	}: {
-		name: string,
+	constructor(props: {
+		uri: URL,
 		tenantId: string,
 		clientId: string,
+	} & ({
 		clientSecret: string
-	}) {
-		const credential = new ClientSecretCredential(
-			tenantId,
-			clientId,
-			clientSecret
+	} | {
+		federatedTokenFile: string
+	})) {
+		const credential = 'federatedTokenFile' in props ? new WorkloadIdentityCredential({
+			tenantId: props.tenantId,
+			clientId: props.clientId,
+			tokenFilePath: props.federatedTokenFile
+		}) : new ClientSecretCredential(
+			props.tenantId,
+			props.clientId,
+			props.clientSecret
 		)
 
 		this.client = new SecretClient(
-			`https://${name}.vault.azure.net`,
+			props.uri.toString(),
 			credential
 		)
 	}
