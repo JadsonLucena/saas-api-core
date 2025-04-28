@@ -5,7 +5,7 @@ import * as ENV from '../../../src/config.ts'
 import AzureSM from '../../../src/infrastructure/gateway/SM/Azure.ts'
 
 const awsSM = new AzureSM({
-	name: ENV.SM.AZURE.NAME!,
+	uri: new URL(ENV.SM.AZURE.URI!),
 	tenantId: ENV.SM.AZURE.TENANT_ID!,
 	clientId: ENV.SM.AZURE.CLIENT_ID!,
 	clientSecret: ENV.SM.AZURE.CLIENT_SECRET!

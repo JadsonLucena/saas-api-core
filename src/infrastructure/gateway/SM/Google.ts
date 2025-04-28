@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+
 import { SecretManagerServiceClient, protos } from '@google-cloud/secret-manager'
 import type { JWTInput } from 'google-auth-library'
 
@@ -7,35 +9,37 @@ import { PAGINATION } from '../../../config.ts'
 
 export default class GoogleSM implements ISM {
   private readonly client: SecretManagerServiceClient
-  private readonly projectId: string
 
-  constructor({
-		credential
-	}: {
+  constructor(props: {
+    projectId?: string
+  } & ({
     credential: string
-  }) {
-    const parsedCredential: JWTInput = JSON.parse(Buffer.from(credential, 'base64').toString())
-
-    if (!parsedCredential.project_id) {
-      throw new Error('Invalid credentials: project_id is required')
+  } | {
+    federatedTokenFile: string
+  })) {
+    const opts: {
+      credentials?: JWTInput,
+      projectId?: string
+    } = {
+      credentials: JSON.parse(Buffer.from('federatedTokenFile' in props ? props.federatedTokenFile : props.credential, 'base64').toString())
     }
 
-    this.projectId = parsedCredential.project_id!
+    opts.projectId = props.projectId ?? opts.credentials?.project_id
 
     // Require the role `roles/secretmanager.secretAccessor` on the service account
-    this.client = new SecretManagerServiceClient({
-			credentials: parsedCredential
-		})
+    this.client = new SecretManagerServiceClient(opts)
   }
 
   async *list({
     take = PAGINATION.MAX_TAKE,
     cursor,
   }: CursorPagination = {}) {
+    const projectId = await this.client.getProjectId()
+
     let nextPageToken: string | undefined | null = cursor
     while (true) {
       const [ secrets, _, res ] = await this.client.listSecrets({
-        parent: `projects/${this.projectId}`,
+        parent: `projects/${projectId}`,
         pageSize: take,
         pageToken: nextPageToken
       }, {

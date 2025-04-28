@@ -6,6 +6,7 @@ import {
   type SecretListEntry,
   type DescribeSecretCommandOutput
 } from '@aws-sdk/client-secrets-manager'
+import { fromTokenFile } from '@aws-sdk/credential-providers'
 
 import type { ISM } from '../../../application/ports/ISM.ts'
 import type { CursorPagination } from '../../../application/ports/IPagination.ts'
@@ -14,21 +15,27 @@ import { PAGINATION } from '../../../config.ts'
 export default class AwsSM implements ISM {
   private client: SecretsManagerClient
 
-  constructor({
-    region,
-    accessKeyId,
-    secretAccessKey
-  }: {
-    region: string,
+  constructor(props: {
+    apiVersion: string,
+    region: string
+  } & ({
 		accessKeyId: string,
 		secretAccessKey: string
-	}) {
+	} | {
+    federatedTokenFile: string,
+    roleArn: string,
+    appName: string
+  })) {
     this.client = new SecretsManagerClient({
-      apiVersion: '2017-10-17',
-      region,
-      credentials: {
-        accessKeyId,
-        secretAccessKey
+      apiVersion: props.apiVersion,
+      region: props.region,
+      credentials: 'federatedTokenFile' in props ? fromTokenFile({
+        roleArn: props.roleArn,
+        webIdentityTokenFile: props.federatedTokenFile,
+        roleSessionName: props.appName
+      }): {
+        accessKeyId: props.accessKeyId,
+        secretAccessKey: props.secretAccessKey
       }
 		})
   }
