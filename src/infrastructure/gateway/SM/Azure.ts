@@ -8,15 +8,7 @@ import { PAGINATION } from '../../../config.ts'
 export default class AzureSM implements ISM {
 	private client: SecretClient
 
-	constructor(props: {
-		uri: URL,
-		tenantId: string,
-		clientId: string,
-	} & ({
-		clientSecret: string
-	} | {
-		federatedTokenFile: string
-	})) {
+	constructor(props: AzureSmProps) {
 		const credential = 'federatedTokenFile' in props ? new WorkloadIdentityCredential({
 			tenantId: props.tenantId,
 			clientId: props.clientId,
@@ -112,3 +104,13 @@ export default class AzureSM implements ISM {
 		return secret.value ?? ''
 	}
 }
+
+export type AzureSmProps = {
+	uri: URL,
+	tenantId: string,
+	clientId: string,
+} & ({
+	clientSecret: string
+} | {
+	federatedTokenFile: string
+})

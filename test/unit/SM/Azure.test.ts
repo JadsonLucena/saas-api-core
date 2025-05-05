@@ -1,4 +1,4 @@
-import test from 'node:test'
+import test, { describe } from 'node:test'
 import assert from 'node:assert'
 
 import * as ENV from '../../../src/config.ts'
@@ -13,19 +13,21 @@ const awsSM = new AzureSM({
 
 const name = 'Test'
 
-test('List secrets', async () => {
-	const secrets: any = []
+describe('Azure SM', () => {
+	test('List secrets', async () => {
+		const secrets: any = []
 
-	for await (const list of awsSM.list()) {
-		list.forEach(secret => secrets.push(secret))
-	}
+		for await (const list of awsSM.list()) {
+			list.forEach(secret => secrets.push(secret))
+		}
 
-	assert.strictEqual(secrets.length >= 1, true)
-	assert.strictEqual(secrets.some(secret => secret.name === name), true)
-})
+		assert.strictEqual(secrets.length >= 1, true)
+		assert.strictEqual(secrets.some(secret => secret.name === name), true)
+	})
 
-test('Get by name', async () => {
-	const secret = await awsSM.get(name)
+	test('Get by name', async () => {
+		const secret = await awsSM.get(name)
 
-	assert.strictEqual(secret.name, name)
+		assert.strictEqual(secret.name, name)
+	})
 })
