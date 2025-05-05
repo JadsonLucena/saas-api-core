@@ -15,17 +15,7 @@ import { PAGINATION } from '../../../config.ts'
 export default class AwsSM implements ISM {
   private client: SecretsManagerClient
 
-  constructor(props: {
-    apiVersion: string,
-    region: string
-  } & ({
-		accessKeyId: string,
-		secretAccessKey: string
-	} | {
-    federatedTokenFile: string,
-    roleArn: string,
-    appName: string
-  })) {
+  constructor(props: AwsSmProps) {
     this.client = new SecretsManagerClient({
       apiVersion: props.apiVersion,
       region: props.region,
@@ -109,3 +99,15 @@ export default class AwsSM implements ISM {
     }))).sort((a, b) => b.CreatedDate!.getTime() - a.CreatedDate!.getTime())
   }
 }
+
+export type AwsSmProps = {
+  apiVersion: string,
+  region: string
+} & ({
+  accessKeyId: string,
+  secretAccessKey: string
+} | {
+  federatedTokenFile: string,
+  roleArn: string,
+  appName: string
+})

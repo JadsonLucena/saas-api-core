@@ -1,5 +1,7 @@
 import os from 'node:os'
-import fs from 'node:fs'
+
+import { getGoogleCredentialPathByType } from './infrastructure/gateway/SM/googleCredentialsGateway'
+import GatewayFactory from './infrastructure/services/GatewayFactory'
 
 const LOOPBACK = 'localhost'
 
@@ -121,42 +123,4 @@ export const SM: Record<PROVIDERS, Record<string, string | undefined>> & { PROVI
   }
 }
 
-if (SM.PROVIDER && !Object.values(PROVIDERS).includes(SM.PROVIDER)) {
-  throw new Error(`Invalid SM provider. Supported providers are: ${Object.values(PROVIDERS).join(', ')}`)
-} else if (
-  SM.PROVIDER === PROVIDERS.GOOGLE &&
-  (!SM.GOOGLE.CREDENTIAL || !SM.GOOGLE.FEDERATED_TOKEN_FILE)
-) {
-  throw new Error(`${PROVIDERS.GOOGLE} SM credentials are required`)
-} else if (
-  SM.PROVIDER === PROVIDERS.AWS &&
-  (!SM.AWS.CLIENT_ID || !SM.AWS.CLIENT_SECRET) &&
-  !SM.AWS.FEDERATED_TOKEN_FILE
-) {
-  throw new Error(`${PROVIDERS.AWS} SM credentials are required`)
-} else if (
-  SM.PROVIDER === PROVIDERS.AZURE &&
-  (!SM.AZURE.TENANT_ID || !SM.AZURE.CLIENT_ID) &&
-  (!SM.AZURE.CLIENT_SECRET || !SM.AZURE.FEDERATED_TOKEN_FILE)
-) {
-  throw new Error(`${PROVIDERS.AZURE} SM credentials are required`)
-}
-
-function getGoogleCredentialPathByType(type: GOOGLE_CREDENTIAL_TYPE, filePath?: string): string | undefined {
-  try {
-    if (!filePath || !fs.existsSync(filePath)) {
-      return undefined
-    }
-
-    const content = fs.readFileSync(filePath, 'utf-8');
-    const json = JSON.parse(content);
-
-    if (json.type === type) {
-      return filePath
-    }
-  } catch (err) {
-    console.error('Failed to parse GOOGLE_APPLICATION_CREDENTIALS:', err);
-  }
-
-  return undefined
-}
+const sm = await GatewayFactory.SM(SM, APP_NAME)

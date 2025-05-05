@@ -10,13 +10,7 @@ import { PAGINATION } from '../../../config.ts'
 export default class GoogleSM implements ISM {
   private readonly client: SecretManagerServiceClient
 
-  constructor(props: {
-    projectId?: string
-  } & ({
-    credential: string
-  } | {
-    federatedTokenFile: string
-  })) {
+  constructor(props: GoogleSmProps) {
     const opts: {
       credentials?: JWTInput,
       projectId?: string
@@ -108,3 +102,11 @@ export default class GoogleSM implements ISM {
     return version.payload?.data?.toString() ?? ''
   }
 }
+
+export type GoogleSmProps = {
+  projectId?: string
+} & ({
+  credential: string
+} | {
+  federatedTokenFile: string
+})
