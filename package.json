@@ -46,7 +46,8 @@
     "@fastify/static": "latest",
     "@google-cloud/secret-manager": "latest",
     "fastify": "latest",
-    "jsonwebtoken": "latest"
+    "jsonwebtoken": "latest",
+    "redis": "latest"
   },
   "devDependencies": {
     "@eslint/js": "latest",

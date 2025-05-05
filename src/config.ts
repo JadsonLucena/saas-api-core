@@ -124,3 +124,8 @@ export const SM: Record<PROVIDERS, Record<string, string | undefined>> & { PROVI
 }
 
 const sm = await GatewayFactory.SM(SM, APP_NAME)
+
+export const CACHE_DB = {
+  CONNECTION_STRING: (await sm.get('CACHE_DB_CONNECTION_STRING'))?.versions.at(-1)?.value,
+  MAX_MEMORY: parseInt(`${process.env.CACHE_DB_MAX_MEMORY?.trim()}`)
+}

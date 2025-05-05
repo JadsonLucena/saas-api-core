@@ -1,8 +1,10 @@
 import { PROVIDERS, SM } from '../../config.ts'
+import ICacheDB from '../ports/ICacheDB.ts'
 import { ISM } from '../../application/ports/ISM.ts'
 
 export default class GatewayFactory {
 	private static _sm: ISM
+	private static _cachaDB: ICacheDB
 
 	static async SM(config: typeof SM, appName: string): Promise<ISM> {
 		if (GatewayFactory._sm) return GatewayFactory._sm
@@ -87,5 +89,19 @@ export default class GatewayFactory {
 		} else {
 			throw new Error(`Invalid SM provider. Supported providers are: ${Object.values(PROVIDERS).join(', ')}`)
 		}
+	}
+
+	static async cacheDB(maxMemory: number, connectionString?: string): Promise<ICacheDB> {
+		if (GatewayFactory._cachaDB) return GatewayFactory._cachaDB
+
+		if (connectionString?.startsWith('redis://')) {
+			const Redis = (await import('../gateway/cacheDB/Redis.ts')).default
+
+			GatewayFactory._cachaDB = new Redis(connectionString, maxMemory)
+		} else {
+			throw new Error('Invalid cacheDB connection string. Supported providers are: redis://')
+		}
+
+		return GatewayFactory._cachaDB
 	}
 }
