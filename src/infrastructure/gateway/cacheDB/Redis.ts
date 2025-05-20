@@ -9,7 +9,7 @@ export default class CacheDB implements ICacheDB {
   private connected = false
 
   constructor (
-    connectionString: string,
+    connectionString: string | string[],
     maxMemory?: number
   ) {
     this.connectionString = connectionString
@@ -164,7 +164,7 @@ export default class CacheDB implements ICacheDB {
 
     this.client.expire(key, expires)
 
-    return await this.client.zCard(key);
+    return await this.client.zCard(key)
   }
 
   async delete (key: string): Promise<void> {

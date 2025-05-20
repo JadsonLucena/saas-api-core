@@ -1,17 +1,24 @@
-version: '3.32'
+name: api-core
 services:
   node:
     env_file:
-      - .env
+      - .env.test
+    profiles: ["E2E"]
     build:
       dockerfile: Dockerfile
     restart: always
     ports:
       - '8080:8080'
       - '8443:8443'
-    healthcheck:
-      test: ["CMD", "curl", "-f", "https://localhost:${PORT_HTTPS}/health"]
-      interval: 60s
-      retries: 5
-      start_period: 20s
-      timeout: 10s
+
+  redis:
+    profiles: ["integration", "cacheDB"]
+    image: redis:alpine
+    ports:
+      - '6379:6379'
+
+  memcached:
+    profiles: ["integration", "cacheDB"]
+    image: memcached:alpine
+    ports:
+      - '11211:11211'
