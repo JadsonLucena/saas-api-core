@@ -1,31 +1,36 @@
-export type CursorPagination = Pagination & {
-  cursor?: string
+export interface ISM {
+  list(pagination?: CursorPagination): AsyncIterable<ISecret[]>
+  get(name: string): Promise<ISecret | undefined>
+}
+
+export type Version = {
+  readonly id: string,
+  readonly value: string,
+  readonly enabled: boolean,
+  readonly createdAt: Date,
+  readonly expiresAt?: Date
+}
+
+export interface ISecret {
+  // id: string
+  readonly name: string
+  readonly description: string
+  readonly tags?: Record<string, string>
+  readonly rotatesAt?: Date
+  readonly createdAt: Date
+  readonly lastModifiedAt?: Date
+  readonly startsAt?: Date
+  readonly expiresAt?: Date
+  readonly versions: Version[]
+  getVersion(id: string): Version | undefined
+  getActiveVersions(): Version[]
+  getLatestActiveVersion(): Version | undefined
 }
 
 type Pagination = {
   take?: number
 }
 
-export interface ISM {
-  list(pagination?: CursorPagination): AsyncIterable<SMInfo[]>
-  get(name: string): Promise<SMInfo | undefined>
-}
-
-export type SMInfo = {
-  id: string,
-  name: string,
-  description: string,
-  tags?: Record<string, string>,
-  rotatesAt?: Date,
-  createdAt: Date,
-  lastModifiedAt?: Date,
-  startsAt?: Date,
-  expiresAt?: Date,
-  versions: {
-    version: string,
-    value: string,
-    enabled: boolean,
-    createdAt: Date,
-    expiresAt?: Date
-  }[]
+export type CursorPagination = Pagination & {
+  cursor?: string
 }

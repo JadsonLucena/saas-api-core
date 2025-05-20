@@ -1,35 +1,41 @@
 import { SecretClient, type SecretProperties } from '@azure/keyvault-secrets'
 import { WorkloadIdentityCredential, ClientSecretCredential } from '@azure/identity'
 
-import type { ISM, SMInfo } from '../../../application/ports/ISM.ts'
-import type { CursorPagination } from '../../../application/ports/IPagination.ts'
 import { PAGINATION } from '../../../config.ts'
+
+import type { ISM, CursorPagination } from '../../../application/ports/ISM.ts'
+import Secret from './Secret.ts'
 
 export default class AzureSM implements ISM {
 	private client: SecretClient
 
 	constructor(props: AzureSmProps) {
-		const credential = 'federatedTokenFile' in props ? new WorkloadIdentityCredential({
-			tenantId: props.tenantId,
-			clientId: props.clientId,
-			tokenFilePath: props.federatedTokenFile
-		}) : new ClientSecretCredential(
-			props.tenantId,
-			props.clientId,
-			props.clientSecret
-		)
-
-		this.client = new SecretClient(
+		if ('federatedTokenFile' in props && props.federatedTokenFile?.trim()) {
+			this.client = new SecretClient(
+				props.uri.toString(),
+				new WorkloadIdentityCredential({
+					tenantId: props.tenantId,
+					clientId: props.clientId,
+					tokenFilePath: props.federatedTokenFile
+				})
+			)
+		} else if ('clientSecret' in props && props.clientSecret?.trim()) {
+			this.client = new SecretClient(
 			props.uri.toString(),
-			credential
-		)
+			new ClientSecretCredential(
+					props.tenantId,
+					props.clientId,
+					props.clientSecret
+				)
+			)
+		}
 	}
 
 	async *list({
 		take = PAGINATION.MAX_TAKE,
 		cursor
 	}: CursorPagination = {}) {
-    let page: Promise<SMInfo>[] = []
+    let page: Promise<Secret>[] = []
     let count = 0
     let cursorReached = false
 
@@ -60,14 +66,16 @@ export default class AzureSM implements ISM {
 	async get(name: string) {
 		const secret = await this.client.getSecret(name)
 
+		secret.properties.id = secret.properties.id?.replace(`/${secret.properties.version!}`, '')
+
 		return await this.mountResponse(secret.properties)
 	}
 
-	private async mountResponse(secret: SecretProperties) {
+	private async mountResponse(secret: SecretProperties): Promise<Secret> {
 		const versions = await this.getVersions(secret.name!)
 
-		return {
-			id: secret.id!,
+		return new Secret({
+			// id: secret.id!,
 			name: secret.name,
 			description: '',
 			tags: secret.tags,
@@ -78,14 +86,14 @@ export default class AzureSM implements ISM {
 			expiresAt: secret.expiresOn,
 			versions: await Promise.all(versions.map(async version => {
 				return {
-					version: version.version!,
+					id: version.version!,
 					value: await this.getSecretValue(version.name!),
 					enabled: version.enabled!,
 					createdAt: version.createdOn!,
 					expiresAt: version.expiresOn
 				}
 			}))
-		}
+		})
 	}
 
 	private async getVersions(secretName: string) {

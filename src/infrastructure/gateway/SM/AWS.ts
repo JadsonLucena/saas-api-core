@@ -8,26 +8,35 @@ import {
 } from '@aws-sdk/client-secrets-manager'
 import { fromTokenFile } from '@aws-sdk/credential-providers'
 
-import type { ISM } from '../../../application/ports/ISM.ts'
-import type { CursorPagination } from '../../../application/ports/IPagination.ts'
 import { PAGINATION } from '../../../config.ts'
+
+import type { ISM, CursorPagination } from '../../../application/ports/ISM.ts'
+import Secret from './Secret.ts'
 
 export default class AwsSM implements ISM {
   private client: SecretsManagerClient
 
   constructor(props: AwsSmProps) {
-    this.client = new SecretsManagerClient({
-      apiVersion: props.apiVersion,
-      region: props.region,
-      credentials: 'federatedTokenFile' in props ? fromTokenFile({
-        roleArn: props.roleArn,
-        webIdentityTokenFile: props.federatedTokenFile,
-        roleSessionName: props.appName
-      }): {
-        accessKeyId: props.accessKeyId,
-        secretAccessKey: props.secretAccessKey
-      }
-		})
+    if ('federatedTokenFile' in props && props.federatedTokenFile?.trim()) {
+      this.client = new SecretsManagerClient({
+        apiVersion: props.apiVersion,
+        region: props.region,
+        credentials: fromTokenFile({
+          webIdentityTokenFile: props.federatedTokenFile,
+          roleArn: props.roleArn,
+          roleSessionName: props.appName
+        })
+      })
+    } else if ('accessKeyId' in props && props.accessKeyId?.trim()) {
+      this.client = new SecretsManagerClient({
+        apiVersion: props.apiVersion,
+        region: props.region,
+        credentials: {
+          accessKeyId: props.accessKeyId,
+          secretAccessKey: props.secretAccessKey
+        }
+      })
+    }
   }
 
   async *list({
@@ -60,11 +69,11 @@ export default class AwsSM implements ISM {
     return this.mountResponse(secret)
   }
 
-  private async mountResponse(secret: SecretListEntry | DescribeSecretCommandOutput) {
+  private async mountResponse(secret: SecretListEntry | DescribeSecretCommandOutput): Promise<Secret> {
     const versions = await this.getVersions(secret)
 
-		return {
-      id: secret.ARN!,
+		return new Secret({
+      // id: secret.ARN!,
       name: secret.Name!,
       description: secret.Description!,
       tags: secret.Tags?.reduce((acc, tag) => {
@@ -78,14 +87,14 @@ export default class AwsSM implements ISM {
       expiresAt: undefined,
       versions: await Promise.all(versions.map(version => {
         return {
-          version: version.VersionId!,
+          id: version.VersionId!,
           value: version.SecretString!,
           enabled: Boolean(version.VersionStages?.includes('AWSCURRENT')),
-          createdAt: new Date(version?.CreatedDate!),
+          createdAt: new Date(version.CreatedDate!),
           expiresAt: undefined
         }
       }))
-    }
+    })
 	}
 
   private async getVersions(secret: SecretListEntry | DescribeSecretCommandOutput) {
@@ -96,7 +105,7 @@ export default class AwsSM implements ISM {
         SecretId: secret.ARN!,
         VersionId
       }))
-    }))).sort((a, b) => b.CreatedDate!.getTime() - a.CreatedDate!.getTime())
+    })))
   }
 }
 

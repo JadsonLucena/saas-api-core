@@ -1,12 +1,12 @@
 import { PROVIDERS, SM } from '../../config.ts'
-import ICacheDB from '../ports/ICacheDB.ts'
-import { ISM } from '../../application/ports/ISM.ts'
+import type ICacheDB from '../ports/ICacheDB.ts'
+import type { ISM } from '../../application/ports/ISM.ts'
 
 export default class GatewayFactory {
-	private static _sm: ISM
+	private static _sm?: ISM
 	private static _cachaDB: ICacheDB
 
-	static async SM(config: typeof SM, appName: string): Promise<ISM> {
+	static async SM(config: typeof SM, appName: string): Promise<ISM | undefined> {
 		if (GatewayFactory._sm) return GatewayFactory._sm
 
 		if (SM.PROVIDER && !Object.values(PROVIDERS).includes(SM.PROVIDER)) {
@@ -87,17 +87,20 @@ export default class GatewayFactory {
 				throw new Error(`${PROVIDERS.AZURE} SM credentials are required`)
 			}
 		} else {
-			throw new Error(`Invalid SM provider. Supported providers are: ${Object.values(PROVIDERS).join(', ')}`)
+			return GatewayFactory._sm = undefined
 		}
 	}
 
-	static async cacheDB(maxMemory: number, connectionString?: string): Promise<ICacheDB> {
+	static async cacheDB(props: {
+		connectionString?: string,
+		maxMemory?: number
+	} = {}): Promise<ICacheDB> {
 		if (GatewayFactory._cachaDB) return GatewayFactory._cachaDB
 
-		if (connectionString?.startsWith('redis://')) {
+		if (props.connectionString?.startsWith('redis://')) {
 			const Redis = (await import('../gateway/cacheDB/Redis.ts')).default
 
-			GatewayFactory._cachaDB = new Redis(connectionString, maxMemory)
+			GatewayFactory._cachaDB = new Redis(props.connectionString, props.maxMemory)
 		} else {
 			throw new Error('Invalid cacheDB connection string. Supported providers are: redis://')
 		}
