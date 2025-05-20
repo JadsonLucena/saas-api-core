@@ -1,27 +1,33 @@
-import fs from 'node:fs'
+import { readFileSync } from 'node:fs'
 
 import { SecretManagerServiceClient, protos } from '@google-cloud/secret-manager'
 import type { JWTInput } from 'google-auth-library'
 
-import type { ISM } from '../../../application/ports/ISM.ts'
-import type { CursorPagination } from '../../../application/ports/IPagination.ts'
 import { PAGINATION } from '../../../config.ts'
+
+import type { ISM, CursorPagination } from '../../../application/ports/ISM.ts'
+import Secret from './Secret.ts'
 
 export default class GoogleSM implements ISM {
   private readonly client: SecretManagerServiceClient
 
   constructor(props: GoogleSmProps) {
-    const opts: {
-      credentials?: JWTInput,
-      projectId?: string
-    } = {
-      credentials: JSON.parse(Buffer.from('federatedTokenFile' in props ? props.federatedTokenFile : props.credential, 'base64').toString())
-    }
-
-    opts.projectId = props.projectId ?? opts.credentials?.project_id
-
     // Require the role `roles/secretmanager.secretAccessor` on the service account
-    this.client = new SecretManagerServiceClient(opts)
+    if ('federatedTokenFile' in props && props.federatedTokenFile?.trim()) {
+      const credentials: JWTInput = JSON.parse(readFileSync(props.federatedTokenFile).toString())
+
+      this.client = new SecretManagerServiceClient({
+        credentials,
+        projectId: props.projectId ?? credentials.project_id
+      })
+    } else if ('credential' in props && props.credential?.trim()) {
+      const credentials: JWTInput = JSON.parse(readFileSync(props.credential).toString())
+
+      this.client = new SecretManagerServiceClient({
+        credentials,
+        projectId: props.projectId ?? credentials.project_id
+      })
+    }
   }
 
   async *list({
@@ -32,7 +38,7 @@ export default class GoogleSM implements ISM {
 
     let nextPageToken: string | undefined | null = cursor
     while (true) {
-      const [ secrets, _, res ] = await this.client.listSecrets({
+      const [ secrets, , res ] = await this.client.listSecrets({
         parent: `projects/${projectId}`,
         pageSize: take,
         pageToken: nextPageToken
@@ -59,11 +65,11 @@ export default class GoogleSM implements ISM {
     return this.mountResponse(secret)
   }
 
-  private async mountResponse(secret: protos.google.cloud.secretmanager.v1.ISecret) {
+  private async mountResponse(secret: protos.google.cloud.secretmanager.v1.ISecret): Promise<Secret> {
     const versions = await this.getVersions(secret.name!)
 
-    return {
-      id: secret.etag!,
+    return new Secret({
+      // id: secret.etag!,
       name: secret.name ?? '',
       description: secret.labels?.description || '',
       tags: secret.labels || {},
@@ -74,24 +80,20 @@ export default class GoogleSM implements ISM {
 			expiresAt: secret.expireTime ? new Date(Number(secret.expireTime.seconds) * 1000) : undefined,
       versions: await Promise.all(versions.map(async version => {
         return {
-          version: version.name?.split('/').pop() ?? '',
+          id: version.name?.split('/').pop() ?? '',
           value: await this.getSecretValue(version.name!),
           enabled: protos.google.cloud.secretmanager.v1.SecretVersion.State[version.state!] === protos.google.cloud.secretmanager.v1.SecretVersion.State.ENABLED,
           createdAt: new Date(Number(version.createTime!.seconds) * 1000),
           expiresAt: version.destroyTime ? new Date(Number(version.destroyTime.seconds) * 1000) : undefined
         }
       }))
-    }
+    })
   }
 
   private async getVersions(secretName: string) {
     const [ versions ] = await this.client.listSecretVersions({ parent: secretName })
 
-    if (!versions) {
-      return []
-    }
-
-    return versions.sort((a, b) => parseInt(b.createTime!.seconds!.toString()) - parseInt(a.createTime!.seconds!.toString()))
+    return versions ?? []
   }
 
   private async getSecretValue(name: string) {

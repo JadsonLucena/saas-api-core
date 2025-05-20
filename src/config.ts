@@ -1,7 +1,7 @@
 import os from 'node:os'
 
-import { getGoogleCredentialPathByType } from './infrastructure/gateway/SM/googleCredentialsGateway'
-import GatewayFactory from './infrastructure/services/GatewayFactory'
+import getGoogleCredentialPathByType from './infrastructure/gateway/SM/googleCredentialsGateway.ts'
+import GatewayFactory from './infrastructure/services/GatewayFactory.ts'
 
 const LOOPBACK = 'localhost'
 
@@ -24,7 +24,7 @@ if (
   NODE_ENV !== NodeEnv.DEVELOPMENT &&
   HOSTNAME.API.includes(LOOPBACK)
 ) {
-  throw new Error('HOSTNAME is required. Please, set the environment variable HOSTNAME with the value of your hostname')
+  throw new Error('HOSTNAME_API is required. Please, set the environment variable HOSTNAME_API with the value of your hostname')
 }
 
 export const PORT = {
@@ -92,9 +92,9 @@ export const PROVIDERS = {
   AZURE: 'AZURE'
 } as const
 export type PROVIDERS = typeof PROVIDERS[keyof typeof PROVIDERS]
-const GOOGLE_CREDENTIAL_TYPE = {
+export const GOOGLE_CREDENTIAL_TYPE = {
   SERVICE_ACCOUNT: 'service_account',
-  EXTERNAL_ACCOUNT: 'external_account',
+  EXTERNAL_ACCOUNT: 'external_account'
 } as const
 export type GOOGLE_CREDENTIAL_TYPE = typeof GOOGLE_CREDENTIAL_TYPE[keyof typeof GOOGLE_CREDENTIAL_TYPE]
 
@@ -108,7 +108,7 @@ export const SM: Record<PROVIDERS, Record<string, string | undefined>> & { PROVI
   [PROVIDERS.AWS]: {
     API_VERSION: process.env[`SM_${PROVIDERS.AWS}_API_VERSION`]?.trim() ?? '2017-10-17',
     ROLE_ARN: process.env[`SM_${PROVIDERS.AWS}_ROLE_ARN`]?.trim() ?? process.env[`${PROVIDERS.AWS}_ROLE_ARN`]?.trim(),
-    REGION: (process.env[`SM_${PROVIDERS.AWS}_REGION`]?.trim() ?? process.env[`${PROVIDERS.AWS}_REGION`]) || 'us-east-1',
+    REGION: (process.env[`SM_${PROVIDERS.AWS}_DEFAULT_REGION`]?.trim() ?? process.env[`${PROVIDERS.AWS}_DEFAULT_REGION`]) || 'us-east-1',
     CLIENT_ID: process.env[`SM_${PROVIDERS.AWS}_ACCESS_KEY_ID`]?.trim() ?? process.env[`${PROVIDERS.AWS}_ACCESS_KEY_ID`]?.trim(),
     CLIENT_SECRET: process.env[`SM_${PROVIDERS.AWS}_SECRET_ACCESS_KEY`]?.trim() ?? process.env[`${PROVIDERS.AWS}_SECRET_ACCESS_KEY`]?.trim(),
     FEDERATED_TOKEN_FILE: process.env[`SM_${PROVIDERS.AWS}_WEB_IDENTITY_TOKEN_FILE`]?.trim() ?? process.env[`${PROVIDERS.AWS}_WEB_IDENTITY_TOKEN_FILE`]?.trim()
@@ -116,9 +116,9 @@ export const SM: Record<PROVIDERS, Record<string, string | undefined>> & { PROVI
   [PROVIDERS.AZURE]: {
     URI: process.env[`SM_${PROVIDERS.AZURE}_URI`]?.trim(),
     REGION: process.env[`SM_${PROVIDERS.AZURE}_LOCATION`]?.trim() ?? process.env[`${PROVIDERS.AZURE}_LOCATION`]?.trim(),
-    CLIENT_ID: process.env[`SM_${PROVIDERS.AZURE}_CLIENT_ID`]?.trim() ?? process.env[`${PROVIDERS.AZURE}_CLIENT_ID`]?.trim(),
-    TENANT_ID: process.env[`SM_${PROVIDERS.AZURE}_TENANT_ID`]?.trim() ?? process.env[`${PROVIDERS.AZURE}_TENANT_ID`]?.trim(),
-    CLIENT_SECRET: process.env[`SM_${PROVIDERS.AZURE}_CLIENT_SECRET`]?.trim() ?? process.env[`${PROVIDERS.AZURE}_CLIENT_SECRET`]?.trim(),
+    CLIENT_ID: process.env[`SM_${PROVIDERS.AZURE}_CLIENT_ID`]?.trim() ?? process.env[`${PROVIDERS.AZURE}_CLIENT_ID`]?.trim() ?? process.env[`ARM_CLIENT_ID`]?.trim(),
+    TENANT_ID: process.env[`SM_${PROVIDERS.AZURE}_TENANT_ID`]?.trim() ?? process.env[`${PROVIDERS.AZURE}_TENANT_ID`]?.trim() ?? process.env[`ARM_TENANT_ID`]?.trim(),
+    CLIENT_SECRET: process.env[`SM_${PROVIDERS.AZURE}_CLIENT_SECRET`]?.trim() ?? process.env[`${PROVIDERS.AZURE}_CLIENT_SECRET`]?.trim() ?? process.env[`ARM_CLIENT_SECRET`]?.trim(),
     FEDERATED_TOKEN_FILE: process.env[`SM_${PROVIDERS.AZURE}_FEDERATED_TOKEN_FILE`]?.trim() ?? process.env[`${PROVIDERS.AZURE}_FEDERATED_TOKEN_FILE`]?.trim()
   }
 }
@@ -126,6 +126,6 @@ export const SM: Record<PROVIDERS, Record<string, string | undefined>> & { PROVI
 const sm = await GatewayFactory.SM(SM, APP_NAME)
 
 export const CACHE_DB = {
-  CONNECTION_STRING: (await sm.get('CACHE_DB_CONNECTION_STRING'))?.versions.at(-1)?.value,
+  CONNECTION_STRING: (await sm?.get('CACHE_DB_CONNECTION_STRING'))?.getLatestActiveVersion()?.value ?? process.env.CACHE_DB_CONNECTION_STRING?.trim(),
   MAX_MEMORY: parseInt(`${process.env.CACHE_DB_MAX_MEMORY?.trim()}`)
 }
