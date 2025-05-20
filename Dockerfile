@@ -2,7 +2,7 @@ FROM node:current-alpine as builder
 
 WORKDIR /usr/src/app
 
-COPY --chown=node:node *.json *.js *.ts *.yml *.pem ./
+COPY --chown=node:node *.json *.js *.ts *.yml *.pem .env.test ./
 COPY --chown=node:node ./src ./src
 
 RUN npm i -g npm@latest

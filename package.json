@@ -82,6 +82,7 @@
     "@google-cloud/secret-manager": "latest",
     "fastify": "latest",
     "jsonwebtoken": "latest",
+    "memcached": "latest",
     "redis": "latest"
   },
   "devDependencies": {

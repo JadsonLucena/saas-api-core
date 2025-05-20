@@ -101,8 +101,14 @@ export default class GatewayFactory {
 			const Redis = (await import('../gateway/cacheDB/Redis.ts')).default
 
 			GatewayFactory._cachaDB = new Redis(props.connectionString, props.maxMemory)
-		} else {
-			throw new Error('Invalid cacheDB connection string. Supported providers are: redis://')
+		} else if (props.connectionString?.startsWith('memcached://')) {
+			const Memcached = (await import('../gateway/cacheDB/Memcached.ts')).default
+
+			GatewayFactory._cachaDB = new Memcached(props.connectionString.replace(/^memcached:\/\//, ''))
+		} else { // Fallback
+			const InMemory = (await import('../gateway/cacheDB/InMemory.ts')).default
+
+			GatewayFactory._cachaDB = new InMemory(props.maxMemory)
 		}
 
 		return GatewayFactory._cachaDB
