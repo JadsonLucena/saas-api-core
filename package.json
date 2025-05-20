@@ -86,11 +86,15 @@
     "redis": "latest"
   },
   "devDependencies": {
+    "@eslint/compat": "latest",
     "@eslint/js": "latest",
-    "@types/eslint-plugin-security": "latest",
     "@types/node": "latest",
+    "c8": "latest",
+    "eslint": "latest",
     "eslint-plugin-security": "latest",
+    "globals": "latest",
     "jiti": "latest",
+    "npm-run-all": "latest",
     "typescript-eslint": "latest"
   }
 }

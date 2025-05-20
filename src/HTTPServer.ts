@@ -498,12 +498,12 @@ export class HttpServerCluster implements IHTTPServer {
     })
 
     worker.on('disconnect', () => {
-      console.warn(`Worker ${worker.process.pid} disconnected`);
+      console.warn(`Worker ${worker.process.pid} disconnected`)
       worker.kill()
-    });
+    })
 
     worker.on('error', (err) => {
-      console.error(`Error in worker ${worker.process.pid}:`, err);
+      console.error(`Error in worker ${worker.process.pid}:`, err)
       worker.kill()
     })
 

@@ -11,7 +11,7 @@ export interface IJWTPayloadDTO {
 		typ?: string, // Type of the token (usually JWT)
 		kid?: string, // Key identifier (used to identify the key used to sign the token)
 		[k: string]: unknown
-	},
+	}
 	payload: {
 		iss?: string, // Who issued the token
 		sub?: string, // Who owns the token (usually the user ID)
@@ -22,6 +22,6 @@ export interface IJWTPayloadDTO {
 		jti?: string, // Unique token identifier
 		kid?: string, // Key identifier (used to identify the key used to sign the token)
 		[k: string]: unknown
-	},
+	}
 	signature: string // The signature of the token (used to verify the token)
 }

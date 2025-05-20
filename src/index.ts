@@ -14,7 +14,9 @@ const protocols = {
 
 const httpServer = CLUSTER.WORKERS === 1 ? new HttpServer(protocols) : new HttpServerCluster(protocols)
 
-export default await httpServer.start()
+await httpServer.start()
+
+export default httpServer
 
 // process.on('uncaughtException', (err: Error) => {
 process.on('uncaughtExceptionMonitor', (err: Error) => {

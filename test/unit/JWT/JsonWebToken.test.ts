@@ -8,7 +8,7 @@ const secretKey = {
 	value: 'test',
 }
 
-const JWT = new JsonWebToken(secretKey.value, 'xpto', {
+const jwt = new JsonWebToken(secretKey.value, 'xpto', {
 	kid: secretKey.id
 })
 
@@ -18,15 +18,15 @@ const payload = {
 }
 
 test('should sign and verify a JWT token', async () => {
-	const token = JWT.sign(payload)
+	const token = jwt.sign(payload)
 
-	assert.strictEqual(JWT.verify(token), true)
+	assert.strictEqual(jwt.verify(token), true)
 })
 
 test('should decode a JWT token', async () => {
-	const token = JWT.sign(payload)
+	const token = jwt.sign(payload)
 
-	const decoded = JWT.decode(token, true)
+	const decoded = jwt.decode(token, true)
 
 	assert.strictEqual(decoded.header?.kid, secretKey.id)
 	assert.strictEqual(decoded.payload.sub, payload.sub)
@@ -34,7 +34,5 @@ test('should decode a JWT token', async () => {
 })
 
 test('should throw an error when verifying an invalid token', async () => {
-	const token = JWT.sign(payload)
-
-	assert.throws(() => JWT.decode('invalid-token'), new Error('Invalid token'))
+	assert.throws(() => jwt.decode('invalid-token'), new Error('Invalid token'))
 })
