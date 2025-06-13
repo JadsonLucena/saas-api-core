@@ -40,7 +40,7 @@ export default class AwsSM implements ISM {
   }
 
   async *list({
-    take = PAGINATION.MAX_TAKE,
+    take = PAGINATION.MAX_PER_PAGE,
     cursor,
   }: CursorPagination = {}) {
     let nextPageToken: string | undefined | null = cursor

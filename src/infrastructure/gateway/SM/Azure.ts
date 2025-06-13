@@ -32,7 +32,7 @@ export default class AzureSM implements ISM {
 	}
 
 	async *list({
-		take = PAGINATION.MAX_TAKE,
+		take = PAGINATION.MAX_PER_PAGE,
 		cursor
 	}: CursorPagination = {}) {
     let page: Promise<Secret>[] = []
