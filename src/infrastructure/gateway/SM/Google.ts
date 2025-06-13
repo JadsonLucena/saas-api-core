@@ -31,7 +31,7 @@ export default class GoogleSM implements ISM {
   }
 
   async *list({
-    take = PAGINATION.MAX_TAKE,
+    take = PAGINATION.MAX_PER_PAGE,
     cursor,
   }: CursorPagination = {}) {
     const projectId = await this.client.getProjectId()

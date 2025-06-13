@@ -66,24 +66,24 @@ export const ASSETS = {
 }
 
 export const SECURITY = {
-  KEEP_ALIVE_TIMEOUT: Math.max(0, parseInt(process.env.SECURITY_KEEP_ALIVE_TIMEOUT?.trim() || '5_000')), // In milliseconds
-  MAX_EXECUTION_TIME: Math.max(0, parseInt(process.env.SECURITY_MAX_EXECUTION_TIME?.trim() || '30_000')), // In milliseconds
-  MAX_CONNECTIONS: Math.max(1, parseInt(process.env.SECURITY_MAX_CONNECTIONS?.trim() || '1_000')),
-  BODY_MAX_SIZE: Math.max(1, parseInt(process.env.SECURITY_POST_MAX_SIZE?.trim() || '10_485_760')), // 10 MB in bytes
-  UPLOAD_MAX_FILESIZE: Math.max(1, parseInt(process.env.SECURITY_UPLOAD_MAX_FILESIZE?.trim() || '15_728_640')), // 15 MB  in bytes
+  KEEP_ALIVE_TIMEOUT: Math.max(0, parseInt(process.env.SECURITY_KEEP_ALIVE_TIMEOUT?.trim() || '5000')), // In milliseconds
+  MAX_EXECUTION_TIME: Math.max(0, parseInt(process.env.SECURITY_MAX_EXECUTION_TIME?.trim() || '30000')), // In milliseconds
+  MAX_CONNECTIONS: Math.max(1, parseInt(process.env.SECURITY_MAX_CONNECTIONS?.trim() || '1000')),
+  BODY_MAX_SIZE: Math.max(1, parseInt(process.env.SECURITY_POST_MAX_SIZE?.trim() || '10485760')), // 10 MB in bytes
+  UPLOAD_MAX_FILESIZE: Math.max(1, parseInt(process.env.SECURITY_UPLOAD_MAX_FILESIZE?.trim() || '15728640')), // 15 MB  in bytes
   PREVENT_HOTLINK: !/^(false|0|undefined|null|NaN|)$/.test(process.env.SECURITY_PREVENT_HOTLINK?.trim() || 'false')
 }
 
-export const SPOT_TERMINATION_NOTICE_TIME = Math.max(1, parseInt(process.env.SPOT_TERMINATION_NOTICE_TIME?.trim() || '30_000')) // In milliseconds
+export const SPOT_TERMINATION_NOTICE_TIME = Math.max(1, parseInt(process.env.SPOT_TERMINATION_NOTICE_TIME?.trim() || '30000')) // In milliseconds
 
 export const CLUSTER = {
   WORKERS: Math.min(os.cpus().length, Math.max(1, parseInt(process.env.CLUSTER_WORKERS?.trim() || `${os.cpus().length}`)))
 }
 
 export const PAGINATION = {
-  SKIP: Math.max(0, parseInt(process.env.PAGINATION_SKIP ?? '0')),
-  TAKE: Math.max(1, parseInt(process.env.PAGINATION_TAKE ?? '50')),
-  MAX_TAKE: Math.max(1, parseInt(process.env.PAGINATION_MAX_TAKE ?? '100'))
+  PAGE: Math.max(0, parseInt(process.env.PAGINATION_PAGE ?? '0')),
+  PER_PAGE: Math.max(1, parseInt(process.env.PAGINATION_PER_PAGE ?? '50')),
+  MAX_PER_PAGE: Math.max(1, parseInt(process.env.PAGINATION_MAX_PER_PAGE ?? '100'))
 }
 
 export const PROVIDERS = {
@@ -128,4 +128,12 @@ const sm = await GatewayFactory.SM(SM, APP_NAME)
 export const CACHE_DB = {
   CONNECTION_STRING: (await sm?.get('CACHE_DB_CONNECTION_STRING'))?.getLatestActiveVersion()?.value ?? process.env.CACHE_DB_CONNECTION_STRING?.trim(),
   MAX_MEMORY: parseInt(`${process.env.CACHE_DB_MAX_MEMORY?.trim()}`)
+}
+
+export const DB = {
+  CONNECTION_STRING: (await sm?.get('DB_CONNECTION_STRING'))?.getLatestActiveVersion()?.value ?? process.env.DB_CONNECTION_STRING?.trim(),
+  MAX_POOL_SIZE: Math.max(1, parseInt(process.env.DB_MAX_POOL_SIZE?.trim() ?? '10')),
+  MIN_POOL_SIZE: Math.max(1, parseInt(process.env.DB_MIN_POOL_SIZE?.trim() ?? '2')),
+  MAX_IDLE_TIME: Math.max(0, parseInt(process.env.DB_MAX_IDLE_TIME?.trim() ?? '30000')), // In milliseconds 
+  MAX_FILTER_DEPTH: Math.max(1, parseInt(process.env.DB_MAX_FILTER_DEPTH?.trim() ?? '10'))
 }
