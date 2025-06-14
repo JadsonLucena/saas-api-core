@@ -1,4 +1,4 @@
-import test from 'node:test'
+import { describe, it } from 'node:test'
 import assert from 'node:assert'
 
 import JsonWebToken from '../../../src/infrastructure/gateway/JWT/JsonWebToken.ts'
@@ -17,22 +17,24 @@ const payload = {
 	name: 'John Doe',
 }
 
-test('should sign and verify a JWT token', async () => {
-	const token = jwt.sign(payload)
+describe('JsonWebToken', () => {
+	it('should sign and verify a JWT token', async () => {
+		const token = jwt.sign(payload)
 
-	assert.strictEqual(jwt.verify(token), true)
-})
+		assert.strictEqual(jwt.verify(token), true)
+	})
 
-test('should decode a JWT token', async () => {
-	const token = jwt.sign(payload)
+	it('should decode a JWT token', async () => {
+		const token = jwt.sign(payload)
 
-	const decoded = jwt.decode(token, true)
+		const decoded = jwt.decode(token, true)
 
-	assert.strictEqual(decoded.header?.kid, secretKey.id)
-	assert.strictEqual(decoded.payload.sub, payload.sub)
-	assert.strictEqual(decoded.payload.name, payload.name)
-})
+		assert.strictEqual(decoded.header?.kid, secretKey.id)
+		assert.strictEqual(decoded.payload.sub, payload.sub)
+		assert.strictEqual(decoded.payload.name, payload.name)
+	})
 
-test('should throw an error when verifying an invalid token', async () => {
-	assert.throws(() => jwt.decode('invalid-token'), new Error('Invalid token'))
+	it('should throw an error when verifying an invalid token', async () => {
+		assert.throws(() => jwt.decode('invalid-token'), new Error('Invalid token'))
+	})
 })
