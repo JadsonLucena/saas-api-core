@@ -1,9 +1,9 @@
-import { describe } from 'node:test'
+import test, { before, describe } from 'node:test'
 
 import { SM, APP_NAME } from '../../../src/config.ts'
 
 import AwsSM from '../../../src/infrastructure/gateway/SM/AWS.ts'
-import { runSecretManagerTests } from './runSecretManagerTests.ts'
+import { secretManagerTestFactory } from './secretManagerTestFactory.ts'
 
 const client = new AwsSM({
 	apiVersion: SM.AWS.API_VERSION!,
@@ -15,6 +15,14 @@ const client = new AwsSM({
 	appName: APP_NAME
 })
 
+const tests = secretManagerTestFactory(client)
+
 describe('AWS SM', () => {
-  runSecretManagerTests(client)
+	before(tests.setup)
+
+	test('List secrets', tests.listSecrets)
+	test('Get by name', tests.getByName)
+	test('Get active versions', tests.getActiveVersions)
+	test('Get latest active version', tests.getLatestActiveVersion)
+	test('Get version by id', tests.getVersionById)
 })

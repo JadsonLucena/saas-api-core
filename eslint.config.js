@@ -4,6 +4,7 @@ import { includeIgnoreFile } from '@eslint/compat'
 import js from '@eslint/js'
 import { defineConfig } from 'eslint/config'
 import security from 'eslint-plugin-security'
+import sonarjs from 'eslint-plugin-sonarjs'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
@@ -11,6 +12,8 @@ const gitignorePath = fileURLToPath(new URL('.gitignore', import.meta.url));
 
 export default defineConfig([
   includeIgnoreFile(gitignorePath),
+  js.configs.recommended,
+  tseslint.configs.recommended,
   {
     files: ['**/*.{js,mjs,cjs,ts}'],
     languageOptions: {
@@ -18,43 +21,17 @@ export default defineConfig([
       globals: globals.node
     },
     plugins: {
-      js,
       security,
+      sonarjs,
       '@typescript-eslint': tseslint.plugin
     },
-    extends: [
-      'js/recommended'
-    ],
     rules: {
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', {
-        vars: 'all',
-        args: 'after-used',
-        argsIgnorePattern: '^_$',
-        varsIgnorePattern: '^_$',
-        caughtErrors: 'all', // <--- aplica ignorePattern a erros do catch
-        caughtErrorsIgnorePattern: '^_$', // <--- ignora 'catch (_)'
-        ignoreRestSiblings: true
+      ...security.configs.recommended.rules,
+      ...sonarjs.configs.recommended.rules,
+      'complexity': ['error', {
+        max: 10
       }],
-      'no-redeclare': 'off',
-
-      // extra security
-      'no-eval': 'error',
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'security/detect-buffer-noassert': 'warn',
-      'security/detect-child-process': 'warn',
-      'security/detect-disable-mustache-escape': 'warn',
-      'security/detect-eval-with-expression': 'warn',
-      'security/detect-new-buffer': 'warn',
-      'security/detect-no-csrf-before-method-override': 'warn',
-      'security/detect-non-literal-fs-filename': 'warn',
-      'security/detect-non-literal-regexp': 'warn',
-      'security/detect-non-literal-require': 'warn',
-      'security/detect-object-injection': 'warn',
-      'security/detect-possible-timing-attacks': 'warn',
-      'security/detect-pseudoRandomBytes': 'warn',
-      'security/detect-unsafe-regex': 'warn',
+      'sonarjs/cognitive-complexity': ['error', 15]
     }
-  },
-  tseslint.configs.recommended
+  }
 ])

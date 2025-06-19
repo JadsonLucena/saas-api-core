@@ -112,18 +112,6 @@ export default class HttpServer implements IHTTPServer {
   }
 
   connectionsCount() {
-    /*const server = this.secureServer ?? this.server
-
-    return new Promise<number>((resolve, reject) => {
-      server.getConnections((err, count) => {
-        if (err) {
-          return reject(err)
-        }
-
-        resolve(count)
-      })
-    })*/
-
     return this.connections.size
   }
 
@@ -261,100 +249,53 @@ export default class HttpServer implements IHTTPServer {
 
   private requestHandler(encrypted: boolean = false) {
     return (req: IRequest, res: IResponse) => {
-      if (
-        (
-          !req.method ||
-          req.method.toUpperCase() === 'GET' ||
-          req.method.toUpperCase() === 'HEAD'
-        ) &&
-        req.url?.toLowerCase() === '/health'
-      ) {
-        res.writeHead(200, {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': 'false',
-          'Cache-Control': 'no-store',
-          'Content-Type': 'application/json'
-        })
-        return res.end(JSON.stringify({
-          message: 'OK'
-        }))
-      } else if (
-        this.hasValidTLS() &&
-        !encrypted
-      ) {
-        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
-        res.writeHead(308, {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': 'false',
-          'Cache-Control': 'immutable',
-          'Content-Type': 'application/json',
-          Location: new URL(req.url ?? '/', this.props.origin.api.origin).toString()
-        })
-        return res.end(JSON.stringify({
-          type: 'about:blank',
-          status: 308,
-          title: 'Permanent Redirect',
-          detail: 'The requested resource has been permanently moved to another location',
-          instance: req.url
-        }))
-      } else if (req.url?.toLowerCase()?.startsWith('/graphql') && this.protocols.GraphQL) {
-        if (!this.protocols.GraphQL) {
-          res.writeHead(501, {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Credentials': 'false',
-            'Cache-Control': 'no-store',
-            'Content-Type': 'application/json'
-          })
-          return res.end(JSON.stringify({
-            type: 'about:blank',
-            status: 501,
-            title: 'Not Implemented',
-            detail: 'The server does not support the functionality required to fulfill the request',
-            instance: req.url
-          }))
-        }
-
-        return this.protocols.GraphQL.handler(req, res)
-      } else if (req.url?.toLowerCase()?.startsWith('/grpc') && this.protocols.gRPC) {
-        if (!this.protocols.gRPC) {
-          res.writeHead(501, {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Credentials': 'false',
-            'Cache-Control': 'no-store',
-            'Content-Type': 'application/json'
-          })
-          return res.end(JSON.stringify({
-            type: 'about:blank',
-            status: 501,
-            title: 'Not Implemented',
-            detail: 'The server does not support the functionality required to fulfill the request',
-            instance: req.url
-          }))
-        }
-
-        return this.protocols.gRPC.handler(req, res)
-      } else if (req.url?.toLowerCase()?.startsWith('/soap') && this.protocols.SOAP) {
-        if (!this.protocols.SOAP) {
-          res.writeHead(501, {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Credentials': 'false',
-            'Cache-Control': 'no-store',
-            'Content-Type': 'application/json'
-          })
-          return res.end(JSON.stringify({
-            type: 'about:blank',
-            status: 501,
-            title: 'Not Implemented',
-            detail: 'The server does not support the functionality required to fulfill the request',
-            instance: req.url
-          }))
-        }
-
-        return this.protocols.SOAP.handler(req, res)
+      if (this.isHealthCheck(req)) {
+        return ResponseHandler.sendHealthResponse(res)
+      } else if (this.shouldRedirect(encrypted)) {
+        return ResponseHandler.sendRedirectResponse(res, req, this.props.origin.api.origin)
       }
-  
-      this.protocols.REST.handler(req, res)
+
+      return this.routeProtocol(req, res)
     }
+  }
+
+  private routeProtocol(req: IRequest, res: IResponse) {
+    const url = req.url?.toLowerCase() ?? ''
+
+    if (url.startsWith('/graphql')) {
+      if (!this.protocols.GraphQL) {
+        return ResponseHandler.sendNotImplementedResponse(res, req)
+      }
+
+      return this.protocols.GraphQL.handler(req, res)
+    } else if (url.startsWith('/grpc')) {
+      if (!this.protocols.gRPC) {
+        return ResponseHandler.sendNotImplementedResponse(res, req)
+      }
+
+      return this.protocols.gRPC.handler(req, res)
+    } else if (url.startsWith('/soap')) {
+      if (!this.protocols.SOAP) {
+        return ResponseHandler.sendNotImplementedResponse(res, req)
+      }
+
+      return this.protocols.SOAP.handler(req, res)
+    }
+
+    return this.protocols.REST.handler(req, res)
+  }
+
+  private isHealthCheck(req: IRequest): boolean {
+    return (
+      (!req.method ||
+       req.method.toUpperCase() === 'GET' ||
+       req.method.toUpperCase() === 'HEAD') &&
+      req.url?.toLowerCase() === '/health'
+    )
+  }
+
+  private shouldRedirect(encrypted: boolean): boolean {
+    return this.hasValidTLS() && !encrypted
   }
 
   private drain() {
@@ -375,8 +316,8 @@ export default class HttpServer implements IHTTPServer {
     keyPath?: string
   } = this.props.tls): tls is { certPath: string, keyPath: string } {
     return Boolean((
-      tls.certPath && tls.certPath.trim() &&
-      tls.keyPath && tls.keyPath.trim()
+      tls.certPath?.trim() &&
+      tls.keyPath?.trim()
     ) && (
       existsSync(path.join(path.resolve(), tls.certPath)) &&
       existsSync(path.join(path.resolve(), tls.keyPath))
@@ -508,6 +449,54 @@ export class HttpServerCluster implements IHTTPServer {
     })
 
     return worker
+  }
+}
+
+class ResponseHandler {
+  private static readonly CORS_HEADERS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Credentials': 'false'
+  }
+
+  static sendHealthResponse(res: IResponse): void {
+    res.writeHead(200, {
+      ...this.CORS_HEADERS,
+      'Cache-Control': 'no-store',
+      'Content-Type': 'application/json'
+    })
+    res.end(JSON.stringify({ message: 'OK' }))
+  }
+
+  static sendRedirectResponse(res: IResponse, req: IRequest, origin: URL): void {
+    console.log('sendRedirectResponse', origin)
+    res.writeHead(308, {
+      ...this.CORS_HEADERS,
+      'Cache-Control': 'immutable',
+      'Content-Type': 'application/json',
+      Location: new URL(req.url ?? '/', origin).toString()
+    })
+    res.end(JSON.stringify({
+      type: 'about:blank',
+      status: 308,
+      title: 'Permanent Redirect',
+      detail: 'The requested resource has been permanently moved to another location',
+      instance: req.url
+    }))
+  }
+
+  static sendNotImplementedResponse(res: IResponse, req: IRequest): void {
+    res.writeHead(501, {
+      ...this.CORS_HEADERS,
+      'Cache-Control': 'no-store',
+      'Content-Type': 'application/json'
+    })
+    res.end(JSON.stringify({
+      type: 'about:blank',
+      status: 501,
+      title: 'Not Implemented',
+      detail: 'The server does not support the functionality required to fulfill the request',
+      instance: req.url
+    }))
   }
 }
 

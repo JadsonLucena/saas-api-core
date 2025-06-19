@@ -42,7 +42,7 @@ export default class UUIDVO extends String {
   static readonly URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8'
   static readonly X500 = '6ba7b814-9dad-11d1-80b4-00c04fd430c8'
 
-  constructor(uuid: string | UUIDVO | Buffer = crypto.randomUUID()) {
+  constructor(uuid: inputUUID = crypto.randomUUID()) {
     if (!UUIDVO.verify(uuid)) {
       throw new TypeError('Invalid uuid')
     }
@@ -53,12 +53,18 @@ export default class UUIDVO extends String {
     Object.freeze(this)
   }
 
-  static verify(uuid: string | UUIDVO | Buffer) {
-    const stringified = uuid instanceof UUIDVO ? uuid.toString() : (typeof uuid !== 'string' ? UUIDVO.stringify(uuid) : UUIDVO.lint(uuid))
+  static verify(uuid: inputUUID) {
+    if (uuid instanceof UUIDVO) {
+      uuid = uuid.toString()
+    } else if (typeof uuid !== 'string') {
+      uuid = UUIDVO.stringify(uuid)
+    } else {
+      uuid = UUIDVO.lint(uuid)
+    }
 
     return (
-      UUIDVO.pattern.test(stringified) ||
-      stringified.replaceAll('-', '') === UUIDVO.NIL.replaceAll('-', '')
+      UUIDVO.pattern.test(uuid) ||
+      uuid.replaceAll('-', '') === UUIDVO.NIL.replaceAll('-', '')
     )
   }
 
@@ -68,7 +74,7 @@ export default class UUIDVO extends String {
     return Buffer.from(this.replaceAll('-', ''), 'hex')
   }
 
-  private static parse(uuid: string | UUIDVO | Buffer): UUIDDTO {
+  private static parse(uuid: inputUUID): UUIDDTO {
     const parsed = (Buffer.isBuffer(uuid) ? uuid.toString('hex') : uuid).match(UUIDVO.pattern)?.groups
 
     return {
@@ -97,7 +103,7 @@ export default class UUIDVO extends String {
     return uuid.replace(/\s+/g, '').normalize('NFC')
   }
 
-  equals(uuid: string | UUIDVO | Buffer, ignoreCase: boolean = false) {
+  equals(uuid: inputUUID, ignoreCase: boolean = false) {
     if (!UUIDVO.verify(uuid)) {
       throw new TypeError('Invalid uuid')
     } else if (Buffer.isBuffer(uuid)) {
@@ -113,3 +119,5 @@ export default class UUIDVO extends String {
     return this.toString() === UUIDVO.lint(uuid)
   }
 }
+
+type inputUUID = string | UUIDVO | Buffer

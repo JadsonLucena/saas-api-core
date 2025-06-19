@@ -8,7 +8,7 @@
   "type": "module",
   "main": "./src/index.ts",
   "scripts": {
-    "start:dev": "node --trace-warnings --env-file=.env.test --experimental-strip-types --watch ./src/index.ts",
+    "start:dev": "node --trace-warnings --env-file=.env.test --experimental-strip-types --inspect --watch ./src/index.ts",
     "start": "node --trace-warnings --experimental-strip-types ./src/index.ts",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
@@ -92,6 +92,7 @@
     "c8": "latest",
     "eslint": "latest",
     "eslint-plugin-security": "latest",
+    "eslint-plugin-sonarjs": "latest",
     "globals": "latest",
     "jiti": "latest",
     "npm-run-all": "latest",

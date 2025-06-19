@@ -1,4 +1,4 @@
-FROM node:current-alpine as builder
+FROM node:current-alpine AS builder
 
 WORKDIR /usr/src/app
 
@@ -10,7 +10,7 @@ RUN npm ci
 RUN npm audit fix
 # RUN npm run build
 
-FROM cgr.dev/chainguard/node:latest
+FROM cgr.dev/chainguard/node:latest AS runner
 # FROM gcr.io/distroless/nodejs:latest
 
 WORKDIR /app
