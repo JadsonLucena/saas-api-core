@@ -42,13 +42,9 @@ export abstract class OpaqueEntity extends WeakEntity implements IOpaqueEntity {
 
 	constructor({
 		id = new UUIDVO(),
-		createdAt = new Date(),
-		updatedAt
+		...rest
 	}: Partial<IOpaqueEntity> = {}) {
-		super({
-			createdAt,
-			updatedAt
-		})
+		super(rest)
 		this.id = id
 	}
 }
@@ -58,13 +54,9 @@ export abstract class SequentialEntity extends WeakEntity implements ISequential
 
 	constructor({
 		id = Number.NaN,
-		createdAt = new Date(),
-		updatedAt
+		...rest
 	}: Partial<ISequentialEntity> = {}) {
-		super({
-			createdAt,
-			updatedAt
-		})
+		super(rest)
 		this.id = id
 	}
 }
@@ -73,7 +65,7 @@ export function Confirmable<T extends Constructor<WeakEntity>>(Base: T) {
   abstract class ConfirmableMixin extends Base implements IConfirmable {
     private _confirmedAt?: Date
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(...args: any[]) {
       const { confirmedAt, ...rest } = args[0] ?? {}
 

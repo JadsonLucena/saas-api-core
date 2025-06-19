@@ -63,7 +63,7 @@ export default class JsonWebToken implements IJWT {
 		try {
 			jwt.verify(token, this.key)
 			return true
-		} catch(_) {
+		} catch {
 			return false
 		}
 	}
