@@ -32,20 +32,20 @@ export interface IRepositoryTransaction<Fields extends string, Collections exten
 	): Promise<(IOpaqueEntity | ISequentialEntity)[]>
 }
 
-export type Filter<Fields extends string, Collections extends string> = CompoundFilter<Fields, Collections> & SimpleFilter<Fields, Collections>
+export type Filter<Fields extends string, Collections extends string> = LogicalOperatorFilter<Fields, Collections> & SimpleFilter<Fields, Collections>
 
 export type SimpleFilter<Fields extends string, Collections extends string> = {
 	[field in Fields]?: SimpleFilterValue<Collections>
 }
 
-export type CompoundFilter<Fields extends string, Collections extends string> = {
-	[operator in LOGICAL_OPERATOR]?: CompoundFilterValue<Fields, Collections>
+export type LogicalOperatorFilter<Fields extends string, Collections extends string> = {
+	[operator in LOGICAL_OPERATOR]?: LogicalOperatorFilterValue<Fields, Collections>
 }
 
 export type SimpleFilterValue<Collections extends string> = Primitive | Primitive[] | FieldFilter<Collections>
-export type CompoundFilterValue<Fields extends string, Collections extends string> = Filter<Fields, Collections> | Filter<Fields, Collections>[]
+export type LogicalOperatorFilterValue<Fields extends string, Collections extends string> = Filter<Fields, Collections> | Filter<Fields, Collections>[]
 
-export type FilterValue<Fields extends string, Collections extends string> = SimpleFilterValue<Collections> | CompoundFilterValue<Fields, Collections>
+export type FilterValue<Fields extends string, Collections extends string> = SimpleFilterValue<Collections> | LogicalOperatorFilterValue<Fields, Collections>
 
 export const LOGICAL_OPERATOR = {
 	AND: 'AND',
