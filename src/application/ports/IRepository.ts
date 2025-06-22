@@ -88,7 +88,7 @@ export type FieldFilter<Collections extends string> = (
 	collection?: Collections
 }
 
-export type Primitive = string | number | bigint | boolean | Date | null
+export type Primitive = Buffer | Date | bigint | boolean | null | number | string
 
 export type Sort<Fields extends string, Collections extends string> = {
 	[field in Fields]: SortValue<Collections>

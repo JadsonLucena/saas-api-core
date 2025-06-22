@@ -359,11 +359,12 @@ class PrimitiveFilterStrategy<Fields extends string, Collections extends string>
 
 	private isPrimitiveValue(value: FilterValue<Fields, Collections>): boolean {
 		return (
-			typeof value === 'string' ||
-			typeof value === 'number' ||
-			typeof value === 'boolean' ||
+			value instanceof Buffer ||
+			value instanceof Date ||
 			typeof value === 'bigint' ||
-			value instanceof Date
+			typeof value === 'boolean' ||
+			typeof value === 'number' ||
+			typeof value === 'string'
 		)
 	}
 

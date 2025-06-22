@@ -9,7 +9,21 @@ import { BIND_STYLES, SORT_ORDER } from '../../../../../src/application/ports/IR
 
 describe('filter', () => {
   describe('Simple filter with primitive value', () => {
-    it('should generate SQL for string filter', () => {
+    it('should generate SQL for buffer value', () => {
+      const buffer = Buffer.from('test')
+      const result = SqlBuilder<'data', 'files'>({
+        filter: {
+          data: buffer
+        }
+      })
+
+      assert.ok(result.sql.startsWith('(data = ?)'))
+      assert.deepStrictEqual(result.params, {
+        _1_data: buffer
+      })
+    })
+
+    it('should generate SQL for string value', () => {
       const result = SqlBuilder<'name', 'users'>({
         filter: {
           name: 'John Doe'
@@ -22,7 +36,7 @@ describe('filter', () => {
       })
     })
 
-    it('should generate SQL for number filter', () => {
+    it('should generate SQL for number value', () => {
       const result = SqlBuilder<'age', 'users'>({
         filter: {
           age: 30
@@ -35,7 +49,7 @@ describe('filter', () => {
       })
     })
 
-    it('should generate SQL for boolean filter', () => {
+    it('should generate SQL for boolean value', () => {
       const result = SqlBuilder<'isActive', 'users'>({
         filter: {
           isActive: true
@@ -48,7 +62,7 @@ describe('filter', () => {
       })
     })
 
-    it('should generate SQL for date filter', () => {
+    it('should generate SQL for date value', () => {
       const date = new Date()
       const result = SqlBuilder<'createdAt', 'users'>({
         filter: {
@@ -62,7 +76,7 @@ describe('filter', () => {
       })
     })
 
-    it('should generate SQL for null filter', () => {
+    it('should generate SQL for null value', () => {
       const result = SqlBuilder<'email', 'users'>({
         filter: {
           email: null
@@ -73,7 +87,7 @@ describe('filter', () => {
       assert.deepStrictEqual(result.params, {})
     })
 
-    it('should ignore an undefined filter value', () => {
+    it('should ignore an undefined value', () => {
       const result = SqlBuilder<'name', 'users'>({
         filter: {
           name: undefined
