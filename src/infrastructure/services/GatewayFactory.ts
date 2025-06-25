@@ -1,10 +1,12 @@
 import { PROVIDERS, SM } from '../../config.ts'
 import type ICacheDB from '../ports/ICacheDB.ts'
 import type { ISM } from '../../application/ports/ISM.ts'
+import type { ISqlDriver } from '../../application/ports/ISqlDriver.ts'
 
 export default class GatewayFactory {
 	private static _sm?: ISM
-	private static _cachaDB: ICacheDB
+	private static _cachaDB?: ICacheDB
+	private static _sqlDriver?: ISqlDriver
 
 	static async SM(config: typeof SM, appName: string): Promise<ISM | undefined> {
 		if (GatewayFactory._sm) return GatewayFactory._sm
@@ -150,5 +152,24 @@ export default class GatewayFactory {
 		// Fallback to InMemory
 		const InMemory = (await import('../gateway/cacheDB/InMemory.ts')).default
 		return new InMemory(props.maxMemory)
+	}
+
+	static async sqlDriver({
+		connectionString,
+		...props
+	}: {
+		connectionString: string
+		maxPoolSize: number,
+		minPoolSize?: number,
+		maxIdleTime?: number
+	}): Promise<ISqlDriver | undefined> {
+		if (GatewayFactory._sqlDriver) return GatewayFactory._sqlDriver
+
+		if (connectionString.startsWith('mysql')) {
+			const MySqlDriver = (await import('../gateway/DB/driver/sql/MySqlDriver.ts')).default
+			GatewayFactory._sqlDriver = new MySqlDriver(connectionString, props)
+		}
+
+		return GatewayFactory._sqlDriver
 	}
 }
