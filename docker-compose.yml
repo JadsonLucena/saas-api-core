@@ -22,3 +22,20 @@ services:
     image: memcached:alpine
     ports:
       - '11211:11211'
+  
+  mysql:
+    profiles: ["integration", "DB"]
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_HOST: localhost
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
+    ports:
+      - '3306:3306'
+      - '33060:33060'
+    healthcheck:
+      test: mysqladmin ping -h localhost -u test --password=password
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
