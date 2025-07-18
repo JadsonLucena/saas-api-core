@@ -3,7 +3,7 @@ services:
   node:
     env_file:
       - .env.test
-    profiles: ["E2E"]
+    profiles: ['E2E']
     build:
       dockerfile: Dockerfile
     restart: always
@@ -12,19 +12,23 @@ services:
       - '8443:8443'
 
   redis:
-    profiles: ["integration", "cacheDB"]
+    profiles: ['integration', 'cacheDB']
     image: redis:alpine
     ports:
       - '6379:6379'
+    healthcheck:
+      test: redis-cli ping | grep -q PONG
 
   memcached:
-    profiles: ["integration", "cacheDB"]
+    profiles: ['integration', 'cacheDB']
     image: memcached:alpine
     ports:
       - '11211:11211'
+    healthcheck:
+      test: echo 'stats' | nc localhost 11211 | grep -q 'STAT pid'
   
   mysql:
-    profiles: ["integration", "DB"]
+    profiles: ['integration', 'DB']
     image: mysql:latest
     restart: always
     environment:
@@ -33,9 +37,21 @@ services:
     ports:
       - '3306:3306'
       - '33060:33060'
+    volumes:
+      - ./test/integration/DB/seed/mysql.init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: mysqladmin ping -h localhost -u test --password=password
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
+      test: mysqladmin ping -h localhost --silent
+
+  postgres:
+    profiles: ['integration', 'DB']
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 'StrongPass1!'
+      POSTGRES_DB: 'test'
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./test/integration/DB/seed/postgres.init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: pg_isready -U postgres -h localhost
