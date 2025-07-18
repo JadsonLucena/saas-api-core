@@ -1,7 +1,7 @@
 import type { Primitive } from './IRepository.ts'
 
 export interface ISqlDriver extends IDmlDriver {
-	beginTransaction(isolationLevel?: TransactionIsolationLevel): Promise<ITransactionDriver>
+	beginTransaction(isolationLevel?: TRANSACTION_ISOLATION_LEVELS): Promise<ITransactionDriver>
 	disconnect(): Promise<void>
 }
 
@@ -12,7 +12,13 @@ export interface ITransactionDriver extends IDmlDriver {
 	releaseSavepoint(name: string): Promise<boolean>
 }
 
-export type TransactionIsolationLevel = 'READ UNCOMMITTED' | 'READ COMMITTED' | 'REPEATABLE READ' | 'SERIALIZABLE'
+export const TRANSACTION_ISOLATION_LEVELS = {
+	'READ_UNCOMMITTED': 'READ UNCOMMITTED',
+	'READ_COMMITTED': 'READ COMMITTED',
+	'REPEATABLE_READ': 'REPEATABLE READ',
+	'SERIALIZABLE': 'SERIALIZABLE'
+} as const
+export type TRANSACTION_ISOLATION_LEVELS = typeof TRANSACTION_ISOLATION_LEVELS[keyof typeof TRANSACTION_ISOLATION_LEVELS]
 
 interface IDmlDriver {
 	query<T extends Result>(

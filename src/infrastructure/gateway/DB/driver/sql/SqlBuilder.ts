@@ -15,7 +15,6 @@ import {
 	OPERATOR
 } from '../../../../../application/ports/IRepository.ts'
 
-
 export default function SqlBuilder<Fields extends string, Collections extends string>({
 	filter,
 	sort,
