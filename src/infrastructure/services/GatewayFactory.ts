@@ -4,35 +4,35 @@ import type { ISM } from '../../application/ports/ISM.ts'
 import type { ISqlDriver } from '../../application/ports/ISqlDriver.ts'
 
 export default class GatewayFactory {
-	private static _sm?: ISM
-	private static _cachaDB?: ICacheDB
-	private static _sqlDriver?: ISqlDriver
+	private static _sm: Record<PROVIDERS, ISM> = {} as Record<PROVIDERS, ISM>
+	private static _cachaDB: Record<string, ICacheDB> = {}
+	private static _sqlDriver: Record<string, ISqlDriver> = {}
 
-	static async SM(config: typeof SM, appName: string): Promise<ISM | undefined> {
-		if (GatewayFactory._sm) return GatewayFactory._sm
+	static async SM(props: typeof SM, appName: string) {
+		if (!props.PROVIDER) {
+			return undefined
+		}
 
-		GatewayFactory._sm = await GatewayFactory.createSMProvider(config, appName)
-		return GatewayFactory._sm
+		if (GatewayFactory._sm[props.PROVIDER]) return GatewayFactory._sm[props.PROVIDER]
+
+		GatewayFactory._sm[props.PROVIDER] = await GatewayFactory.createSMProvider(props, appName)
+
+		return GatewayFactory._sm[props.PROVIDER]
 	}
 
-	private static async createSMProvider(config: typeof SM, appName: string): Promise<ISM | undefined> {
+	private static async createSMProvider(config: typeof SM, appName: string) {
 		if (config.PROVIDER && !Object.values(PROVIDERS).includes(config.PROVIDER)) {
 			throw new Error(`Invalid SM provider. Supported providers are: ${Object.values(PROVIDERS).join(', ')}`)
+		} else if (config.PROVIDER === PROVIDERS.AZURE) {
+			return await GatewayFactory.createAzureSM(config)
+		} else if (config.PROVIDER === PROVIDERS.AWS) {
+			return await GatewayFactory.createAWSSM(config, appName)
 		}
 
-		switch (config.PROVIDER) {
-			case PROVIDERS.GOOGLE:
-				return await GatewayFactory.createGoogleSM(config)
-			case PROVIDERS.AWS:
-				return await GatewayFactory.createAWSSM(config, appName)
-			case PROVIDERS.AZURE:
-				return await GatewayFactory.createAzureSM(config)
-			default:
-				return undefined
-		}
+		return await GatewayFactory.createGoogleSM(config)
 	}
 
-	private static async createGoogleSM(config: typeof SM): Promise<ISM> {
+	private static async createGoogleSM(config: typeof SM) {
 		const GoogleSM = (await import('../gateway/SM/Google.ts')).default
 
 		if (config.GOOGLE.FEDERATED_TOKEN_FILE) {
@@ -52,7 +52,7 @@ export default class GatewayFactory {
 		throw new Error(`${PROVIDERS.GOOGLE} SM credentials are required`)
 	}
 
-	private static async createAWSSM(config: typeof SM, appName: string): Promise<ISM> {
+	private static async createAWSSM(config: typeof SM, appName: string) {
 		const AWS = (await import('../gateway/SM/AWS.ts')).default
 
 		GatewayFactory.validateAWSConfig(config)
@@ -89,7 +89,7 @@ export default class GatewayFactory {
 		}
 	}
 
-	private static async createAzureSM(config: typeof SM): Promise<ISM> {
+	private static async createAzureSM(config: typeof SM) {
 		const AzureSM = (await import('../gateway/SM/Azure.ts')).default
 
 		GatewayFactory.validateAzureConfig(config)
@@ -127,20 +127,27 @@ export default class GatewayFactory {
 		}
 	}
 
-	static async cacheDB(props: {
+	static async cacheDB({
+		connectionString = ':memory:',
+		maxMemory
+	}: {
 		connectionString?: string,
 		maxMemory?: number
 	} = {}): Promise<ICacheDB> {
-		if (GatewayFactory._cachaDB) return GatewayFactory._cachaDB
+		if (GatewayFactory._cachaDB[connectionString]) return GatewayFactory._cachaDB[connectionString]
 
-		GatewayFactory._cachaDB = await GatewayFactory.createCacheDBProvider(props)
-		return GatewayFactory._cachaDB
+		GatewayFactory._cachaDB[connectionString] = await GatewayFactory.createCacheDBProvider({
+			connectionString,
+			maxMemory
+		})
+
+		return GatewayFactory._cachaDB[connectionString]
 	}
 
 	private static async createCacheDBProvider(props: {
 		connectionString?: string,
 		maxMemory?: number
-	}): Promise<ICacheDB> {
+	}) {
 		if (props.connectionString?.startsWith('redis://')) {
 			const Redis = (await import('../gateway/cacheDB/Redis.ts')).default
 			return new Redis(props.connectionString, props.maxMemory)
@@ -154,22 +161,30 @@ export default class GatewayFactory {
 		return new InMemory(props.maxMemory)
 	}
 
-	static async sqlDriver({
-		connectionString,
-		...props
-	}: {
+	static async sqlDriver(props: {
 		connectionString: string
-		maxPoolSize: number,
+		maxPoolSize?: number,
 		minPoolSize?: number,
 		maxIdleTime?: number
-	}): Promise<ISqlDriver | undefined> {
-		if (GatewayFactory._sqlDriver) return GatewayFactory._sqlDriver
+	}) {
+		if (GatewayFactory._sqlDriver[props.connectionString]) return GatewayFactory._sqlDriver[props.connectionString]
 
-		if (connectionString.startsWith('mysql')) {
+		if (props.connectionString.startsWith('mysql')) {
 			const MySqlDriver = (await import('../gateway/DB/driver/sql/MySqlDriver.ts')).default
-			GatewayFactory._sqlDriver = new MySqlDriver(connectionString, props)
+			GatewayFactory._sqlDriver[props.connectionString] = new MySqlDriver(props.connectionString, {
+				maxPoolSize: props.maxPoolSize,
+				minPoolSize: props.minPoolSize,
+				maxIdleTime: props.maxIdleTime
+			})
+		} else if (props.connectionString.startsWith('postgres')) {
+			const PostgreSQLDriver = (await import('../gateway/DB/driver/sql/PostgreSqlDriver.ts')).default
+			GatewayFactory._sqlDriver[props.connectionString] = new PostgreSQLDriver(props.connectionString, {
+				maxPoolSize: props.maxPoolSize,
+				minPoolSize: props.minPoolSize,
+				maxIdleTime: props.maxIdleTime
+			})
 		}
 
-		return GatewayFactory._sqlDriver
+		return GatewayFactory._sqlDriver[props.connectionString]
 	}
 }
