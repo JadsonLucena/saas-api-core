@@ -1,6 +1,7 @@
 import { DB } from '../../../../../config.ts'
 
-import type { ISqlDriver, ITransactionDriver, TransactionIsolationLevel, Result, Params } from '../../../../../application/ports/ISqlDriver.ts'
+import { type ISqlDriver, type ITransactionDriver, type Result, type Params, TRANSACTION_ISOLATION_LEVELS } from '../../../../../application/ports/ISqlDriver.ts'
+import { waitForDatabase } from '../waitForDatabase.ts'
 
 import mysqlx, { type Scalar } from '@mysql/xdevapi'
 import { createPool, Pool } from 'generic-pool'
@@ -26,20 +27,20 @@ export default class MySqlDriver implements ISqlDriver {
 		sql: string,
 		params: Params = {}
 	) {
-		const pool = await PoolSingleton.connect(this.connectionString, this.poolOptions)
-		const client = await pool.acquire()
+		const pool = await PoolSingleton.getPool(this.connectionString, this.poolOptions)
+		const session = await pool.acquire()
 
 		try {
-			const result = await client.sql(sql).bind(Object.values(params)).execute()
+			const result = await session.sql(sql).bind(Object.values(params)).execute()
 
 			return mapToJSON<T>(result)
 		} finally {
-			await pool.release(client)
+			await pool.release(session)
 		}
 	}
 
-	async beginTransaction(isolationLevel: TransactionIsolationLevel = 'REPEATABLE READ'): Promise<ITransactionDriver> {
-		const pool = await PoolSingleton.connect(this.connectionString, this.poolOptions)
+	async beginTransaction(isolationLevel = TRANSACTION_ISOLATION_LEVELS.READ_COMMITTED): Promise<ITransactionDriver> {
+		const pool = await PoolSingleton.getPool(this.connectionString, this.poolOptions)
 		const transaction = await pool.acquire()
 
 		await transaction.sql(`SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`).execute()
@@ -81,37 +82,24 @@ class MySqlTransactionDriver implements ITransactionDriver {
 	}
 
 	async releaseSavepoint(name: string) {
-		try {
-			await this.transaction.releaseSavepoint(name)
-			return true
-		} catch (error) {
-			console.error('Failed to release savepoint:', error)
-			return false
-		}
+		return await this.transaction.releaseSavepoint(name)
+			.then(() => true)
+			.catch(() => false)
 	}
 
 	async commit() {
-		try {
-			await this.transaction.commit()
-		} catch (error) {
-			throw new Error('Failed to commit transaction: ' + error.message)
-		} finally {
-			await this.pool.release(this.transaction)
-		}
+		await this.transaction.commit()
+		await this.pool.release(this.transaction)
 	}
 
 	async rollback(savepoint?: string) {
-		try {
-			if (savepoint) {
-				await this.transaction.rollbackTo(savepoint)
-			} else {
-				await this.transaction.rollback()
-				await this.pool.release(this.transaction)
-			}
-		} catch (error) {
-			await this.pool.release(this.transaction)
-			throw new Error('Failed to rollback transaction: ' + error.message)
+		if (savepoint) {
+			await this.transaction.rollbackTo(savepoint)
+			return
 		}
+
+		await this.transaction.rollback()
+		await this.pool.release(this.transaction)
 	}
 }
 
@@ -119,7 +107,7 @@ class PoolSingleton {
 	private static pool?: Pool<mysqlx.Session>
 	private static client?: mysqlx.Client
 
-	static async connect(connectionString: string, {
+	static async getPool(connectionString: string, {
 		minPoolSize = DB.MIN_POOL_SIZE,
 		maxPoolSize = DB.MAX_POOL_SIZE,
 		maxIdleTime = DB.MAX_IDLE_TIME
@@ -137,12 +125,19 @@ class PoolSingleton {
 				}
 			})
 
+			await waitForDatabase(async () => {
+					const session = await client.getSession()
+					try {
+						await session.sql('SELECT 1').execute()
+					} finally {
+						await session.close()
+					}
+				}
+			)
+
 			PoolSingleton.client = client
 			PoolSingleton.pool = createPool({
-				create: () => client.getSession().catch(err => {
-					console.error('Failed to create MySQL session:', err)
-					throw err
-				}),
+				create: () => client.getSession(),
 				destroy: session => session.close()
 			}, {
 				min: minPoolSize,
@@ -155,7 +150,7 @@ class PoolSingleton {
 
 			return PoolSingleton.pool
 		} catch (err) {
-			this.disconnect()
+			await this.disconnect()
 			throw err
 		}
 	}

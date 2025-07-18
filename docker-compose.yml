@@ -32,8 +32,8 @@ services:
     image: mysql:latest
     restart: always
     environment:
-      MYSQL_HOST: localhost
-      MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
+      MYSQL_ROOT_PASSWORD: 'StrongPass1!'
+      MYSQL_DATABASE: 'test'
     ports:
       - '3306:3306'
       - '33060:33060'
