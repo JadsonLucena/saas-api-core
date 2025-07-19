@@ -17,7 +17,7 @@ services:
     ports:
       - '6379:6379'
     healthcheck:
-      test: redis-cli ping | grep -q PONG
+      test: redis-cli -h localhost ping | grep -q PONG
 
   memcached:
     profiles: ['integration', 'cacheDB']
@@ -25,7 +25,7 @@ services:
     ports:
       - '11211:11211'
     healthcheck:
-      test: echo 'stats' | nc localhost 11211 | grep -q 'STAT pid'
+      test: nc -vn -w 1 localhost 11211
   
   mysql:
     profiles: ['integration', 'DB']
@@ -40,7 +40,7 @@ services:
     volumes:
       - ./test/integration/DB/seed/mysql.init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: mysqladmin ping -h localhost --silent
+      test: mysqladmin ping -h localhost -u root -p'StrongPass1!' --silent
 
   postgres:
     profiles: ['integration', 'DB']
@@ -54,4 +54,4 @@ services:
     volumes:
       - ./test/integration/DB/seed/postgres.init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: pg_isready -U postgres -h localhost
+      test: PGPASSWORD='StrongPass1!' pg_isready -U postgres -h localhost
