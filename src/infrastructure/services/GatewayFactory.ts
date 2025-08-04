@@ -183,6 +183,13 @@ export default class GatewayFactory {
 				minPoolSize: props.minPoolSize,
 				maxIdleTime: props.maxIdleTime
 			})
+		} else if (props.connectionString.startsWith('mssql')) {
+			const SqlServerDriver = (await import('../gateway/DB/driver/sql/SqlServerDriver.ts')).default
+			GatewayFactory._sqlDriver[props.connectionString] = new SqlServerDriver(props.connectionString, {
+				maxPoolSize: props.maxPoolSize,
+				minPoolSize: props.minPoolSize,
+				maxIdleTime: props.maxIdleTime
+			})
 		}
 
 		return GatewayFactory._sqlDriver[props.connectionString]

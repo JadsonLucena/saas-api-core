@@ -13,7 +13,7 @@ export async function waitForDatabase(
 		exponentialBackoff = true,
 		maxDelay = 5000
 	}: WaitForDatabaseOptions = {}
-): Promise<void> {
+): Promise<void | never> {
 	let retries = 0
 	let currentDelay = delay
 
