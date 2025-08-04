@@ -5,17 +5,18 @@ import { DB } from '../../../src/config.ts'
 import GatewayFactory from '../../../src/infrastructure/services/GatewayFactory.ts'
 import { dbDriverTestFactory } from './dbDriverTestFactory.ts'
 
-const connectionString = 'mysqlx://root:StrongPass1!@localhost:33060/test'
 const driver = await GatewayFactory.sqlDriver({
-	connectionString,
+	connectionString: 'mysqlx://root:StrongPass1!@localhost:33060/test',
 	maxPoolSize: DB.MAX_POOL_SIZE,
 	minPoolSize: DB.MIN_POOL_SIZE,
 	maxIdleTime: DB.MAX_IDLE_TIME
 })
 
-const tests = dbDriverTestFactory(driver)
+const tableName = 'users'
 
-after(tests.teardown)
+const tests = dbDriverTestFactory(driver, tableName)
+
+after(() => driver.disconnect())
 
 describe('Query', () => {
 	it('should execute a simple query', tests.executeSimpleQuery)
@@ -46,7 +47,7 @@ describe('Query', () => {
 	})
 })
 
-describe('TransactionDriver', async () => {
+describe('TransactionDriver', () => {
 	it('should commit a transaction', tests.commitTransaction)
 	it('should rollback a transaction', tests.rollbackTransaction)
 	it('should create and rollback to a savepoint', tests.createAndRollbackToSavepoint)

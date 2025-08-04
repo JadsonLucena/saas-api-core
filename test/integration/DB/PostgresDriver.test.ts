@@ -4,18 +4,20 @@ import assert from 'node:assert'
 import { DB } from '../../../src/config.ts'
 import GatewayFactory from '../../../src/infrastructure/services/GatewayFactory.ts'
 import { dbDriverTestFactory } from './dbDriverTestFactory.ts'
+import { TRANSACTION_ISOLATION_LEVELS } from '../../../src/application/ports/ISqlDriver.ts'
 
-const connectionString = 'postgresql://postgres:StrongPass1!@localhost:5432/test'
 const driver = await GatewayFactory.sqlDriver({
-	connectionString,
+	connectionString: 'postgresql://postgres:StrongPass1!@localhost:5432/test',
 	maxPoolSize: DB.MAX_POOL_SIZE,
 	minPoolSize: DB.MIN_POOL_SIZE,
 	maxIdleTime: DB.MAX_IDLE_TIME
-})!
+})
 
-const tests = dbDriverTestFactory(driver)
+const tableName = 'users'
 
-after(tests.teardown)
+const tests = dbDriverTestFactory(driver, tableName)
+
+after(() => driver.disconnect())
 
 describe('Query', () => {
 	it('should execute a simple query', tests.executeSimpleQuery)
@@ -46,7 +48,7 @@ describe('Query', () => {
 	})
 })
 
-describe('TransactionDriver', async () => {
+describe('TransactionDriver', () => {
 	it('should commit a transaction', tests.commitTransaction)
 	it('should rollback a transaction', tests.rollbackTransaction)
 	it('should create and rollback to a savepoint', tests.createAndRollbackToSavepoint)
@@ -59,5 +61,31 @@ describe('Transaction Isolation Levels', () => {
 	// it('should handle READ UNCOMMITTED isolation level', tests.testReadUncommittedIsolation)
 	it('should handle READ COMMITTED isolation level', tests.testReadCommittedIsolation)
 	it('should handle REPEATABLE READ isolation level', tests.testRepeatableReadIsolation)
-	it('should handle SERIALIZABLE isolation level', tests.testSerializableIsolation)
+	it('should handle SERIALIZABLE isolation level', async () => {
+		const params = {
+			name: TRANSACTION_ISOLATION_LEVELS.SERIALIZABLE,
+			age: 10
+		}
+
+		const transaction = await driver.beginTransaction(TRANSACTION_ISOLATION_LEVELS.SERIALIZABLE)
+
+		const selectQuery = `SELECT * FROM ${tableName} WHERE age >= $1`
+
+		const firstReading = await transaction.query(selectQuery, {
+			age: params.age
+		})
+
+		await driver.query(`INSERT INTO ${tableName} (name, age) VALUES ($1, $2)`, {
+			name: params.name,
+			age: params.age
+		})
+
+		const secondReading = await transaction.query(selectQuery, {
+			age: params.age
+		})
+
+		await transaction.commit()
+
+		assert.strictEqual(firstReading.length, secondReading.length)
+	})
 })

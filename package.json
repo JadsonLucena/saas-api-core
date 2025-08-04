@@ -87,11 +87,13 @@
     "@fastify/static": "latest",
     "@google-cloud/secret-manager": "latest",
     "@mysql/xdevapi": "latest",
+    "@types/mssql": "latest",
     "@types/pg": "latest",
     "fastify": "latest",
     "generic-pool": "latest",
     "jsonwebtoken": "latest",
     "memcached": "latest",
+    "mssql": "latest",
     "pg": "latest",
     "redis": "latest"
   },
