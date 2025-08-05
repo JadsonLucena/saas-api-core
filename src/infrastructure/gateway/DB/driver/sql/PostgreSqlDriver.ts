@@ -3,8 +3,7 @@ import { DB } from '../../../../../config.ts'
 import { type ISqlDriver, type ITransactionDriver, type Result, type Params, TRANSACTION_ISOLATION_LEVELS } from '../../../../../application/ports/ISqlDriver.ts'
 import { waitForDatabase } from '../waitForDatabase.ts'
 
-import { Client } from 'pg'
-import { createPool, Pool } from 'generic-pool'
+import { Pool, type PoolClient } from 'pg'
 
 export default class PostgreSqlDriver implements ISqlDriver {
 	private readonly connectionString: string
@@ -28,25 +27,25 @@ export default class PostgreSqlDriver implements ISqlDriver {
 		params: Params = {}
 	) {
 		const pool = await PoolSingleton.getPool(this.connectionString, this.poolOptions)
-		const session = await pool.acquire()
+		const session = await pool.connect()
 
 		try {
 			const result = await session.query<T>(sql, Object.values(params))
 
 			return result.rows
 		} finally {
-			await pool.release(session)
+			session.release()
 		}
 	}
 
 	async beginTransaction(isolationLevel: Omit<TRANSACTION_ISOLATION_LEVELS, 'READ_UNCOMMITTED'> = TRANSACTION_ISOLATION_LEVELS.READ_COMMITTED): Promise<ITransactionDriver> {
 		const pool = await PoolSingleton.getPool(this.connectionString, this.poolOptions)
-		const transaction = await pool.acquire()
+		const transaction = await pool.connect()
 
 		// eslint-disable-next-line sonarjs/sql-queries
 		await transaction.query(`BEGIN TRANSACTION ISOLATION LEVEL ${isolationLevel}`)
 
-		return new PostgreSqlTransactionDriver(pool, transaction)
+		return new PostgreSqlTransactionDriver(transaction)
 	}
 
 	async disconnect() {
@@ -55,14 +54,9 @@ export default class PostgreSqlDriver implements ISqlDriver {
 }
 
 class PostgreSqlTransactionDriver implements ITransactionDriver {
-	private readonly pool: Pool<Client>
-	private readonly transaction: Client
+	private readonly transaction: PoolClient
 
-	constructor(
-		pool: Pool<Client>,
-		transaction: Client
-	) {
-		this.pool = pool
+	constructor(transaction: PoolClient) {
 		this.transaction = transaction
 	}
 
@@ -91,7 +85,7 @@ class PostgreSqlTransactionDriver implements ITransactionDriver {
 
 	async commit() {
 		await this.transaction.query('COMMIT')
-		await this.pool.release(this.transaction)
+		this.transaction.release()
 	}
 
 	async rollback(savepoint?: string) {
@@ -102,59 +96,57 @@ class PostgreSqlTransactionDriver implements ITransactionDriver {
 		}
 
 		await this.transaction.query('ROLLBACK')
-		await this.pool.release(this.transaction)
+		this.transaction.release()
 	}
 }
 
 class PoolSingleton {
-	private static pool?: Pool<Client>
+	private static pool?: Promise<Pool>
 
 	static async getPool(connectionString: string, {
 		minPoolSize = DB.MIN_POOL_SIZE,
 		maxPoolSize = DB.MAX_POOL_SIZE,
 		maxIdleTime = DB.MAX_IDLE_TIME
-	} = {}) {
-		if (PoolSingleton.pool) {
-			return PoolSingleton.pool
-		}
-
+	} = {}) {		
 		try {
-			await waitForDatabase(async () => {
-				const testClient = new Client({ connectionString })
-				try {
-					await testClient.connect()
-					await testClient.query('SELECT 1')
-				} finally {
-					await testClient.end()
-				}
-			})
+			if (!PoolSingleton.pool) {
+				PoolSingleton.pool = PoolSingleton.createPool(connectionString, {
+					minPoolSize,
+					maxPoolSize,
+					maxIdleTime
+				})
+			}
 
-			PoolSingleton.pool = createPool({
-				create: async () => {
-					const client = new Client({ connectionString })
-					await client.connect()
-					return client
-				},
-				destroy: client => client.end()
-			}, {
-				min: minPoolSize,
-				max: maxPoolSize,
-				idleTimeoutMillis: maxIdleTime
-			})
-
-			PoolSingleton.pool.start()
-			await PoolSingleton.pool.ready()
-
-			return PoolSingleton.pool
+			return await PoolSingleton.pool
 		} catch (err) {
-			await this.disconnect()
+			await PoolSingleton.disconnect()
 			throw err
 		}
 	}
 
+	private static async createPool(connectionString: string, options: {
+		minPoolSize: number,
+		maxPoolSize: number,
+		maxIdleTime: number
+	}): Promise<Pool> {
+		const pool = new Pool({
+			connectionString,
+			min: options.minPoolSize,
+			max: options.maxPoolSize,
+			idleTimeoutMillis: options.maxIdleTime
+		})
+
+		await waitForDatabase(() => pool.connect().then(client => client.release()))
+
+		return pool
+	}
+
 	static async disconnect() {
-		await PoolSingleton.pool?.drain()
-		await PoolSingleton.pool?.clear()
-		PoolSingleton.pool = undefined
+		const pool = await PoolSingleton.pool
+
+		if (pool && !pool.ended) {
+			await pool.end()
+			PoolSingleton.pool = undefined
+		}
 	}
 }

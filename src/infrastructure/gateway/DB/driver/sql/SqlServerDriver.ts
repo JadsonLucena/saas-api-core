@@ -96,10 +96,7 @@ class SqlServerTransactionDriver implements ITransactionDriver {
 	 * whereas PostgreSQL allows manual release of savepoints using the RELEASE SAVEPOINT command.
 	 * This method is a no-op for SQL Server and always returns true.
 	 */
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async releaseSavepoint(name: string) {
-		// SQL Server doesn't have RELEASE SAVEPOINT like PostgreSQL
-		// Savepoints are automatically released when the transaction commits or rolls back
+	async releaseSavepoint() {
 		return true
 	}
 
@@ -119,17 +116,34 @@ class SqlServerTransactionDriver implements ITransactionDriver {
 }
 
 class PoolSingleton {
-	private static pool?: ConnectionPoolType
+	private static pool?: Promise<ConnectionPoolType>
 
 	static async getPool(connectionString: string, {
 		minPoolSize = DB.MIN_POOL_SIZE,
 		maxPoolSize = DB.MAX_POOL_SIZE,
 		maxIdleTime = DB.MAX_IDLE_TIME
 	} = {}) {
-		if (PoolSingleton.pool && PoolSingleton.pool.connected) {
-			return PoolSingleton.pool
-		}
+		try {
+			if (!PoolSingleton.pool) {
+				PoolSingleton.pool = PoolSingleton.createPool(connectionString, {
+					minPoolSize,
+					maxPoolSize,
+					maxIdleTime
+				})
+			}
 
+			return await PoolSingleton.pool
+		} catch (err) {
+			await PoolSingleton.disconnect()
+			throw err
+		}
+	}
+
+	private static async createPool(connectionString: string, options: {
+		minPoolSize: number,
+		maxPoolSize: number,
+		maxIdleTime: number
+	}): Promise<ConnectionPoolType> {
 		const url = new URL(connectionString)
 		const config = {
 			server: url.hostname,
@@ -138,9 +152,9 @@ class PoolSingleton {
 			password: url.password,
 			database: url.pathname.slice(1) || 'master',
 			pool: {
-				min: minPoolSize,
-				max: maxPoolSize,
-				idleTimeoutMillis: maxIdleTime,
+				min: options.minPoolSize,
+				max: options.maxPoolSize,
+				idleTimeoutMillis: options.maxIdleTime
 			},
 			options: {
 				// encrypt: false, // Encryption is disabled for development environments. Remove or set to true for production.
@@ -152,32 +166,21 @@ class PoolSingleton {
 			// driver: 'msnodesqlv8'
 		}
 
-		await waitForDatabase(async () => {
-			const testConnection = new ConnectionPool({
-				...config,
-				pool: undefined
-			})
+		const pool = new ConnectionPool(config)
 
-			try {
-				await testConnection.connect()
-				const request = new Request(testConnection)
-				await request.query('SELECT 1')
-			} finally {
-				await testConnection.close()
-			}
+		await waitForDatabase(async () => {
+			await pool.connect()
 		})
 
-		PoolSingleton.pool = new ConnectionPool(config)
-		await PoolSingleton.pool.connect()
-		
-		return PoolSingleton.pool
+		return pool
 	}
 
 	static async disconnect() {
-		if (PoolSingleton.pool && PoolSingleton.pool.connected) {
-			await PoolSingleton.pool.close()
-		}
+		const pool = await PoolSingleton.pool
 
-		PoolSingleton.pool = undefined
+		if (pool && pool.connected) {
+			await pool.close()
+			PoolSingleton.pool = undefined
+		}
 	}
 }

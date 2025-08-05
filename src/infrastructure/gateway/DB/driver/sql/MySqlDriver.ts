@@ -104,64 +104,57 @@ class MySqlTransactionDriver implements ITransactionDriver {
 }
 
 class PoolSingleton {
-	private static pool?: Pool<mysqlx.Session>
-	private static client?: mysqlx.Client
+	private static pool?: Promise<Pool<mysqlx.Session>>
 
 	static async getPool(connectionString: string, {
 		minPoolSize = DB.MIN_POOL_SIZE,
 		maxPoolSize = DB.MAX_POOL_SIZE,
 		maxIdleTime = DB.MAX_IDLE_TIME
 	} = {}) {
-		if (PoolSingleton.pool) {
-			return PoolSingleton.pool
-		}
-
 		try {
-			const client = mysqlx.getClient(connectionString, {
-				pooling: {
-					enabled: true,
-					maxIdleTime: maxIdleTime,
-					maxSize: maxPoolSize
-				}
-			})
+			if (!PoolSingleton.pool) {
+				PoolSingleton.pool = PoolSingleton.createPool(connectionString, {
+					minPoolSize,
+					maxPoolSize,
+					maxIdleTime
+				})
+			}
 
-			await waitForDatabase(async () => {
-					const session = await client.getSession()
-					try {
-						await session.sql('SELECT 1').execute()
-					} finally {
-						await session.close()
-					}
-				}
-			)
-
-			PoolSingleton.client = client
-			PoolSingleton.pool = createPool({
-				create: () => client.getSession(),
-				destroy: session => session.close()
-			}, {
-				min: minPoolSize,
-				max: maxPoolSize,
-				idleTimeoutMillis: maxIdleTime
-			})
-
-			PoolSingleton.pool.start()
-			await PoolSingleton.pool.ready()
-
-			return PoolSingleton.pool
+			return await PoolSingleton.pool
 		} catch (err) {
-			await this.disconnect()
+			await PoolSingleton.disconnect()
 			throw err
 		}
 	}
 
-	static async disconnect() {
-		await PoolSingleton.pool?.drain()
-		await PoolSingleton.pool?.clear()
-		PoolSingleton.pool = undefined
+	private static async createPool(connectionString: string, options: {
+		minPoolSize: number,
+		maxPoolSize: number,
+		maxIdleTime: number
+	}): Promise<Pool<mysqlx.Session>> {
+		const pool = createPool({
+			create: () => mysqlx.getSession(connectionString),
+			destroy: session => session.close(),
+		}, {
+			min: options.minPoolSize,
+			max: options.maxPoolSize,
+			idleTimeoutMillis: options.maxIdleTime,
+			autostart: true
+		})
 
-		await PoolSingleton.client?.close()
-		PoolSingleton.client = undefined
+		await waitForDatabase(() => pool.acquire().then(session => pool.release(session)))
+
+		return pool
+	}
+
+	static async disconnect() {
+		const pool = await PoolSingleton.pool
+
+		if (pool) {
+			await pool.drain()
+			await pool.clear()
+			PoolSingleton.pool = undefined
+		}
 	}
 }
 
