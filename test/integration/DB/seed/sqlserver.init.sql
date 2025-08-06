@@ -8,7 +8,7 @@ CREATE TABLE users (
 	id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
 	name NVARCHAR(255) NOT NULL,
 	age INT,
-	isValid BIT,
+	is_valid BIT,
 	amount BIGINT,
 	birthdate DATETIME2,
 	data VARBINARY(MAX)

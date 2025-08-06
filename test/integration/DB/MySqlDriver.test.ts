@@ -1,5 +1,6 @@
 import { after, describe, it } from 'node:test'
 import assert from 'node:assert'
+import crypto from 'node:crypto'
 
 import { DB } from '../../../src/config.ts'
 import GatewayFactory from '../../../src/infrastructure/services/GatewayFactory.ts'
@@ -24,26 +25,41 @@ describe('Query', () => {
 	it('should throw an error for invalid SQL', tests.throwErrorForInvalidSQL)
 	it('should execute a query with parameters', async () => {
 		const params = {
+			id: crypto.randomUUID(),
 			name: 'Test User',
 			age: 30,
-			isValid: true,
-			amount: BigInt(2003764205206896640),
+			is_valid: true,
+			amount: BigInt(Number.MAX_SAFE_INTEGER + 1),
 			birthdate: new Date(),
 			data: Buffer.from('test data')
 		}
 		const sql = `
-			INSERT INTO users (name, age, isValid, amount, birthdate, data)
-			VALUES (?, ?, ?, ?, ?, ?)
+			INSERT INTO users (id, name, age, is_valid, amount, birthdate, data)
+			VALUES (?, ?, ?, ?, ?, ?, ?)
 		`
 
 		await driver.query(sql, params)
 
-		const result = await driver.query(`SELECT * FROM users WHERE name = ?`, {
-			name: params.name
+		const result = await driver.query<{
+			id: string,
+			name: string,
+			age: number,
+			isValid: number, // BOOLEAN is an alias for TINYINT(1)
+			amount: string,  // MySQL returns bigint as string
+			birthdate: Date, // Use DATETIME(3) to maintain millisecond precision
+			data: Buffer
+		}>(`SELECT id, name, age, is_valid as isValid, amount, birthdate, data FROM users WHERE id = ?`, {
+			id: params.id
 		})
 
-		assert(Array.isArray(result))
-		assert(result.length === 1)
+		assert.ok(Array.isArray(result))
+		assert.ok(result.length === 1)
+		assert.strictEqual(result[0].name, params.name)
+		assert.strictEqual(result[0].age, params.age)
+		assert.strictEqual(Boolean(result[0].isValid), params.is_valid)
+		assert.strictEqual(BigInt(result[0].amount), params.amount)
+		assert.strictEqual(result[0].birthdate.toISOString(), params.birthdate.toISOString())
+		assert.strictEqual(result[0].data.toString(), params.data.toString())
 	})
 })
 

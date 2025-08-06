@@ -4,7 +4,7 @@ import { type ISqlDriver, type ITransactionDriver, type Result, type Params, TRA
 import { waitForDatabase } from '../../waitForDatabase.ts'
 
 import mssql, { type ConnectionPool as ConnectionPoolType, type Transaction as TransactionType } from 'mssql'
-const { ConnectionPool, Request, Transaction, ISOLATION_LEVEL } = mssql
+const { ConnectionPool, Request, Transaction, ISOLATION_LEVEL, TYPES } = mssql
 
 export default class SqlServerDriver implements ISqlDriver {
 	private readonly connectionString: string
@@ -31,7 +31,12 @@ export default class SqlServerDriver implements ISqlDriver {
 		const request = new Request(pool)
 
 		Object.entries(params).forEach(([key, value]) => {
-			request.input(key, value)
+			if (value instanceof Date) {
+				// Use DATETIME2 for Date objects to maintain millisecond precision
+				request.input(key, TYPES.DateTime2, value)
+			} else {
+				request.input(key, value)
+			}
 		})
 
 		const result = await request.query<T>(sql)
@@ -84,7 +89,12 @@ class SqlServerTransactionDriver implements ITransactionDriver {
 		const request = new Request(this.transaction)
 
 		Object.entries(params).forEach(([key, value]) => {
-			request.input(key, value)
+			if (value instanceof Date) {
+				// Use DATETIME2 for Date objects to maintain millisecond precision
+				request.input(key, TYPES.DateTime2, value)
+			} else {
+				request.input(key, value)
+			}
 		})
 
 		const result = await request.query<T>(sql)

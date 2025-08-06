@@ -26,26 +26,41 @@ describe('Query', () => {
 	it('should throw an error for invalid SQL', tests.throwErrorForInvalidSQL)
 	it('should execute a query with parameters', async () => {
 		const params = {
+			id: crypto.randomUUID(),
 			name: 'Test User',
 			age: 30,
-			isValid: true,
-			amount: BigInt(2003764205206896640),
+			is_valid: true,
+			amount: BigInt(Number.MAX_SAFE_INTEGER + 1),
 			birthdate: new Date(),
 			data: Buffer.from('test data')
 		}
 		const sql = `
-			INSERT INTO ${tableName} (name, age, isValid, amount, birthdate, data)
-			VALUES (@name, @age, @isValid, @amount, @birthdate, @data)
+			INSERT INTO ${tableName} (id, name, age, is_valid, amount, birthdate, data)
+			VALUES (@id, @name, @age, @is_valid, @amount, @birthdate, @data)
 		`
 
 		await driver.query(sql, params)
 
-		const result = await driver.query(`SELECT * FROM ${tableName} WHERE name = @name`, {
-			name: params.name
+		const result = await driver.query<{
+			id: string,
+			name: string,
+			age: number,
+			isValid: boolean,
+			amount: string, // SQL Server returns bigint as string
+			birthdate: Date, // Use DATETIME2 to maintain millisecond precision
+			data: Buffer
+		}>(`SELECT id, name, age, is_valid as isValid, amount, birthdate, data FROM ${tableName} WHERE id = @id`, {
+			id: params.id
 		})
 
 		assert(Array.isArray(result))
 		assert(result.length === 1)
+		assert.strictEqual(result[0].name, params.name)
+		assert.strictEqual(result[0].age, params.age)
+		assert.strictEqual(result[0].isValid, params.is_valid)
+		assert.strictEqual(BigInt(result[0].amount), params.amount)
+		assert.strictEqual(result[0].birthdate.toISOString(), params.birthdate.toISOString())
+		assert.strictEqual(result[0].data.toString(), params.data.toString())
 	})
 })
 

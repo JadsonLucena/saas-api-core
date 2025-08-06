@@ -2,9 +2,9 @@ CREATE TABLE IF NOT EXISTS users (
 	id VARCHAR(36) PRIMARY KEY NOT NULL DEFAULT (UUID()),
 	name VARCHAR(255) NOT NULL,
 	age INT,
-	isValid BOOLEAN,
+	is_valid BOOLEAN,
 	amount BIGINT,
-	birthdate DATETIME,
+	birthdate DATETIME(3), -- DATETIME only does not support milliseconds
 	data BLOB
 );
 
