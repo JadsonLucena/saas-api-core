@@ -152,6 +152,7 @@ export function dbDriverTestFactory(driver: ISqlDriver, tableName: string) {
       const insertQuery = `INSERT INTO ${tableName} (name) VALUES ('${params.name}')`
       const selectQuery = `SELECT * FROM ${tableName} WHERE name = '${params.name}'`
 
+      await driver.query(`DELETE FROM ${tableName} WHERE name LIKE '%${params.name}%'`)
       await driver.query(insertQuery)
 
       const transaction1 = await driver.beginTransaction(TRANSACTION_ISOLATION_LEVELS.REPEATABLE_READ)
@@ -173,6 +174,8 @@ export function dbDriverTestFactory(driver: ISqlDriver, tableName: string) {
         name: TRANSACTION_ISOLATION_LEVELS.SERIALIZABLE,
         age: 10
       }
+
+      await driver.query(`DELETE FROM ${tableName} WHERE name LIKE '%${params.name}%'`)
 
       const transaction = await driver.beginTransaction(TRANSACTION_ISOLATION_LEVELS.SERIALIZABLE)
 
