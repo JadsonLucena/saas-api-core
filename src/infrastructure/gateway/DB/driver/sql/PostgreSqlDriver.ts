@@ -38,6 +38,18 @@ export default class PostgreSqlDriver implements ISqlDriver {
 		}
 	}
 
+	/**
+	 * @remarks
+	 * - **PostgreSQL does not support `READ UNCOMMITTED`**.
+	 *   If selected, it will be silently treated as `READ COMMITTED`.
+	 *
+	 * - **SERIALIZABLE behaves differently across databases**:
+	 *   - In **PostgreSQL**, it uses *Serializable Snapshot Isolation (SSI)*, allowing high concurrency.
+	 *     Instead of blocking, it may throw a `serialization_failure` error on conflict, requiring a retry.
+	 *   - In **MySQL** and **SQL Server**, it uses *pessimistic locking*, blocking concurrent transactions that modify the same data.
+	 *
+	 * Make sure your application handles retries appropriately when using SERIALIZABLE with PostgreSQL.
+	 */
 	async beginTransaction(isolationLevel: Omit<TRANSACTION_ISOLATION_LEVELS, 'READ_UNCOMMITTED'> = TRANSACTION_ISOLATION_LEVELS.READ_COMMITTED): Promise<ITransactionDriver> {
 		const pool = await PoolSingleton.getPool(this.connectionString, this.poolOptions)
 		const transaction = await pool.connect()
