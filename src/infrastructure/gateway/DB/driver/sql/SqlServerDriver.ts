@@ -38,6 +38,16 @@ export default class SqlServerDriver implements ISqlDriver {
 		return result.recordset || []
 	}
 
+	/**
+	 * @remarks
+	 * - **READ COMMITTED**:
+	 *   - SQL Server: Uses pessimistic locking, which may block readers and writers.
+	 *   - PostgreSQL/MySQL: Use MVCC, allowing non-blocking reads (snapshot-based).
+	 *
+	 * - **REPEATABLE READ**:
+	 *   - SQL Server: Locks read rows (S-lock), preventing concurrent modifications.
+	 *   - PostgreSQL/MySQL: Use MVCC to ensure repeatable reads without direct locking.
+	 */
 	async beginTransaction(isolationLevel: TRANSACTION_ISOLATION_LEVELS = TRANSACTION_ISOLATION_LEVELS.READ_COMMITTED): Promise<ITransactionDriver> {
 		const pool = await PoolSingleton.getPool(this.connectionString, this.poolOptions)
 		const transaction = new Transaction(pool)
@@ -91,12 +101,10 @@ class SqlServerTransactionDriver implements ITransactionDriver {
 	}
 
 	/**
-	 * SQL Server does not support explicit release of savepoints (RELEASE SAVEPOINT) as PostgreSQL does.
-	 * In SQL Server, savepoints are automatically released when the transaction is committed or rolled back,
-	 * whereas PostgreSQL allows manual release of savepoints using the RELEASE SAVEPOINT command.
-	 * This method is a no-op for SQL Server and always returns true.
+	 * @remarks SQL Server does NOT support releasing savepoints. This operation will be ignored when using SQL Server.
 	 */
-	async releaseSavepoint() {
+	async releaseSavepoint(name: string) {
+			console.warn(`RELEASE SAVEPOINT is not supported by SQL Server. Ignoring release of savepoint "${name}".`)
 		return true
 	}
 
