@@ -1,10 +1,3 @@
-export interface WaitForDatabaseOptions {
-	maxRetries?: number
-	delay?: number
-	exponentialBackoff?: boolean
-	maxDelay?: number
-}
-
 export async function waitForDatabase(
 	HealthCheckCallback: () => Promise<void>,
 	{
@@ -41,4 +34,11 @@ export async function waitForDatabase(
 			}
 		}
 	}
+}
+
+export interface WaitForDatabaseOptions {
+	maxRetries?: number
+	delay?: number
+	exponentialBackoff?: boolean
+	maxDelay?: number
 }

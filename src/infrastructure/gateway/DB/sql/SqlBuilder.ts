@@ -1,4 +1,4 @@
-import { DB, PAGINATION } from '../../../../../config.ts'
+import { DB, PAGINATION } from '../../../../config.ts'
 
 import {
 	type Filter,
@@ -13,7 +13,7 @@ import {
 	LOGICAL_OPERATOR,
 	BIND_STYLES,
 	OPERATOR
-} from '../../../../../application/ports/IRepository.ts'
+} from '../../../../application/ports/IRepository.ts'
 
 export default function SqlBuilder<Fields extends string, Collections extends string>({
 	filter,
