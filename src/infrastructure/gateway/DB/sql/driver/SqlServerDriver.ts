@@ -1,7 +1,7 @@
 import { DB } from '../../../../../config.ts'
 
 import { type ISqlDriver, type ITransactionDriver, type Result, type Params, TRANSACTION_ISOLATION_LEVELS } from '../../../../../application/ports/ISqlDriver.ts'
-import { waitForDatabase } from '../waitForDatabase.ts'
+import { waitForDatabase } from '../../waitForDatabase.ts'
 
 import mssql, { type ConnectionPool as ConnectionPoolType, type Transaction as TransactionType } from 'mssql'
 const { ConnectionPool, Request, Transaction, ISOLATION_LEVEL } = mssql
@@ -59,6 +59,7 @@ export default class SqlServerDriver implements ISqlDriver {
 			[TRANSACTION_ISOLATION_LEVELS.SERIALIZABLE]: ISOLATION_LEVEL.SERIALIZABLE
 		}
 
+		// eslint-disable-next-line security/detect-object-injection
 		await transaction.begin(isolationLevelMap[isolationLevel])
 
 		return new SqlServerTransactionDriver(transaction)

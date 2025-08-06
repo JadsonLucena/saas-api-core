@@ -170,21 +170,21 @@ export default class GatewayFactory {
 		if (GatewayFactory._sqlDriver[props.connectionString]) return GatewayFactory._sqlDriver[props.connectionString]
 
 		if (props.connectionString.startsWith('mysql')) {
-			const MySqlDriver = (await import('../gateway/DB/driver/sql/MySqlDriver.ts')).default
+			const MySqlDriver = (await import('../gateway/DB/sql/driver/MySqlDriver.ts')).default
 			GatewayFactory._sqlDriver[props.connectionString] = new MySqlDriver(props.connectionString, {
 				maxPoolSize: props.maxPoolSize,
 				minPoolSize: props.minPoolSize,
 				maxIdleTime: props.maxIdleTime
 			})
 		} else if (props.connectionString.startsWith('postgres')) {
-			const PostgreSQLDriver = (await import('../gateway/DB/driver/sql/PostgreSqlDriver.ts')).default
+			const PostgreSQLDriver = (await import('../gateway/DB/sql/driver/PostgreSqlDriver.ts')).default
 			GatewayFactory._sqlDriver[props.connectionString] = new PostgreSQLDriver(props.connectionString, {
 				maxPoolSize: props.maxPoolSize,
 				minPoolSize: props.minPoolSize,
 				maxIdleTime: props.maxIdleTime
 			})
 		} else if (props.connectionString.startsWith('mssql')) {
-			const SqlServerDriver = (await import('../gateway/DB/driver/sql/SqlServerDriver.ts')).default
+			const SqlServerDriver = (await import('../gateway/DB/sql/driver/SqlServerDriver.ts')).default
 			GatewayFactory._sqlDriver[props.connectionString] = new SqlServerDriver(props.connectionString, {
 				maxPoolSize: props.maxPoolSize,
 				minPoolSize: props.minPoolSize,

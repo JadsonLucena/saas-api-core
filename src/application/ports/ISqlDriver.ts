@@ -1,7 +1,7 @@
 import type { Primitive } from './IRepository.ts'
 
 export interface ISqlDriver extends IDmlDriver {
-	beginTransaction(isolationLevel?: TRANSACTION_ISOLATION_LEVELS): Promise<ITransactionDriver>
+	beginTransaction(isolationLevel?: Partial<TRANSACTION_ISOLATION_LEVELS>): Promise<ITransactionDriver>
 	disconnect(): Promise<void>
 }
 

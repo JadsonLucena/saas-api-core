@@ -1,7 +1,7 @@
 import { DB } from '../../../../../config.ts'
 
 import { type ISqlDriver, type ITransactionDriver, type Result, type Params, TRANSACTION_ISOLATION_LEVELS } from '../../../../../application/ports/ISqlDriver.ts'
-import { waitForDatabase } from '../waitForDatabase.ts'
+import { waitForDatabase } from '../../waitForDatabase.ts'
 
 import mysqlx, { type Scalar } from '@mysql/xdevapi'
 import { createPool, Pool } from 'generic-pool'
