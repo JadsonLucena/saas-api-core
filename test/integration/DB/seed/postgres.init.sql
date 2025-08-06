@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
 	id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 	name VARCHAR(255) NOT NULL,
 	age INTEGER,
-	isValid BOOLEAN,
+	is_valid BOOLEAN,
 	amount BIGINT,
 	birthdate TIMESTAMP,
 	data BYTEA

@@ -1,5 +1,6 @@
 import { after, describe, it } from 'node:test'
 import assert from 'node:assert'
+import crypto from 'node:crypto'
 
 import { DB } from '../../../src/config.ts'
 import GatewayFactory from '../../../src/infrastructure/services/GatewayFactory.ts'
@@ -25,26 +26,41 @@ describe('Query', () => {
 	it('should throw an error for invalid SQL', tests.throwErrorForInvalidSQL)
 	it('should execute a query with parameters', async () => {
 		const params = {
+			id: crypto.randomUUID(),
 			name: 'Test User',
 			age: 30,
-			isValid: true,
-			amount: BigInt(2003764205206896640),
+			is_valid: true,
+			amount: BigInt(Number.MAX_SAFE_INTEGER + 1),
 			birthdate: new Date(),
 			data: Buffer.from('test data')
 		}
 		const sql = `
-			INSERT INTO users (name, age, isValid, amount, birthdate, data)
-			VALUES ($1, $2, $3, $4, $5, $6)
+			INSERT INTO users (id, name, age, is_valid, amount, birthdate, data)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
 		`
 
 		await driver.query(sql, params)
 
-		const result = await driver.query(`SELECT * FROM users WHERE name = $1`, {
-			name: params.name
+		const result = await driver.query<{
+			id: string,
+			name: string,
+			age: number,
+			isvalid: boolean, // PostgreSQL converts column names to lowercase
+			amount: string, // PostgreSQL returns bigint as string
+			birthdate: Date,
+			data: Buffer
+		}>(`SELECT id, name, age, is_valid as isValid, amount, birthdate, data FROM users WHERE id = $1`, {
+			id: params.id
 		})
 
 		assert(Array.isArray(result))
 		assert(result.length === 1)
+		assert.strictEqual(result[0].name, params.name)
+		assert.strictEqual(result[0].age, params.age)
+		assert.strictEqual(result[0].isvalid, params.is_valid)
+		assert.strictEqual(BigInt(result[0].amount), params.amount)
+		assert.strictEqual(result[0].birthdate.toISOString(), params.birthdate.toISOString())
+		assert.strictEqual(result[0].data.toString(), params.data.toString())
 	})
 })
 
