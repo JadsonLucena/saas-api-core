@@ -1,0 +1,74 @@
+name: api-core
+services:
+  node:
+    env_file:
+      - .env.test
+    profiles: ['E2E']
+    build:
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - '8080:8080'
+      - '8443:8443'
+
+  redis:
+    profiles: ['integration', 'cacheDB']
+    image: redis:alpine
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: redis-cli -h localhost ping | grep -q PONG
+
+  memcached:
+    profiles: ['integration', 'cacheDB']
+    image: memcached:alpine
+    ports:
+      - '11211:11211'
+    healthcheck:
+      test: nc -vn -w 1 localhost 11211
+  
+  mysql:
+    profiles: ['integration', 'DB']
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 'StrongPass1!'
+      MYSQL_DATABASE: 'test'
+    ports:
+      - '3306:3306'
+      - '33060:33060'
+    volumes:
+      - ./test/integration/DB/seed/mysql.init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: mysqladmin ping -h localhost -u root -p'StrongPass1!' --silent
+
+  postgres:
+    profiles: ['integration', 'DB']
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 'StrongPass1!'
+      POSTGRES_DB: 'test'
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./test/integration/DB/seed/postgres.init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: PGPASSWORD='StrongPass1!' pg_isready -U postgres -h localhost
+
+  sqlServer:
+    profiles: ['integration', 'DB']
+    image: mcr.microsoft.com/mssql/server:latest
+    restart: always
+    environment:
+      ACCEPT_EULA: 'Y'
+      SA_PASSWORD: 'StrongPass1!'
+      MSSQL_PID: 'Developer'
+    ports:
+      - '1433:1433'
+    volumes:
+      - ./test/integration/DB/seed/sqlserver.init.sql:/usr/src/app/sqlserver.init.sql
+      - ./test/integration/DB/seed/sqlserver.init.sh:/usr/src/app/sqlserver.init.sh
+    command: ["/bin/bash", "/usr/src/app/sqlserver.init.sh"]
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'StrongPass1!' -Q 'SELECT 1' -C
