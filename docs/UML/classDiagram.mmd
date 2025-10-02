@@ -1,0 +1,651 @@
+%% title: SaaS API Core
+%% https://mermaid.live/edit
+
+classDiagram
+  class Entity {
+    <<Abstract>>
+    readonly id: string
+    get createdAt() Date
+    get updatedAt() Date
+  }
+
+  class Currency {
+    <<enumeration>>
+    AED
+    AFN
+    ...
+    USD
+    ZWL
+  }
+
+  namespace IAM {
+    class User {
+      id: UUIDVO
+      name: NameVO
+      get username(): UsernameVO
+      password: PasswordVO
+      secretManagerVersion: string
+      picture: URL
+      totpSecret: string
+      mfa: boolean
+      get emails(): IEmail[]
+      get phones(): IPhone[]
+      get signInsWith(): ISignInWith[]
+      get disabledAt(): Date | undefined
+      getPreferredEmail(): IEmail
+      addEmail(email: IEmail): void
+      disableEmail(email: EmailVO): void
+      removeEmail(email: EmailVO): void
+      confirmEmail(email: EmailVO): void
+      getPreferredPhone(): IPhone
+      addPhone(phone: IPhone): void
+      disablePhone(phone: PhoneVO): void
+      removePhone(phone: PhoneVO): void
+      confirmPhone(phone: PhoneVO): void
+      addSignInWith(signInWith: ISignInWith): void
+      disableSignInWith(identityProviderId: UUIDVO, username: UsernameVO): void
+      removeSignInWith(identityProviderId: UUIDVO, username: UsernameVO): void
+      softDelete(): void
+      restore(): void
+      isDisabled(): boolean
+    }
+
+    class Email {
+
+
+    }
+
+    class Phone {
+
+    }
+
+    class PhoneMessageProvider {
+
+    }
+
+    class SignInWith {
+
+    }
+
+    class Account {
+      
+    }
+
+    class Role {
+      
+    }
+
+    class Scope {
+
+    }
+
+    class ApiToken {
+
+    }
+
+    class IdentityProvider {
+
+    }
+
+    class PhoneMessageProvider {
+
+    }
+  }
+
+  namespace Store {
+    class Customer {
+      get userId: string
+      get accountId: string
+      document: string
+      isLegalPerson: boolean
+      birthdate?: Date
+      address?: Address[]
+      preferredAddressId: string
+      paymentMethods: PaymentMethod[]
+      preferredPaymentMethodId: string
+      receiverGateways: ReceiverGateway[]
+      get disabledAt() Date | undefined
+      disable() void
+      restore() void
+      isDisabled() boolean
+    }
+
+    class Address {
+      city: string
+      country: string %% ISO 3166-1 alpha-3
+      locality?: string
+      number?: number
+      postalCode: string
+      region: string %% ISO 3166-2
+      street: string
+      note?: string
+    }
+
+    class Payment {
+      get orderId: string
+      get paymentMethodId: string
+      get currency: Currency
+      get status() PaymentStatus[]
+      addStatus(value: PaymentStatus) void
+      get disabledAt() Date | undefined
+      disable() void
+      restore() void
+      isDisabled() boolean
+    }
+
+    class PaymentMethod {
+      title: string
+      description?: string
+      paymentGatewayId: string
+      aymentMethodId: string
+      type: PaymentMethodType
+      get disabledAt() Date | undefined
+      disable() void
+      restore() void
+      isDisabled() boolean
+    }
+
+    class ReceiverGateway {
+      paymentGatewayId: string
+      receiverId: string
+      get disabledAt() Date | undefined
+      disable() void
+      restore() void
+      isDisabled() boolean
+    }
+
+    class PaymentStatus {
+      get gatewayTransactionId() string
+      get data() string
+      get state: PaymentState
+      get createdAt() Date
+    }
+
+    class Plan {
+      title: string
+      description?: string
+      itens: Item[]
+      period: number
+      discountId?: string
+      startAt: Date
+      expireAt: Date
+      get disabledAt() Date | undefined
+      disable() void
+      restore() void
+      isDisabled() boolean
+      isExpired() boolean
+      isStarted() boolean
+    }
+
+    class Order {
+      get itens() Item[]
+      setItem(value: Item) void
+      removeItem(value: Item) void
+      isRecurrent: boolean
+      customerId: string
+      couponId?: string
+      voucherId?: string
+      splitId?: string
+      note?: string
+      get disabledAt() Date | undefined
+      get confirmedAt() Date | undefined
+      disable() void
+      restore() void
+      confirm() void
+      isDisabled() boolean
+      isConfirmed() boolean
+    }
+
+    class Item {
+      productId: string
+      quantity: number
+      %% price information at the time of purchase must be immutable
+        price: number
+        period: number
+      get disabledAt() Date | undefined
+      disable() void
+      restore() void
+      isDisabled() boolean
+    }
+
+    class Product {
+      title: string
+      description?: string
+      type: ProductType
+      %% currentPriceId: string
+      prices: Price[]
+      picture: URL
+      sku?: string
+      data?: string
+      startAt: Date
+      expireAt: Date
+      get disabledAt() Date | undefined
+      disable() void
+      restore() void
+      isDisabled() boolean
+      isExpired() boolean
+      isStarted() boolean
+    }
+
+    class Price {
+      price: number
+      period: number %% cycle
+      currency: Currency
+      startAt: Date
+      expireAt: Date
+      isExpired() boolean
+      isStarted() boolean
+    }
+
+    %% um produto pode ter dois descontos, o trial e um especifico de blackfridar
+    class ProductDiscounts {
+      productId: string
+      discountId: string
+    }
+
+    class Discount {
+      title: string
+      description?: string
+      percent?: number
+      amount?: number
+      currency: Currency
+      quantityOfPeriods: number
+      isCumulative?: boolean
+      startAt: Date
+      expireAt: Date
+      get disabledAt() Date | undefined
+      disable() void
+      restore() void
+      isDisabled() boolean
+      isExpired() boolean
+      isStarted() boolean
+    }
+
+    class Coupon {
+      get code: string
+      quantity: number
+    }
+
+    class Voucher {
+      title: string
+      description?: string
+      customerId: string
+      amount: number
+      currency: Currency
+      startAt: Date
+      expireAt: Date
+      get disabledAt() Date | undefined
+      disable() void
+      restore() void
+      isDisabled() boolean
+      isExpired() boolean
+      isStarted() boolean
+    }
+
+    class Split {
+      get accountId: string
+      title: string
+      description?: string
+      type: SplitType
+      assumeFee: boolean
+      receivers: SplitReceiver[]
+      get disabledAt() Date | undefined
+      disable() void
+      restore() void
+      isDisabled() boolean
+    }
+
+    class SplitReceiver {
+      customerId: string
+      value: number
+      currency: Currency
+      note?: string
+      createdAt(): Date
+    }
+
+    class ProductType {
+      <<enumeration>>
+      SIMPLE
+      GROUPED
+      VIRTUAL
+      DOWNLOADABLE
+      EXTERNAL
+      VARIABLES
+      CREDIT %% to buy a voucher (gift voucher)
+    }
+
+    class PaymentState {
+      <<enumeration>>
+      FRAUD_DETECTED
+      PAYMENT_PENDING
+      PAYMENT_AUTHORIZED
+      PAYMENT_CAPTURED
+      ...
+      PIX_REFUNDED_PSP
+    }
+
+    class PaymentGatewayType {
+      <<enumeration>>
+      PAGAR_ME
+      STRIPE
+      PAYPAL
+      MERCADO_PAGO
+      PAGSEGURO
+    }
+
+    class PaymentMethodType {
+      <<enumeration>>
+      CREDIT_CARD
+      DEBIT_CARD
+      BANK_ACCOUNT
+      WALLET
+    }
+
+    class SplitType {
+      <<enumeration>>
+      FIXED
+      PERCENTAGE
+    }
+  }
+
+  namespace Billing {
+    class Consumption {
+      accountId: string
+      get currency: Currency
+      period: number
+      %% cost information at the time of consumption must be immutable
+      resourceId: string
+      cost: number
+      costPeriod: number
+      type: ResourceType
+    }
+
+    class Resource {
+      type: ResourceType
+      cost: number
+      period: number
+    }
+
+    class ResourceType {
+      <<enumeration>>
+      VM
+      REQUEST
+      STORAGE
+      DATABASE
+      BANDWIDTH
+    }
+  }
+
+  namespace Integrations {
+    class Webhooks {
+      title: string
+      description?: string
+      topic: WebhooksTopics
+      url: URL
+      token?: string
+      accountId: string
+    }
+
+    class WebhooksTopics {
+      <<enumeration>>
+      ALL
+      ...
+    }
+  }
+
+  namespace ValueObjects {
+    class UUIDVO {
+      static readonly DNS: string
+      static readonly NIL: string
+      static readonly OID: string
+      static readonly URL: string
+      static readonly X500: string
+      static verify(uuid: string | UuidDTO | UUIDVO | Buffer): boolean
+      isEqual(uuid: string | UuidDTO | UUIDVO | Buffer): boolean
+      parse(): UuidDTO
+      toBinary: Buffer
+    }
+
+    class UuidDTO {
+      <<interface>>
+      time_low: string,
+      time_mid: string,
+      time_high_and_version: string,
+      version: number,
+      clock_seq_and_reserved: string,
+      variant: string,
+      clock_seq_low: string,
+      node: string
+    }
+
+    class Base64VO {
+      static verify(base64: string | Base64DTO | Base64VO | Buffer): boolean
+      isEqual(uuid: string | Base64DTO | Base64VO | Buffer): boolean
+      parse(): Base64DTO
+      toBinary(): Buffer
+    }
+
+    class Base64DTO {
+      <<interface>>
+      mediaType?: string,
+      data: string
+    }
+
+    class AddressVO {
+      static verify(address: string | AddressDTO | AddressVO): boolean
+      isEqual(address: string | AddressDTO | AddressVO): boolean
+      parse(): AddressDTO
+    }
+
+    class AddressDTO {
+      <<interface>>
+      locality: string,
+      country: string,
+      neighborhood?: string,
+      number?: number,
+      postalCode: string,
+      region: string,
+      street: string
+    }
+
+    class EmailVO {
+      static verify(email: string | EmailDTO | EmailVO, domainRequired: boolean): boolean
+      isEqual(email: string | EmailDTO | EmailVO): boolean
+      parse(): EmailDTO
+      getMxRecordsDTO(): Promise<dns.MxRecord[]>
+    }
+
+    class EmailDTO {
+      <<interface>>
+      username: string,
+      domain?: string
+    }
+
+    class UsernameVO {
+      static verify(username: string | UsernameDTO | UsernameVO, domainRequired: boolean): boolean
+      isEqual(username: string | UsernameDTO | UsernameVO): boolean
+      parse(): UsernameDTO
+    }
+
+    class UsernameDTO {
+      <<interface>>
+      username: string,
+      domain?: string
+    }
+
+    class NameVO {
+      static verify(name: string | NameDTO | NameVO, props?: NameVOConfig): boolean
+      isEqual(name: string | NameDTO | NameVO): boolean
+      parse(): NameDTO
+    }
+
+    class NameVOConfig {
+        +minLength?: number
+        +maxLength?: number
+        +minAmountOfLastNames?: number
+    }
+
+    class NameDTO {
+      <<interface>>
+      firstName: string,
+      lastName?: string
+    }
+
+    class PasswordVO {
+      static verify(password: string | PasswordDTO | PasswordVO, props?: PasswordVOConfig): boolean
+      isEqual(password: string | PasswordDTO | PasswordVO): boolean
+      parse(): PasswordDTO
+      static isHashed (password: string): boolean
+      static isStrong (password: string): boolean
+      static generateStrongSecret(length: number): string
+    }
+
+    class PasswordVOConfig {
+        minLength?: number,
+        strong?: boolean
+    }
+
+    class PasswordDTO {
+      algorithm: string,
+      iterations: number,
+      salt: string,
+      hash: string
+    }
+
+    class PhoneVO {
+      static verify(phone: string | PhoneDTO | PhoneVO): boolean
+      isEqual(phone: string | PhoneDTO | PhoneVO): boolean
+      parse(): PhoneDTO
+    }
+
+    class PhoneDTO {
+      <<interface>>
+      country: string,
+      area: number,
+      number: string
+    }
+
+    class CreditCardVO {
+      static verify(creditCard: string | CreditCardDTO | CreditCardVO): boolean
+      isEqual(creditCard: string | CreditCardDTO | CreditCardVO): boolean
+      parse(): CreditCardDTO
+      static getBrand(number: string): CreditCardBrand
+    }
+
+    class CreditCardDTO {
+      <<interface>>
+      holderName: string,
+      number: string,
+      expiration: string,
+      cvc: number
+    }
+
+    class CreditCardBrand {
+      <<enumeration>>
+      AMERICAN_EXPRESS
+      DISCOVER
+      ELO
+      ...
+      MAESTRO
+      MASTERCARD
+      VISA
+    }
+
+    class JwtVO {
+      static verify(jwt: string | JwtDTO | JwtVO): boolean
+      isEqual(jwt: string | JwtDTO | JwtVO): boolean
+      parse(): JwtDTO
+      isExpired(): boolean
+    }
+
+    class JwtDTO {
+      <<interface>>
+      header: JwtHeaderDTO
+      payload: JwtPayloadDTO
+      signature: string
+    }
+
+    class JwtHeaderDTO {
+      <<interface>>
+      alg: string,
+      enc?: string,
+      cty?: string,
+      typ?: string,
+      kid?: string,
+      jku?: string,
+      x5u?: string,
+      x5t?: string,
+      x5c?: string
+    }
+
+    class JwtPayloadDTO {
+      <<interface>>
+      iss?: string,
+      sub?: string,
+      aud?: string,
+      exp?: string,
+      iat?: string,
+      nbf?: string,
+      jti?: string,
+      ...
+    }
+  }
+
+  Entity <|-- Customer
+  Entity <|-- Address
+  Entity <|-- Payment
+  Entity <|-- PaymentMethod
+  Entity <|-- Order
+  Entity <|-- Item
+  Entity <|-- Product
+  Entity <|-- Discount
+  Discount <|-- Coupon
+  Entity <|-- Voucher
+  Entity <|-- Split
+  Entity <|-- SplitReceiver
+  Entity <|-- Receiver
+  Entity <|-- Consumption
+  Entity <|-- Resource
+  Entity <|-- Webhooks
+
+  Customer --> User : Reference
+  Customer --> Account : Reference
+  Customer --> Address : Reference
+  Customer --> PaymentMethod : Reference
+  Order --> Customer : Reference
+  Order --> Account : Reference
+  Order --> Coupon : Reference
+  Order --> Voucher : Reference
+  Order --> Split : Reference
+  Item --> Product : Reference
+  Product --> Discount : Reference
+  Voucher --> Customer : Reference
+  Payment --> Order : Reference
+  Payment --> PaymentMethod : Reference
+  Split --> Account : Reference
+  SplitReceiver --> Customer : Reference
+  Consumption --> Account : Reference
+  Consumption --> Resource : Reference
+  Webhooks --> WebhooksTopics : Reference
+
+  Payment --> Currency : uses
+  PaymentMethod --> PaymentGatewayType : uses
+  PaymentMethod --> PaymentMethodType : uses
+  PaymentStatus --> PaymentState : uses
+  Discount --> Currency : uses
+  Voucher --> Currency : uses
+  Product --> Currency : uses
+  Split --> SplitType : uses
+  Split --> PaymentGatewayType : uses
+  Split --> Currency : uses
+  SplitReceiver --> Currency : uses
+  ReceiverGateway --> PaymentGatewayType : uses
+  Consumption --> Currency : uses
+  Resource --> ResourceType : uses
+
+  Customer *-- "1..*" Address
+  Customer *-- "1..*" PaymentMethod
+  Order *-- "*" Item
+  Payment *-- "1..*" PaymentStatus
+  Split *-- "1..*" SplitReceiver
+  Customer *-- "1..*" ReceiverGateway
