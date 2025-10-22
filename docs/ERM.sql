@@ -166,7 +166,7 @@ CREATE TABLE "phone_messager" (
   CHECK(disabled_at > created_at),
   PRIMARY KEY ("phone_message_provider_id", "user_id", "phone"),
   FOREIGN KEY ("phone_message_provider_id") REFERENCES "phone_message_provider" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-  FOREIGN KEY ("user_id", "phone") REFERENCES "phone" ("user_id", "phone") ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY ("user_id", "phone") REFERENCES "phone" ("user_id", "number") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE "email" (
