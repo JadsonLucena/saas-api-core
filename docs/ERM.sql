@@ -133,11 +133,10 @@ CREATE TABLE "password" (
   "salt" text NOT NULL,
   "secret_manager_version" VARCHAR(255),
   "created_at" timestamp DEFAULT now(),
-  "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
   CHECK(disabled_at > created_at),
-  PRIMARY KEY ("user_id", "hash", "salt"),
+  PRIMARY KEY ("user_id", "hash", "algorithm", "iterations", "salt", "secret_manager_version"),
   FOREIGN KEY ("user_id") REFERENCES "user" ("id")
 );
 
@@ -508,15 +507,12 @@ CREATE TABLE "coupon" (
 
 CREATE TABLE "product" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "discount_id" int,
   "title" varchar(255) NOT NULL,
   "description" text,
   "picture" text,
   "type" product_type NOT NULL,
   "sku" varchar(255) UNIQUE,
-  "price" numeric(15, 2) NOT NULL,
-  "period" int NOT NULL,
-  "currency" currency NOT NULL,
+  "discount_id" int,
   "quantity" int NOT NULL,
   "data" text,
   "starts_in" timestamp NOT NULL DEFAULT now(),
@@ -525,8 +521,6 @@ CREATE TABLE "product" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
-  CHECK(price >= 0),
-  CHECK(period >= 0),
   CHECK(quantity > 0),
   CHECK(starts_in >= created_at),
   CHECK(expires_in > starts_in),
@@ -534,6 +528,22 @@ CREATE TABLE "product" (
   CHECK(disabled_at > created_at),
   CHECK(updated_at >= created_at),
   FOREIGN KEY ("discount_id") REFERENCES "discount" ("id")
+);
+
+CREATE TABLE "price" (
+  "product_id" uuid NOT NULL,
+  "value" numeric(15, 2) NOT NULL,
+  "currency" currency NOT NULL,
+  "period" int NOT NULL, -- cycle in days
+  "created_at" timestamp DEFAULT now(),
+  "disabled_at" timestamp,
+
+  PRIMARY KEY ("product_id", "value", "currency", "period"),
+
+  CHECK(value >= 0),
+  CHECK(period > 0),
+  CHECK(disabled_at > created_at),
+  FOREIGN KEY ("product_id") REFERENCES "product" ("id")
 );
 
 CREATE TABLE IF NOT EXISTS "split" (
@@ -601,6 +611,8 @@ CREATE TABLE "item" (
   "order_id" uuid NOT NULL,
   "product_id" uuid NOT NULL,
   "quantity" int NOT NULL,
+  "price_id" uuid NOT NULL, -- price of the product at the time of purchase
+  "discount_id" int, -- discount of the product at the time of purchase
   "created_at" timestamp DEFAULT now(),
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
@@ -611,7 +623,9 @@ CREATE TABLE "item" (
   CHECK(disabled_at > created_at),
   CHECK(updated_at >= created_at),
   FOREIGN KEY ("order_id") REFERENCES "order" ("id"),
-  FOREIGN KEY ("product_id") REFERENCES "product" ("id")
+  FOREIGN KEY ("product_id") REFERENCES "product" ("id"),
+  FOREIGN KEY ("price_id") REFERENCES "price" ("id"),
+  FOREIGN KEY ("discount_id") REFERENCES "discount" ("id")
 );
 
 CREATE TABLE IF NOT EXISTS "payment_gateway" (
