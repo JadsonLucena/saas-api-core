@@ -115,8 +115,6 @@ CREATE TABLE "user" (
   "first_name" varchar(255) NOT NULL,
   "last_name" varchar(255) NOT NULL,
   "username" varchar(255) NOT NULL,
-  "password" text NOT NULL,
-  "secret_manager_version" VARCHAR(255),
   "picture" text,
   "totp_secret" TEXT NOT NULL,
   "mfa_enabled" boolean DEFAULT false,
@@ -125,6 +123,22 @@ CREATE TABLE "user" (
   "disabled_at" timestamp,
 
   CHECK(disabled_at > created_at)
+);
+
+CREATE TABLE "password" (
+  "user_id" uuid NOT NULL,
+  "hash" text NOT NULL,
+  "algorithm" varchar(255) NOT NULL,
+  "iterations" int NOT NULL,
+  "salt" text NOT NULL,
+  "secret_manager_version" VARCHAR(255),
+  "created_at" timestamp DEFAULT now(),
+  "updated_at" timestamp DEFAULT now(),
+  "disabled_at" timestamp,
+
+  CHECK(disabled_at > created_at),
+  PRIMARY KEY ("user_id", "hash", "salt"),
+  FOREIGN KEY ("user_id") REFERENCES "user" ("id")
 );
 
 CREATE TABLE "phone" (
