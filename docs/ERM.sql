@@ -541,7 +541,7 @@ CREATE TABLE "price" (
   FOREIGN KEY ("product_id") REFERENCES "product" ("id")
 );
 
-CREATE TABLE IF NOT EXISTS "split" (
+CREATE TABLE  "split" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "account_id" uuid NOT NULL,
   "title" VARCHAR(255) NOT NULL,
@@ -557,7 +557,7 @@ CREATE TABLE IF NOT EXISTS "split" (
   FOREIGN KEY ("account_id") REFERENCES "account" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS "split_receiver" (
+CREATE TABLE  "split_receiver" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "split_id" uuid NOT NULL,
   "customer_id" uuid NOT NULL,
@@ -631,7 +631,7 @@ CREATE TABLE "item" (
   FOREIGN KEY ("discount_id") REFERENCES "discount" ("id")
 );
 
-CREATE TABLE IF NOT EXISTS "payment_gateway" (
+CREATE TABLE  "payment_gateway" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "name" VARCHAR(255) NOT NULL UNIQUE,
   "picture" TEXT NOT NULL,
@@ -643,7 +643,7 @@ CREATE TABLE IF NOT EXISTS "payment_gateway" (
   "disabled_at" timestamp	
 );
 
-CREATE TABLE IF NOT EXISTS "receiver_gateway" (
+CREATE TABLE  "receiver_gateway" (
   "customer_id" uuid NOT NULL,
   "payment_gateway_id" uuid NOT NULL,
   "split_receiver_id" uuid NOT NULL,
@@ -659,7 +659,7 @@ CREATE TABLE IF NOT EXISTS "receiver_gateway" (
 );
 
 
-CREATE TABLE IF NOT EXISTS "payment_method" (
+CREATE TABLE  "payment_method" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "customer_id" uuid NOT NULL,
   "title" VARCHAR(255) NOT NULL,
@@ -682,7 +682,7 @@ ALTER TABLE "customer"
   ADD CONSTRAINT fk_customer_default_payment_method 
     FOREIGN KEY ("default_payment_method_id") REFERENCES "payment_method" ("id");
 
-CREATE TABLE IF NOT EXISTS "payment" (
+CREATE TABLE  "payment" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "order_id" uuid NOT NULL,
   "payment_method_id" uuid NOT NULL,
@@ -694,7 +694,7 @@ CREATE TABLE IF NOT EXISTS "payment" (
   FOREIGN KEY ("payment_method_id") REFERENCES "payment_method" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS "payment_status" (
+CREATE TABLE  "payment_status" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "payment_id" uuid NOT NULL,
   "transaction_id" TEXT NOT NULL,
@@ -707,7 +707,7 @@ CREATE TABLE IF NOT EXISTS "payment_status" (
   FOREIGN KEY ("payment_id") REFERENCES "payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS "plan" (
+CREATE TABLE  "plan" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "title" VARCHAR(255) NOT NULL UNIQUE,
   "description" TEXT,
@@ -716,7 +716,7 @@ CREATE TABLE IF NOT EXISTS "plan" (
   "disabled_at" timestamp
 );
 
-CREATE TABLE IF NOT EXISTS "plan_item" (
+CREATE TABLE  "plan_item" (
   "plan_id" uuid NOT NULL,
   "product_id" uuid NOT NULL,
   "quantity" int NOT NULL DEFAULT 1,
