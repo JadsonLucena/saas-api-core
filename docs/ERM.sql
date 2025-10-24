@@ -546,7 +546,6 @@ CREATE TABLE  "split" (
   "account_id" uuid NOT NULL,
   "title" VARCHAR(255) NOT NULL,
   "description" TEXT,
-  "type" split_type NOT NULL,
   "assume_fee" boolean NOT NULL DEFAULT false,
   "created_at" timestamp NOT NULL DEFAULT now(),
   "updated_at" timestamp NOT NULL DEFAULT now(),
@@ -561,11 +560,18 @@ CREATE TABLE  "split_receiver" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "split_id" uuid NOT NULL,
   "customer_id" uuid NOT NULL,
+  "type" split_type NOT NULL,
   "value" NUMERIC(15, 2) NOT NULL,
   "currency" currency NOT NULL,
   "note" TEXT,
   "created_at" timestamp NOT NULL DEFAULT now(),
   "disabled_at" timestamp,
+
+  CHECK (
+    (type = 'PERCENTAGE' AND value BETWEEN 0 AND 1)
+    OR
+    (type = 'FIXED' AND value >= 0)
+  )
 
   FOREIGN KEY ("split_id") REFERENCES "split" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY ("customer_id") REFERENCES "customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE
