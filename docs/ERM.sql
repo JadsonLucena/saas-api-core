@@ -734,7 +734,7 @@ CREATE TABLE  "invoice" (
   FOREIGN KEY ("order_id") REFERENCES "order" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE  "plan" (
+CREATE TABLE  "offer" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "title" VARCHAR(255) NOT NULL UNIQUE,
   "description" TEXT,
@@ -743,15 +743,15 @@ CREATE TABLE  "plan" (
   "disabled_at" timestamp
 );
 
-CREATE TABLE  "plan_item" (
-  "plan_id" uuid NOT NULL,
+CREATE TABLE  "offer_item" (
+  "offer_id" uuid NOT NULL,
   "product_id" uuid NOT NULL,
   "quantity" int NOT NULL DEFAULT 1,
   "created_at" timestamp NOT NULL DEFAULT now(),
   "updated_at" timestamp NOT NULL DEFAULT now(),
-  PRIMARY KEY ("plan_id", "product_id"),
+  PRIMARY KEY ("offer_id", "product_id"),
 
-  FOREIGN KEY ("plan_id") REFERENCES "plan" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("offer_id") REFERENCES "offer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY ("product_id") REFERENCES "product" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
