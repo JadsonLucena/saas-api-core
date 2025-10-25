@@ -412,7 +412,7 @@ CREATE TABLE "address" (
 
 CREATE TABLE "customer" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "account_id" uuid NOT NULL UNIQUE,
+  "account_id" uuid NOT NULL,
   "tax_id" varchar(255) NOT NULL,
   "is_legal_person" boolean NOT NULL,
   "default_customer_address_id" int,
@@ -421,9 +421,11 @@ CREATE TABLE "customer" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
+  UNIQUE ("account_id", "tax_id"),
+
   CHECK(disabled_at > created_at),
   CHECK(updated_at >= created_at),
-  FOREIGN KEY ("account_id") REFERENCES "account" ("id")
+  FOREIGN KEY ("account_id") REFERENCES "account" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE "customer_address" (
@@ -436,15 +438,15 @@ CREATE TABLE "customer_address" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
-  PRIMARY KEY ("customer_id", "address_id", "number"),
+  UNIQUE ("customer_id", "address_id", "number"),
 
-  FOREIGN KEY ("customer_id") REFERENCES "customer" ("id"),
-  FOREIGN KEY ("address_id") REFERENCES "address" ("id")
+  FOREIGN KEY ("customer_id") REFERENCES "customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("address_id") REFERENCES "address" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 ALTER TABLE "customer" 
   ADD CONSTRAINT fk_customer_default_customer_address 
-    FOREIGN KEY ("default_customer_address_id") REFERENCES "customer_address" ("id");
+    FOREIGN KEY ("default_customer_address_id") REFERENCES "customer_address" ("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 CREATE TABLE "credit_card" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -691,7 +693,7 @@ CREATE TABLE  "payment_method" (
 
 ALTER TABLE "customer" 
   ADD CONSTRAINT fk_customer_default_payment_method 
-    FOREIGN KEY ("default_payment_method_id") REFERENCES "payment_method" ("id");
+    FOREIGN KEY ("default_payment_method_id") REFERENCES "payment_method" ("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 CREATE TABLE  "payment" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -703,7 +705,7 @@ CREATE TABLE  "payment" (
   "created_at" timestamp NOT NULL DEFAULT now(),
   "disabled_at" timestamp,
 
-  FOREIGN KEY ("order_id") REFERENCES "order" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("invoice_id") REFERENCES "invoice" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY ("payment_method_id") REFERENCES "payment_method" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
