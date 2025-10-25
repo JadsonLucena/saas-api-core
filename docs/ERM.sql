@@ -476,7 +476,7 @@ CREATE TABLE "discount" (
   "currency" currency NOT NULL,
   "is_cumulative" boolean DEFAULT false,
   "starts_in" timestamp NOT NULL DEFAULT now(),
-  "expires_in" timestamp NOT NULL,
+  "expires_in" timestamp,
   "created_at" timestamp DEFAULT now(),
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
@@ -510,8 +510,9 @@ CREATE TABLE "product" (
   "renewal_period_days" int NOT NULL DEFAULT 0, -- cycle in days
   "max_renewal_uses" int NOT NULL DEFAULT 1, -- maximum number of renewals
   "data" text,
+  "cancel_window_days" int NOT NULL DEFAULT 0,
   "starts_in" timestamp NOT NULL DEFAULT now(),
-  "expires_in" timestamp NOT NULL,
+  "expires_in" timestamp,
   "created_at" timestamp DEFAULT now(),
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
@@ -582,20 +583,52 @@ CREATE TABLE "order" (
   "split_id" uuid,
   "is_recurrent" boolean DEFAULT false,
   "note" text,
-  "shipping_amount" numeric(15,2) NOT NULL DEFAULT 0,
-  "tax_amount" numeric(15,2) NOT NULL DEFAULT 0
   "created_at" timestamp DEFAULT now(),
   "confirmed_at" timestamp,
   "disabled_at" timestamp,
+  "canceled_at" timestamp,
 
-  CHECK(shipping_amount >= 0),
-  CHECK(tax_amount >= 0),
+  CHECK(canceled_at > created_at),
   CHECK(confirmed_at > created_at),
   CHECK(disabled_at > confirmed_at),
   CHECK(disabled_at > created_at),
   FOREIGN KEY ("customer_id") REFERENCES "customer" ("id"),
   FOREIGN KEY ("coupon_id") REFERENCES "coupon" ("id"),
   FOREIGN KEY ("split_id") REFERENCES "split" ("id")
+);
+
+CREATE TABLE "subscription" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "order_id" uuid NOT NULL,
+
+  CHECK(disabled_at > created_at),
+  CHECK(updated_at >= created_at),
+  FOREIGN KEY ("order_id") REFERENCES "order" ("id")
+);
+
+CREATE TABLE "item" (
+  "order_id" uuid NOT NULL,
+  "product_id" uuid NOT NULL,
+  "quantity" int NOT NULL,
+  -- Start snapshot of the product at the time of purchase
+  "price_id" int NOT NULL,
+  "discount_id" int,
+  "renewal_period_days" int NOT NULL DEFAULT 0,
+  "max_renewal_uses" int,
+  -- End snapshot of the product at the time of purchase
+  "created_at" timestamp DEFAULT now(),
+  "updated_at" timestamp DEFAULT now(),
+  "disabled_at" timestamp,
+
+  PRIMARY KEY ("order_id", "product_id"),
+
+  CHECK(quantity >= 1),
+  CHECK(updated_at >= created_at),
+  CHECK(disabled_at > created_at),
+  FOREIGN KEY ("order_id") REFERENCES "order" ("id"),
+  FOREIGN KEY ("product_id") REFERENCES "product" ("id"),
+  FOREIGN KEY ("price_id") REFERENCES "price" ("id"),
+  FOREIGN KEY ("discount_id") REFERENCES "discount" ("id")
 );
 
 CREATE TABLE "voucher" (
@@ -608,31 +641,6 @@ CREATE TABLE "voucher" (
   FOREIGN KEY ("discount_id") REFERENCES "discount" ("id"),
   FOREIGN KEY ("customer_id") REFERENCES "customer" ("id"),
   FOREIGN KEY ("order_id") REFERENCES "order" ("id")
-);
-
-CREATE TABLE "item" (
-  "order_id" uuid NOT NULL,
-  "product_id" uuid NOT NULL,
-  "quantity" int NOT NULL,
-  "price_id" int NOT NULL, -- price of the product at the time of purchase
-  "discount_id" int, -- discount of the product at the time of purchase
-  "renewal_period_days" int NOT NULL DEFAULT 0, -- cycle in days at the time of purchase
-  "max_renewal_uses" int,
-  "created_at" timestamp DEFAULT now(),
-  "updated_at" timestamp DEFAULT now(),
-  "disabled_at" timestamp,
-
-  PRIMARY KEY ("order_id", "product_id"),
-
-  CHECK(renewal_period_days >= 0),
-  CHECK(max_renewal_uses >= 1),
-  CHECK(quantity >= 1),
-  CHECK(updated_at >= created_at),
-  CHECK(disabled_at > created_at),
-  FOREIGN KEY ("order_id") REFERENCES "order" ("id"),
-  FOREIGN KEY ("product_id") REFERENCES "product" ("id"),
-  FOREIGN KEY ("price_id") REFERENCES "price" ("id"),
-  FOREIGN KEY ("discount_id") REFERENCES "discount" ("id")
 );
 
 CREATE TABLE  "payment_gateway" (
@@ -687,9 +695,11 @@ ALTER TABLE "customer"
 
 CREATE TABLE  "payment" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "order_id" uuid NOT NULL,
+  "invoice_id" uuid REFERENCES invoice (id),
   "payment_method_id" uuid NOT NULL,
+  "amount" numeric(15, 2) NOT NULL,
   "currency" currency NOT NULL,
+  "instalments" int NOT NULL DEFAULT 1,
   "created_at" timestamp NOT NULL DEFAULT now(),
   "disabled_at" timestamp,
 
@@ -707,6 +717,28 @@ CREATE TABLE  "payment_status" (
 
   UNIQUE ("payment_id", "transaction_id"),
 
+  FOREIGN KEY ("payment_id") REFERENCES "payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE  "invoice" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "order_id" uuid NOT NULL,
+  "tax_amount" numeric(15, 2) NOT NULL,
+  "shipping_amount" numeric(15,2) NOT NULL DEFAULT 0,
+  "paid_amount" numeric(15, 2) NOT NULL DEFAULT 0,
+  "refunded_amount" numeric(15, 2) NOT NULL DEFAULT 0,
+  "refunded_currency" currency NOT NULL,
+  "refunded_note" text,
+  "note" text,
+  "paid_at" timestamp,
+  "refunded_at" timestamp,
+  "created_at" timestamp NOT NULL DEFAULT now(),
+  "starts_in" timestamp NOT NULL,
+  "expires_in" timestamp,
+
+  CHECK(starts_in >= created_at),
+  CHECK(expires_in > starts_in),
+  FOREIGN KEY ("order_id") REFERENCES "order" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY ("payment_id") REFERENCES "payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
