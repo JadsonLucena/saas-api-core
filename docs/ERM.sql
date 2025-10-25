@@ -727,7 +727,6 @@ CREATE TABLE  "invoice" (
   "shipping_amount" numeric(15,2) NOT NULL DEFAULT 0,
   "paid_amount" numeric(15, 2) NOT NULL DEFAULT 0,
   "refunded_amount" numeric(15, 2) NOT NULL DEFAULT 0,
-  "refunded_currency" currency NOT NULL,
   "refunded_note" text,
   "note" text,
   "paid_at" timestamp,
