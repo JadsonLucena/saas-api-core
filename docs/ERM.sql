@@ -568,12 +568,11 @@ CREATE TABLE  "split_receiver" (
   "created_at" timestamp NOT NULL DEFAULT now(),
   "disabled_at" timestamp,
 
-  CHECK (
+  CHECK(
     (type = 'PERCENTAGE' AND value BETWEEN 0 AND 1)
     OR
     (type = 'FIXED' AND value >= 0)
-  )
-
+  ),
   FOREIGN KEY ("split_id") REFERENCES "split" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY ("customer_id") REFERENCES "customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
