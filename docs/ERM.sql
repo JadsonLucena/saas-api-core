@@ -723,6 +723,7 @@ CREATE TABLE  "payment_status" (
 CREATE TABLE  "invoice" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "order_id" uuid NOT NULL,
+  "amount_due" numeric(15, 2) NOT NULL,
   "tax_amount" numeric(15, 2) NOT NULL,
   "shipping_amount" numeric(15,2) NOT NULL DEFAULT 0,
   "paid_amount" numeric(15, 2) NOT NULL DEFAULT 0,
