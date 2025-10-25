@@ -685,6 +685,27 @@ ALTER TABLE "customer"
   ADD CONSTRAINT fk_customer_default_payment_method 
     FOREIGN KEY ("default_payment_method_id") REFERENCES "payment_method" ("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
+CREATE TABLE  "invoice" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "order_id" uuid NOT NULL,
+  "amount_due" numeric(15, 2) NOT NULL,
+  "tax_amount" numeric(15, 2) NOT NULL,
+  "shipping_amount" numeric(15,2) NOT NULL DEFAULT 0,
+  "paid_amount" numeric(15, 2) NOT NULL DEFAULT 0,
+  "refunded_amount" numeric(15, 2) NOT NULL DEFAULT 0,
+  "refunded_note" text,
+  "note" text,
+  "paid_at" timestamp,
+  "refunded_at" timestamp,
+  "created_at" timestamp NOT NULL DEFAULT now(),
+  "starts_in" timestamp NOT NULL,
+  "expires_in" timestamp,
+
+  CHECK(starts_in >= created_at),
+  CHECK(expires_in > starts_in),
+  FOREIGN KEY ("order_id") REFERENCES "order" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 CREATE TABLE  "payment" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "invoice_id" uuid REFERENCES invoice (id),
@@ -710,27 +731,6 @@ CREATE TABLE  "payment_status" (
   UNIQUE ("payment_id", "transaction_id"),
 
   FOREIGN KEY ("payment_id") REFERENCES "payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
-
-CREATE TABLE  "invoice" (
-  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "order_id" uuid NOT NULL,
-  "amount_due" numeric(15, 2) NOT NULL,
-  "tax_amount" numeric(15, 2) NOT NULL,
-  "shipping_amount" numeric(15,2) NOT NULL DEFAULT 0,
-  "paid_amount" numeric(15, 2) NOT NULL DEFAULT 0,
-  "refunded_amount" numeric(15, 2) NOT NULL DEFAULT 0,
-  "refunded_note" text,
-  "note" text,
-  "paid_at" timestamp,
-  "refunded_at" timestamp,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "starts_in" timestamp NOT NULL,
-  "expires_in" timestamp,
-
-  CHECK(starts_in >= created_at),
-  CHECK(expires_in > starts_in),
-  FOREIGN KEY ("order_id") REFERENCES "order" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE  "offer" (
