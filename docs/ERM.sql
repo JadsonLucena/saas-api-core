@@ -599,13 +599,6 @@ CREATE TABLE "order" (
   FOREIGN KEY ("split_id") REFERENCES "split" ("id")
 );
 
-CREATE TABLE "subscription" (
-  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "order_id" uuid NOT NULL,
-
-  FOREIGN KEY ("order_id") REFERENCES "order" ("id")
-);
-
 CREATE TABLE "item" (
   "order_id" uuid NOT NULL,
   "product_id" uuid NOT NULL,
