@@ -740,8 +740,7 @@ CREATE TABLE  "invoice" (
 
   CHECK(starts_in >= created_at),
   CHECK(expires_in > starts_in),
-  FOREIGN KEY ("order_id") REFERENCES "order" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY ("payment_id") REFERENCES "payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY ("order_id") REFERENCES "order" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE  "plan" (
