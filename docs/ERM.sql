@@ -603,8 +603,6 @@ CREATE TABLE "subscription" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "order_id" uuid NOT NULL,
 
-  CHECK(disabled_at > created_at),
-  CHECK(updated_at >= created_at),
   FOREIGN KEY ("order_id") REFERENCES "order" ("id")
 );
 
