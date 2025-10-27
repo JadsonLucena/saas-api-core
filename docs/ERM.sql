@@ -67,7 +67,7 @@ CREATE TYPE "split_type" AS ENUM (
   'PERCENTAGE'
 );
 
-CREATE TYPE "payment_state" AS ENUM (
+CREATE TYPE "payment_status" AS ENUM (
   'created',
   'paid',
   'expired'
@@ -83,6 +83,13 @@ CREATE TYPE "dispute_status" AS ENUM (
   'won',
   'lost',
   'cancelled'
+);
+
+CREATE TYPE "subscription_status" AS ENUM (
+  'pending',
+  'active',
+  'cancelled',
+  'expired'
 );
 
 CREATE TABLE "user" (
@@ -612,18 +619,17 @@ CREATE TABLE "subscription" (
 );
 
 CREATE TABLE "subscription_cycle" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "subscription_id" uuid NOT NULL,
   "invoice_id" uuid NOT NULL,
-  "status" subscription_cycle_status NOT NULL,
+  "status" subscription_status NOT NULL,
   "starts_in" timestamp NOT NULL,
   "expires_in" timestamp NOT NULL,
   "created_at" timestamp DEFAULT now(),
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
-  CHECK(starts_in >= created_at),
   CHECK(expires_in > starts_in),
-  CHECK(starts_in < expires_in),
   CHECK(disabled_at > created_at),
   CHECK(updated_at >= created_at),
   FOREIGN KEY ("subscription_id") REFERENCES "subscription" ("id"),
@@ -728,7 +734,7 @@ CREATE TABLE  "payment_status" ( -- shoud be immutable
   "payment_id" uuid NOT NULL,
   "transaction_id" TEXT NOT NULL,
   "data" TEXT NOT NULL,
-  "state" payment_state NOT NULL DEFAULT 'pending',
+  "state" payment_status NOT NULL DEFAULT 'pending',
   "created_at" timestamp NOT NULL DEFAULT now(),
 
   UNIQUE ("payment_id", "transaction_id"),
