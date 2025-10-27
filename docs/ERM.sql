@@ -512,6 +512,7 @@ CREATE TABLE "product" (
   "discount_id" int,
   "renewal_period_in_days" int NOT NULL DEFAULT 0, -- is subscription if greater than 0
   "max_renewal_uses" int NOT NULL DEFAULT 1, -- maximum number of renewals
+  "cancellation_window_in_days" int NOT NULL DEFAULT 0,
   "data" text,
   "starts_in" timestamp NOT NULL DEFAULT now(),
   "expires_in" timestamp,
@@ -520,6 +521,7 @@ CREATE TABLE "product" (
   "disabled_at" timestamp,
 
   CHECK(renewal_period_in_days >= 0),
+  CHECK(cancellation_window_in_days >= 0),
   CHECK(max_renewal_uses >= 1),
   CHECK(starts_in >= created_at),
   CHECK(expires_in > starts_in),
