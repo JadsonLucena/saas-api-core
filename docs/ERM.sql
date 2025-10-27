@@ -694,6 +694,7 @@ CREATE TABLE  "payment_method" (
   "customer_id" uuid NOT NULL,
   "title" VARCHAR(255) NOT NULL,
   "description" TEXT,
+  "grace_period_in_days" int NOT NULL,
   "payment_gateway_id" uuid NOT NULL,
   "payment_gateway_external_id" VARCHAR(255) NOT NULL,
   "type" payment_method_type NOT NULL,
@@ -704,6 +705,7 @@ CREATE TABLE  "payment_method" (
   UNIQUE ("customer_id", "payment_gateway_id", "payment_gateway_external_id"),
   UNIQUE ("customer_id", "title"),
 
+  CHECK(grace_period_in_days >= 0),
   CHECK(disabled_at > created_at),
   CHECK(updated_at >= created_at),
   FOREIGN KEY ("customer_id") REFERENCES "customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
