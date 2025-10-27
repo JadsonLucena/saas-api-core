@@ -497,8 +497,10 @@ CREATE TABLE "coupon" (
   "discount_id" int NOT NULL,
   "code" varchar(255) NOT NULL UNIQUE,
   "quantity" int NOT NULL,
+  "maximum_usage_per_user" int NOT NULL,
 
   CHECK(quantity >= 1),
+  CHECK(maximum_usage_per_user >= 1),
   FOREIGN KEY ("discount_id") REFERENCES "discount" ("id")
 );
 
