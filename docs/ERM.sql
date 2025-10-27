@@ -581,7 +581,7 @@ CREATE TABLE "order" ( -- shoud be immutable
   FOREIGN KEY ("voucher_id") REFERENCES "voucher" ("id")
 );
 
-CREATE TABLE "item" ( -- shoud be immutable
+CREATE TABLE "order_item" ( -- shoud be immutable
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "order_id" uuid NOT NULL,
   "product_id" uuid NOT NULL,
@@ -603,12 +603,12 @@ CREATE TABLE "item" ( -- shoud be immutable
 
 CREATE TABLE "subscription" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "item_id" uuid NOT NULL,
+  "order_item_id" uuid NOT NULL,
   "snapshot-renewal_period_in_days" int NOT NULL DEFAULT 0,
   "snapshot-max_renewal_uses" int,
   "snapshot-cancellation_window_in_days" int NOT NULL DEFAULT 0,
 
-  FOREIGN KEY ("item_id") REFERENCES "item" ("id")
+  FOREIGN KEY ("order_item_id") REFERENCES "item" ("id")
 );
 
 CREATE TABLE "subscription_cycle" (
