@@ -68,39 +68,21 @@ CREATE TYPE "split_type" AS ENUM (
 );
 
 CREATE TYPE "payment_state" AS ENUM (
+  'created',
+  'paid',
+  'expired'
+  'failed',
   'fraud_detected',
   'fraud_under_review',
-  'fraud_confirmed',
-  'chargeback_initiated',
-  'chargeback_completed',
-  'payment_pending',
-  'payment_authorized',
-  'payment_captured',
-  'payment_paid',
-  'payment_declined',
-  'payment_failed',
-  'payment_expired',
-  'payment_refunded',
-  'payment_refunded_psp',
-  'payment_error',
-  'subscription_created',
-  'subscription_completed',
-  'subscription_cancelled',
-  'subscription_failed',
-  'subscription_expired',
-  'subscription_paused',
-  'subscription_resumed',
-  'boleto_pending',
-  'boleto_paid',
-  'boleto_expired',
-  'boleto_failed',
-  'pix_initiated',
-  'pix_processing',
-  'pix_paid',
-  'pix_expired',
-  'pix_failed',
-  'pix_refunded',
-  'pix_refunded_psp'
+  'fraud_confirmed'
+);
+
+CREATE TYPE "dispute_status" AS ENUM (
+  'open',
+  'under_review',
+  'won',
+  'lost',
+  'cancelled'
 );
 
 CREATE TABLE "user" (
@@ -718,12 +700,7 @@ CREATE TABLE  "invoice" ( -- shoud be immutable
   "amount_due" numeric(15, 2) NOT NULL,
   "tax_amount" numeric(15, 2) NOT NULL,
   "shipping_amount" numeric(15,2) NOT NULL DEFAULT 0,
-  "paid_amount" numeric(15, 2) NOT NULL DEFAULT 0,
-  "refunded_amount" numeric(15, 2) NOT NULL DEFAULT 0,
-  "refunded_note" text,
   "note" text,
-  "paid_at" timestamp,
-  "refunded_at" timestamp,
   "created_at" timestamp NOT NULL DEFAULT now(),
   "starts_in" timestamp NOT NULL,
   "expires_in" timestamp,
@@ -746,18 +723,49 @@ CREATE TABLE  "payment" ( -- shoud be immutable
   FOREIGN KEY ("payment_method_id") REFERENCES "payment_method" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE  "payment_status" (
+CREATE TABLE  "payment_status" ( -- shoud be immutable
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "payment_id" uuid NOT NULL,
   "transaction_id" TEXT NOT NULL,
   "data" TEXT NOT NULL,
-  "state" payment_state NOT NULL,
+  "state" payment_state NOT NULL DEFAULT 'pending',
   "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
 
   UNIQUE ("payment_id", "transaction_id"),
 
   FOREIGN KEY ("payment_id") REFERENCES "payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE payment_refund ( -- shoud be immutable
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "payment_id" uuid NOT NULL,
+  "amount" numeric(15,2) NOT NULL,
+  "currency" currency NOT NULL,
+  "note" text,
+  "created_at" timestamp NOT NULL DEFAULT now(),
+
+  FOREIGN KEY ("payment_id") REFERENCES "payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE payment_dispute ( -- shoud be immutable
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "payment_id" uuid NOT NULL,
+  "status" dispute_status NOT NULL DEFAULT 'open',
+  "note" text,
+  "created_at" timestamp NOT NULL DEFAULT now(),
+
+  FOREIGN KEY ("payment_id") REFERENCES "payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE payment_chargeback ( -- shoud be immutable
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "dispute_id" uuid REFERENCES,
+  "amount" numeric(15,2) NOT NULL,
+  "currency" currency NOT NULL,
+  "note" text
+  "created_at" timestamp NOT NULL DEFAULT now(),
+
+  FOREIGN KEY ("dispute_id") REFERENCES "payment_dispute" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE  "offer" (
