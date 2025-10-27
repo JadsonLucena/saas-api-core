@@ -585,6 +585,7 @@ CREATE TABLE "order" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "customer_id" uuid NOT NULL,
   "coupon_id" uuid,
+  "voucher_id" uuid UNIQUE,
   "split_id" uuid,
   "note" text,
   "created_at" timestamp DEFAULT now(),
@@ -598,7 +599,8 @@ CREATE TABLE "order" (
   CHECK(disabled_at > created_at),
   FOREIGN KEY ("customer_id") REFERENCES "customer" ("id"),
   FOREIGN KEY ("coupon_id") REFERENCES "coupon" ("id"),
-  FOREIGN KEY ("split_id") REFERENCES "split" ("id")
+  FOREIGN KEY ("split_id") REFERENCES "split" ("id"),
+  FOREIGN KEY ("voucher_id") REFERENCES "voucher" ("id")
 );
 
 CREATE TABLE "item" (
@@ -655,13 +657,11 @@ CREATE TABLE "subscription_cycle" (
 CREATE TABLE "voucher" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "discount_id" int NOT NULL,
-  "code" varchar(255) NOT NULL UNIQUE,
   "customer_id" uuid NOT NULL,
-  "order_id" uuid,
+  "code" varchar(255) NOT NULL UNIQUE,
 
   FOREIGN KEY ("discount_id") REFERENCES "discount" ("id"),
-  FOREIGN KEY ("customer_id") REFERENCES "customer" ("id"),
-  FOREIGN KEY ("order_id") REFERENCES "order" ("id")
+  FOREIGN KEY ("customer_id") REFERENCES "customer" ("id")
 );
 
 CREATE TABLE  "payment_gateway" (
