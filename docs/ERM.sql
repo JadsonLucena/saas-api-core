@@ -636,6 +636,22 @@ CREATE TABLE "subscription_cycle" (
   FOREIGN KEY ("invoice_id") REFERENCES "invoice" ("id")
 );
 
+CREATE TABLE subscription_pause (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "subscription_cycle_id" uuid NOT NULL,
+  "note" text,
+  "created_at" timestamp NOT NULL DEFAULT now(),
+  "disabled_at" timestamp, -- when the pause is disabled before the paused_at
+  "paused_at" timestamp NOT NULL, -- starts in subscription_cycle.expires_in
+  "resumed_at" timestamp,
+
+  CHECK(disabled_at > created_at),
+  CHECK(resumed_at >= paused_at),
+  CHECK(paused_at >= created_at),
+
+  FOREIGN KEY ("subscription_cycle_id") REFERENCES "subscription_cycle" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 CREATE TABLE "voucher" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "discount_id" int NOT NULL,
