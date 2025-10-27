@@ -85,13 +85,6 @@ CREATE TYPE "dispute_status" AS ENUM (
   'cancelled'
 );
 
-CREATE TYPE "subscription_status" AS ENUM (
-  'pending',
-  'active',
-  'cancelled',
-  'expired'
-);
-
 CREATE TABLE "user" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "first_name" varchar(255) NOT NULL,
@@ -576,9 +569,7 @@ CREATE TABLE "order" ( -- shoud be immutable
   "created_at" timestamp DEFAULT now(),
   "confirmed_at" timestamp,
   "disabled_at" timestamp,
-  "canceled_at" timestamp,
 
-  CHECK(canceled_at > created_at),
   CHECK(confirmed_at > created_at),
   CHECK(disabled_at > confirmed_at),
   CHECK(disabled_at > created_at),
@@ -614,6 +605,7 @@ CREATE TABLE "subscription" (
   "snapshot-renewal_period_in_days" int NOT NULL DEFAULT 0,
   "snapshot-max_renewal_uses" int,
   "snapshot-cancellation_window_in_days" int NOT NULL DEFAULT 0,
+  "canceled_at" timestamp,
 
   FOREIGN KEY ("order_item_id") REFERENCES "item" ("id")
 );
@@ -622,15 +614,12 @@ CREATE TABLE "subscription_cycle" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "subscription_id" uuid NOT NULL,
   "invoice_id" uuid NOT NULL,
-  "status" subscription_status NOT NULL,
   "starts_in" timestamp NOT NULL,
   "expires_in" timestamp NOT NULL,
   "created_at" timestamp DEFAULT now(),
   "updated_at" timestamp DEFAULT now(),
-  "disabled_at" timestamp,
 
   CHECK(expires_in > starts_in),
-  CHECK(disabled_at > created_at),
   CHECK(updated_at >= created_at),
   FOREIGN KEY ("subscription_id") REFERENCES "subscription" ("id"),
   FOREIGN KEY ("invoice_id") REFERENCES "invoice" ("id")
