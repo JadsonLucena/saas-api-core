@@ -477,19 +477,21 @@ CREATE TABLE "discount" (
   "cap_amount" DECIMAL(10,2) NOT NULL,
   "currency" currency NOT NULL,
   "is_cumulative" boolean DEFAULT false,
+  "max_uses_per_customer" int,
+  "max_uses_per_order" int,
   "starts_in" timestamp NOT NULL DEFAULT now(),
   "expires_in" timestamp,
   "created_at" timestamp DEFAULT now(),
-  "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
   CHECK(percent >= 0 AND percent <= 1),
   CHECK(cap_amount >= 0),
+  CHECK(max_uses_per_customer >= 1),
+  CHECK(max_uses_per_order >= 1),
   CHECK(starts_in >= created_at),
   CHECK(expires_in > starts_in),
   CHECK(starts_in < expires_in),
   CHECK(disabled_at > created_at),
-  CHECK(updated_at >= created_at)
 );
 
 CREATE TABLE "coupon" (
@@ -497,10 +499,8 @@ CREATE TABLE "coupon" (
   "discount_id" int NOT NULL,
   "code" varchar(255) NOT NULL UNIQUE,
   "quantity" int NOT NULL,
-  "maximum_usage_per_user" int NOT NULL,
 
   CHECK(quantity >= 1),
-  CHECK(maximum_usage_per_user >= 1),
   FOREIGN KEY ("discount_id") REFERENCES "discount" ("id")
 );
 
