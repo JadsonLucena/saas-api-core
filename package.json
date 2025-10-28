@@ -83,7 +83,7 @@
     "@aws-sdk/credential-providers": "latest",
     "@azure/identity": "latest",
     "@azure/keyvault-secrets": "latest",
-    "@fastify/multipart": "latest",
+    "@fastify/multipart": "9.2.1",
     "@fastify/static": "latest",
     "@google-cloud/secret-manager": "latest",
     "@mysql/xdevapi": "latest",
