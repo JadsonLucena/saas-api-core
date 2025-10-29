@@ -584,8 +584,8 @@ CREATE TABLE "order_item" ( -- shoud be immutable
   "order_id" uuid NOT NULL,
   "product_id" uuid NOT NULL,
   "quantity" int NOT NULL,
-  "snapshot-price_id" int NOT NULL,
-  "snapshot-discount_id" int,
+  "price_id" int NOT NULL,
+  "discount_id" int,
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
@@ -595,16 +595,16 @@ CREATE TABLE "order_item" ( -- shoud be immutable
   CHECK(disabled_at > created_at),
   FOREIGN KEY ("order_id") REFERENCES "order" ("id"),
   FOREIGN KEY ("product_id") REFERENCES "product" ("id"),
-  FOREIGN KEY ("snapshot-price_id") REFERENCES "price" ("id"),
-  FOREIGN KEY ("snapshot-discount_id") REFERENCES "discount" ("id")
+  FOREIGN KEY ("price_id") REFERENCES "price" ("id"),
+  FOREIGN KEY ("discount_id") REFERENCES "discount" ("id")
 );
 
 CREATE TABLE "subscription" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "order_item_id" uuid NOT NULL,
-  "snapshot-renewal_period_in_days" int NOT NULL DEFAULT 0,
-  "snapshot-max_renewal_uses" int,
-  "snapshot-cancellation_window_in_days" int NOT NULL DEFAULT 0,
+  "renewal_period_in_days" int NOT NULL DEFAULT 0,
+  "max_renewal_uses" int,
+  "cancellation_window_in_days" int NOT NULL DEFAULT 0,
   "canceled_at" timestamp,
 
   FOREIGN KEY ("order_item_id") REFERENCES "item" ("id")
