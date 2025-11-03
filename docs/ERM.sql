@@ -1070,7 +1070,7 @@ CREATE TABLE payment_chargeback (
   CHECK(amount >= 0)
 );
 
-CREATE TABLE  "offer" (
+CREATE TABLE  "package" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "title" VARCHAR(255) NOT NULL UNIQUE,
   "description" TEXT,
@@ -1079,16 +1079,16 @@ CREATE TABLE  "offer" (
   "disabled_at" timestamp
 );
 
-CREATE TABLE  "offer_item" (
-  "offer_id" uuid NOT NULL,
+CREATE TABLE  "package_item" (
+  "package_id" uuid NOT NULL,
   "product_id" uuid NOT NULL,
   "quantity" int NOT NULL DEFAULT 1,
   "created_at" timestamp NOT NULL DEFAULT now(),
   "updated_at" timestamp NOT NULL DEFAULT now(),
 
-  PRIMARY KEY ("offer_id", "product_id"),
+  PRIMARY KEY ("package_id", "product_id"),
 
-  FOREIGN KEY ("offer_id") REFERENCES "offer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("package_id") REFERENCES "package" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY ("product_id") REFERENCES "product" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
 
   CHECK(quantity >= 1),
