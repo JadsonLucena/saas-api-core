@@ -1,12 +1,12 @@
 CREATE TYPE "otp_digest_algorithm" AS ENUM (
-  'sha1',
-  'sha256',
-  'sha512'
+  'SHA1',
+  'SHA256',
+  'SHA512'
 );
 
 CREATE TYPE "otp_type" AS ENUM (
-  'hotp',
-  'totp'
+  'HOTP',
+  'TOTP'
 );
 
 CREATE TYPE "http_method" AS ENUM (
@@ -22,28 +22,208 @@ CREATE TYPE "http_method" AS ENUM (
 );
 
 CREATE TYPE "oauth_type" AS ENUM (
-  'private',
-  'public'
+  'PRIVATE',
+  'PUBLIC'
 );
 
 CREATE TYPE "operation_type" AS ENUM (
-  'subtraction',
-  'percentage'
+  'SUBTRACTION',
+  'PERCENTAGE'
 );
 
 CREATE TYPE "card_brand" AS ENUM (
-  'amex',
-  'hipercard',
-  'diners',
-  'visa',
-  'mastercard', 
-  'american_express',
-  'discover',
-  'elo',
-  'maestro'
+  'AMEX',
+  'HIPERCARD',
+  'DINERS',
+  'VISA',
+  'MASTERCARD', 
+  'AMERICAN_EXPRESS',
+  'DISCOVER',
+  'ELO',
+  'MAESTRO'
 );
 
-CREATE TYPE "currency" AS ENUM('aed', 'afn', 'all', 'amd', 'ang', 'aoa', 'ars', 'aud', 'awg', 'azn', 'bam', 'bbd', 'bdt', 'bgn', 'bhd', 'bif', 'bmd', 'bnd', 'bob', 'bov', 'brl', 'bsd', 'btn', 'bwp', 'byr', 'bzd', 'cad', 'cdf', 'che', 'chf', 'chw', 'clf', 'clp', 'cny', 'cop', 'cou', 'crc', 'cup', 'cve', 'czk', 'djf', 'dkk', 'dop', 'dzd', 'ecs', 'egp', 'ern', 'etb', 'eur', 'fjd', 'fkp', 'gbp', 'gel', 'ghs', 'gip', 'gmd', 'gnf', 'gtq', 'gyd', 'hkd', 'hnl', 'htg', 'huf', 'idr', 'ils', 'imp', 'inr', 'iqd', 'irr', 'isk', 'jmd', 'jod', 'jpy', 'kes', 'kgs', 'khr', 'kmf', 'kpw', 'krw', 'kwd', 'kyd', 'kzt', 'lak', 'lbp', 'lkr', 'lrd', 'lsl', 'ltl', 'lvl', 'lyd', 'mad', 'mdl', 'mga', 'mkd', 'mmk', 'mnt', 'mop', 'mro', 'mur', 'mvr', 'mwk', 'mxn', 'mxv', 'myr', 'mzn', 'nad', 'ngn', 'nio', 'nok', 'npr', 'nzd', 'omr', 'pab', 'pen', 'pgk', 'php', 'pkr', 'pln', 'pyg', 'qar', 'ron', 'rsd', 'rub', 'rwf', 'sar', 'sbd', 'scr', 'sdg', 'sek', 'sgd', 'shp', 'sll', 'sos', 'srd', 'stn', 'svc', 'syp', 'szl', 'thb', 'tjs', 'tmt', 'tnd', 'top', 'try', 'ttd', 'twd', 'tzs', 'uah', 'ugx', 'usd', 'usn', 'uss', 'uyi', 'uyu', 'uzs', 'ves', 'vnd', 'vuv', 'wst', 'xaf', 'xag', 'xau', 'xba', 'xbb', 'xbc', 'xbd', 'xcd', 'xdr', 'xfu', 'xof', 'xpd', 'xpf', 'xpt', 'xts', 'xxx', 'yer', 'zar', 'zmw', 'zwl');
+CREATE TYPE "currency" AS ENUM(
+  'AED',
+  'AFN',
+  'ALL',
+  'AMD',
+  'ANG',
+  'AOA',
+  'ARS',
+  'AUD',
+  'AWG',
+  'AZN',
+  'BAM',
+  'BBD',
+  'BDT',
+  'BGN',
+  'BHD',
+  'BIF',
+  'BMD',
+  'BND',
+  'BOB',
+  'BOV',
+  'BRL',
+  'BSD',
+  'BTN',
+  'BWP',
+  'BYR',
+  'BZD',
+  'CAD',
+  'CDF',
+  'CHE',
+  'CHF',
+  'CHW',
+  'CLF',
+  'CLP',
+  'CNY',
+  'COP',
+  'COU',
+  'CRC',
+  'CUP',
+  'CVE',
+  'CZK',
+  'DJF',
+  'DKK',
+  'DOP',
+  'DZD',
+  'ECS',
+  'EGP',
+  'ERN',
+  'ETB',
+  'EUR',
+  'FJD',
+  'FKP',
+  'GBP',
+  'GEL',
+  'GHS',
+  'GIP',
+  'GMD',
+  'GNF',
+  'GTQ',
+  'GYD',
+  'HKD',
+  'HNL',
+  'HTG',
+  'HUF',
+  'IDR',
+  'ILS',
+  'IMP',
+  'INR',
+  'IQD',
+  'IRR',
+  'ISK',
+  'JMD',
+  'JOD',
+  'JPY',
+  'KES',
+  'KGS',
+  'KHR',
+  'KMF',
+  'KPW',
+  'KRW',
+  'KWD',
+  'KYD',
+  'KZT',
+  'LAK',
+  'LBP',
+  'LKR',
+  'LRD',
+  'LSL',
+  'LTL',
+  'LVL',
+  'LYD',
+  'MAD',
+  'MDL',
+  'MGA',
+  'MKD',
+  'MMK',
+  'MNT',
+  'MOP',
+  'MRO',
+  'MUR',
+  'MVR',
+  'MWK',
+  'MXN',
+  'MXV',
+  'MYR',
+  'MZN',
+  'NAD',
+  'NGN',
+  'NIO',
+  'NOK',
+  'NPR',
+  'NZD',
+  'OMR',
+  'PAB',
+  'PEN',
+  'PGK',
+  'PHP',
+  'PKR',
+  'PLN',
+  'PYG',
+  'QAR',
+  'RON',
+  'RSD',
+  'RUB',
+  'RWF',
+  'SAR',
+  'SBD',
+  'SCR',
+  'SDG',
+  'SEK',
+  'SGD',
+  'SHP',
+  'SLL',
+  'SOS',
+  'SRD',
+  'STN',
+  'SVC',
+  'SYP',
+  'SZL',
+  'THB',
+  'TJS',
+  'TMT',
+  'TND',
+  'TOP',
+  'TRY',
+  'TTD',
+  'TWD',
+  'TZS',
+  'UAH',
+  'UGX',
+  'USD',
+  'USN',
+  'USS',
+  'UYI',
+  'UYU',
+  'UZS',
+  'VES',
+  'VND',
+  'VUV',
+  'WST',
+  'XAF',
+  'XAG',
+  'XAU',
+  'XBA',
+  'XBB',
+  'XBC',
+  'XBD',
+  'XCD',
+  'XDR',
+  'XFU',
+  'XOF',
+  'XPD',
+  'XPF',
+  'XPT',
+  'XTS',
+  'XXX',
+  'YER',
+  'ZAR',
+  'ZMW',
+  'ZWL'
+);
 
 CREATE TYPE "product_type" AS ENUM (
   'SIMPLE',
@@ -58,8 +238,7 @@ CREATE TYPE "product_type" AS ENUM (
 CREATE TYPE "payment_method_type" AS ENUM (
   'CREDIT_CARD',
   'DEBIT_CARD',
-  'BANK_ACCOUNT',
-  'WALLET'
+  'BANK_ACCOUNT'
 );
 
 CREATE TYPE "split_type" AS ENUM (
@@ -68,24 +247,24 @@ CREATE TYPE "split_type" AS ENUM (
 );
 
 CREATE TYPE "payment_status" AS ENUM (
-  'created',
-  'paid',
-  'expired'
-  'failed',
-  'fraud_detected',
-  'fraud_under_review',
-  'fraud_confirmed'
+  'CREATED',
+  'PAID',
+  'EXPIRED',
+  'FAILED',
+  'FRAUD_DETECTED',
+  'FRAUD_UNDER_REVIEW',
+  'FRAUD_CONFIRMED'
 );
 
 CREATE TYPE "dispute_status" AS ENUM (
-  'open',
-  'under_review',
-  'won',
-  'lost',
-  'cancelled'
+  'OPEN',
+  'UNDER_REVIEW',
+  'WON',
+  'LOST',
+  'CANCELLED'
 );
 
-CREATE TYPE "discount_condition_type" AS ENUM (
+CREATE TYPE "discount_rule_type" AS ENUM (
   'PAYMENT_METHOD',
   'FIRST_PURCHASE',
   'MIN_ITEMS',
@@ -110,7 +289,7 @@ CREATE TABLE "user" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "first_name" varchar(255) NOT NULL,
   "last_name" varchar(255) NOT NULL,
-  "username" varchar(255) NOT NULL,
+  "username" varchar(255) NOT NULL UNIQUE,
   "picture" text,
   "totp_secret" TEXT NOT NULL,
   "mfa_enabled" boolean DEFAULT false,
@@ -118,10 +297,11 @@ CREATE TABLE "user" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
+  CHECK(updated_at >= created_at),
   CHECK(disabled_at > created_at)
 );
 
-CREATE TABLE "password" ( -- shoud be immutable
+CREATE TABLE "password" (
   "user_id" uuid NOT NULL,
   "hash" text NOT NULL,
   "algorithm" varchar(255) NOT NULL,
@@ -131,63 +311,70 @@ CREATE TABLE "password" ( -- shoud be immutable
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
-  CHECK(disabled_at > created_at),
   PRIMARY KEY ("user_id", "hash", "algorithm", "iterations", "salt", "secret_manager_version"),
-  FOREIGN KEY ("user_id") REFERENCES "user" ("id")
+
+  FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
+  CHECK(disabled_at > created_at)
 );
 
-CREATE TABLE "phone" ( -- shoud be immutable
+CREATE TABLE "phone" (
   "user_id" uuid NOT NULL,
   "number" varchar(255) NOT NULL,
   "created_at" timestamp DEFAULT now(),
   "confirmed_at" timestamp,
   "disabled_at" timestamp,
-  
-  CHECK(confirmed_at > created_at),
-  CHECK(disabled_at > confirmed_at),
-  CHECK(disabled_at > created_at),
+
   PRIMARY KEY ("user_id", "number"),
-  FOREIGN KEY ("user_id") REFERENCES "user" ("id")
+
+  FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
+  CHECK(confirmed_at > created_at),
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "phone_message_provider" (
   "id" INT PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY,
   "name" varchar(255) NOT NULL UNIQUE,
   "picture" text,
-  "client_id" varchar(255) NOT NULL,
-  "client_secret" varchar(255) NOT NULL,
+  "client_id" varchar(255) NOT NULL, -- external vendor credentials
+  "client_secret" varchar(255) NOT NULL, -- external vendor credentials
   "created_at" timestamp DEFAULT now(),
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
+  CHECK(updated_at >= created_at),
   CHECK(disabled_at > created_at)
 );
 
-CREATE TABLE "phone_messager" ( -- shoud be immutable
+CREATE TABLE "phone_messager" (
   "phone_message_provider_id" int NOT NULL,
   "user_id" uuid NOT NULL,
   "phone" varchar(255) NOT NULL,
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
-  CHECK(disabled_at > created_at),
   PRIMARY KEY ("phone_message_provider_id", "user_id", "phone"),
+
   FOREIGN KEY ("phone_message_provider_id") REFERENCES "phone_message_provider" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-  FOREIGN KEY ("user_id", "phone") REFERENCES "phone" ("user_id", "number") ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY ("user_id", "phone") REFERENCES "phone" ("user_id", "number") ON DELETE CASCADE ON UPDATE CASCADE,
+
+  CHECK(disabled_at > created_at)
 );
 
-CREATE TABLE "email" ( -- shoud be immutable
+CREATE TABLE "email" (
   "user_id" uuid NOT NULL,
   "address" varchar(255) NOT NULL,
   "created_at" timestamp DEFAULT now(),
   "confirmed_at" timestamp,
   "disabled_at" timestamp,
 
-  CHECK(confirmed_at > created_at),
-  CHECK(disabled_at > confirmed_at),
-  CHECK(disabled_at > created_at),
   PRIMARY KEY ("user_id", "address"),
-  FOREIGN KEY ("user_id") REFERENCES "user" ("id")
+
+  FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
+  CHECK(confirmed_at > created_at),
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "otp" (
@@ -203,38 +390,44 @@ CREATE TABLE "otp" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
+  UNIQUE ("secret", "digestAlgorithm", "length", "type"),
+
+  FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
   CHECK(length > 0),
   CHECK(variation >= 0),
   CHECK(confirmed_at > created_at),
-  CHECK(disabled_at > confirmed_at),
-  CHECK(disabled_at > created_at),
-  UNIQUE ("secret", "digestAlgorithm", "length", "type"),
-  FOREIGN KEY ("user_id") REFERENCES "user" ("id")
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "passkey" (
-  "credential_id" text PRIMARY KEY NOT NULL,
-  "public_key" text NOT NULL UNIQUE,
+  "credential_id" text PRIMARY KEY NOT NULL, -- external vendor credentials
+  "public_key" text NOT NULL UNIQUE, -- external vendor credentials
   "device_name" varchar(255) NOT NULL,
   "user_id" uuid NOT NULL,
   "created_at" timestamp DEFAULT now(),
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
-  CHECK(disabled_at > created_at),
-  FOREIGN KEY ("user_id") REFERENCES "user" ("id")
+  PRIMARY KEY ("user_id", "device_name"),
+
+  FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
+  CHECK(updated_at >= created_at),
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "identity_provider" (
   "id" INT PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY,
   "name" varchar(255) NOT NULL UNIQUE,
   "picture" text NOT NULL,
-  "client_id" varchar(255) NOT NULL,
-  "client_secret" varchar(255) NOT NULL,
+  "client_id" varchar(255) NOT NULL, -- external vendor credentials
+  "client_secret" varchar(255) NOT NULL, -- external vendor credentials
   "created_at" timestamp DEFAULT now(),
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
+  CHECK(updated_at >= created_at),
   CHECK(disabled_at > created_at)
 );
 
@@ -251,14 +444,17 @@ CREATE TABLE "sign_in_with" (
   "created_at" timestamp DEFAULT now(),
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
-  
+
+  PRIMARY KEY ("identity_provider_id", "user_id", "username"),
+  UNIQUE ("identity_provider_id", "username"),
+
+  FOREIGN KEY ("identity_provider_id") REFERENCES "identity_provider" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+  FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
   CHECK(expires_in > created_at),
   CHECK(refresh_token_expires_in > created_at),
-  CHECK(disabled_at > created_at),
-  UNIQUE ("identity_provider_id", "username"),
-  PRIMARY KEY ("identity_provider_id", "user_id", "username"),
-  FOREIGN KEY ("identity_provider_id") REFERENCES "identity_provider" ("id"),
-  FOREIGN KEY ("user_id") REFERENCES "user" ("id")
+  CHECK(updated_at >= created_at),
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "account" (
@@ -270,7 +466,9 @@ CREATE TABLE "account" (
   "disabled_at" timestamp,
   "deleted_at" timestamp,
 
-  CHECK(disabled_at > created_at)
+  CHECK(updated_at >= created_at),
+  CHECK(disabled_at > created_at),
+  CHECK(deleted_at > created_at)
 );
 
 CREATE TABLE "scope" (
@@ -282,6 +480,8 @@ CREATE TABLE "scope" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
+  UNIQUE ("uri", "method"),
+
   CHECK(updated_at >= created_at),
   CHECK(disabled_at > created_at)
 );
@@ -290,14 +490,16 @@ CREATE TABLE "role" (
   "id" INT PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY,
   "name" varchar(255) NOT NULL,
   "account_id" uuid NOT NULL,
-  "user_id" uuid NOT NULL, -- the creator
+  "user_id" uuid, -- the creator
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
-  CHECK(disabled_at > created_at),
   UNIQUE ("name", "account_id"),
-  FOREIGN KEY ("account_id") REFERENCES "account" ("id"),
-  FOREIGN KEY ("user_id") REFERENCES "user" ("id")
+
+  FOREIGN KEY ("account_id") REFERENCES "account" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "acl" (
@@ -306,8 +508,9 @@ CREATE TABLE "acl" (
   "created_at" timestamp DEFAULT now(),
 
   PRIMARY KEY ("role_id", "scope_id"),
-  FOREIGN KEY ("role_id") REFERENCES "role" ("id"),
-  FOREIGN KEY ("scope_id") REFERENCES "scope" ("id")
+
+  FOREIGN KEY ("role_id") REFERENCES "role" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("scope_id") REFERENCES "scope" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 CREATE TABLE "member" (
@@ -320,16 +523,18 @@ CREATE TABLE "member" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
-  CHECK(confirmed_at > created_at),
-  CHECK(disabled_at > confirmed_at),
-  CHECK(disabled_at > created_at),
   UNIQUE ("account_id", "user_id"),
-  FOREIGN KEY ("account_id") REFERENCES "account" ("id"),
-  FOREIGN KEY ("user_id") REFERENCES "user" ("id"),
-  FOREIGN KEY ("role_id") REFERENCES "role" ("id")
+
+  FOREIGN KEY ("account_id") REFERENCES "account" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("role_id") REFERENCES "role" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+
+  CHECK(updated_at >= created_at),
+  CHECK(confirmed_at > created_at),
+  CHECK(disabled_at > created_at)
 );
 
-CREATE TABLE "api_token" ( -- shoud be immutable
+CREATE TABLE "api_token" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "token" text NOT NULL UNIQUE,
   "member_id" uuid NOT NULL,
@@ -339,11 +544,12 @@ CREATE TABLE "api_token" ( -- shoud be immutable
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
-  CHECK(expires_in > starts_in),
+  FOREIGN KEY ("member_id") REFERENCES "member" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("role_id") REFERENCES "role" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+
   CHECK(starts_in >= created_at),
+  CHECK(expires_in > starts_in),
   CHECK(disabled_at > created_at),
-  FOREIGN KEY ("member_id") REFERENCES "member" ("id"),
-  FOREIGN KEY ("role_id") REFERENCES "role" ("id")
 );
 
 CREATE TABLE "oauth" (
@@ -361,34 +567,39 @@ CREATE TABLE "oauth" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
-  CHECK(disabled_at > created_at),
   UNIQUE ("name", "member_id"),
-  FOREIGN KEY ("member_id") REFERENCES "member" ("id"),
-  FOREIGN KEY ("role_id") REFERENCES "role" ("id")
+
+  FOREIGN KEY ("member_id") REFERENCES "member" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("role_id") REFERENCES "role" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+
+  CHECK(updated_at >= created_at),
+  CHECK(disabled_at > created_at),
 );
 
-CREATE TABLE "oauth_access_token" ( -- shoud be immutable
+CREATE TABLE "oauth_access_token" (
   "token" varchar(255) PRIMARY KEY NOT NULL,
   "oauth_id" uuid NOT NULL UNIQUE,
   "expires_in" timestamp NOT NULL,
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
+  FOREIGN KEY ("oauth_id") REFERENCES "oauth" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
   CHECK(expires_in > created_at),
-  CHECK(disabled_at > created_at),
-  FOREIGN KEY ("oauth_id") REFERENCES "oauth" ("id")
+  CHECK(disabled_at > created_at)
 );
 
-CREATE TABLE "oauth_refresh_token" ( -- shoud be immutable
+CREATE TABLE "oauth_refresh_token" (
   "token" varchar(255) PRIMARY KEY NOT NULL,
   "oauth_id" uuid NOT NULL UNIQUE,
   "expires_in" timestamp NOT NULL,
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
+  FOREIGN KEY ("oauth_id") REFERENCES "oauth" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
   CHECK(expires_in > created_at),
   CHECK(disabled_at > created_at),
-  FOREIGN KEY ("oauth_id") REFERENCES "oauth" ("id")
 );
 
 --------------------------------------------------
@@ -405,8 +616,8 @@ CREATE TABLE "address" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
-  CHECK(disabled_at > created_at),
-  CHECK(updated_at >= created_at)
+  CHECK(updated_at >= created_at),
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "customer" (
@@ -422,9 +633,10 @@ CREATE TABLE "customer" (
 
   UNIQUE ("account_id", "tax_id"),
 
-  CHECK(disabled_at > created_at),
+  FOREIGN KEY ("account_id") REFERENCES "account" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
   CHECK(updated_at >= created_at),
-  FOREIGN KEY ("account_id") REFERENCES "account" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "customer_address" (
@@ -440,40 +652,63 @@ CREATE TABLE "customer_address" (
   UNIQUE ("customer_id", "address_id", "number"),
 
   FOREIGN KEY ("customer_id") REFERENCES "customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY ("address_id") REFERENCES "address" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+  FOREIGN KEY ("address_id") REFERENCES "address" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+
+  CHECK(updated_at >= created_at),
+  CHECK(disabled_at > created_at)
 );
 
 ALTER TABLE "customer" 
   ADD CONSTRAINT fk_customer_default_customer_address 
     FOREIGN KEY ("default_customer_address_id") REFERENCES "customer_address" ("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
+CREATE TABLE  "payment_gateway" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "name" VARCHAR(255) NOT NULL UNIQUE,
+  "picture" TEXT NOT NULL,
+  "endpoint" VARCHAR(255) NOT NULL,
+  "client_id" VARCHAR(255) NOT NULL,
+  "client_secret" TEXT NOT NULL,
+  "created_at" timestamp NOT NULL DEFAULT now(),
+  "updated_at" timestamp NOT NULL DEFAULT now(),
+  "disabled_at" timestamp	
+);
+
 CREATE TABLE "credit_card" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "customer_id" uuid NOT NULL,
-  "token" text NOT NULL UNIQUE,
-  "gateway_token" varchar(255) NOT NULL,
+  "payment_gateway_id" varchar(50) NOT NULL,
+  "fingerprint" VARCHAR(128),
+  "token" text NOT NULL,
+  "network_token" VARCHAR(256),
   "brand" card_brand NOT NULL,
   "last_four_digits" varchar(4) NOT NULL,
   "holder_name" varchar(255) NOT NULL,
   "expiration_month" int NOT NULL,
   "expiration_year" int NOT NULL,
-  "gateway_provider" varchar(50) NOT NULL,
+  "is_ephemeral" boolean NOT NULL DEFAULT false,
+  "expires_in" timestamp,
   "created_at" timestamp DEFAULT now(),
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
+  UNIQUE ("customer_id", "payment_gateway_id", "fingerprint"),
+
+  FOREIGN KEY ("customer_id") REFERENCES "customer" ("id"),
+
   CHECK(expiration_month BETWEEN 1 AND 12),
   CHECK(expiration_year >= EXTRACT(YEAR FROM now())),
-  CHECK(disabled_at > created_at),
-  FOREIGN KEY ("customer_id") REFERENCES "customer" ("id")
+  CHECK(expires_in > created_at),
+  CHECK(updated_at >= created_at),
+  CHECK(disabled_at > created_at)
 );
 
-CREATE TABLE "discount" ( -- shoud be immutable
+CREATE TABLE "discount" (
   "id" INT PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY,
   "title" varchar(255) NOT NULL,
   "description" text,
   "percent" DECIMAL(10,2),
-  "cap_amount" DECIMAL(10,2) NOT NULL,
+  "cap_amount" INT NOT NULL,
   "currency" currency NOT NULL,
   "is_cumulative" boolean DEFAULT false,
   "quantity" int NOT NULL,
@@ -491,21 +726,20 @@ CREATE TABLE "discount" ( -- shoud be immutable
   CHECK(max_use_per_customer >= 1),
   CHECK(starts_in >= created_at),
   CHECK(expires_in > starts_in),
-  CHECK(starts_in < expires_in),
   CHECK(disabled_at > created_at)
 );
 
-CREATE TABLE "discount_condition" (
+CREATE TABLE "discount_rule" (
   "id" INT PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY,
   "discount_id" int NOT NULL,
-  "type" discount_condition_type NOT NULL,
+  "type" discount_rule_type NOT NULL,
   "value" text NOT NULL,
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
-  CHECK(disabled_at > created_at),
-  CHECK(updated_at >= created_at),
-  FOREIGN KEY ("discount_id") REFERENCES "discount" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY ("discount_id") REFERENCES "discount" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "coupon" (
@@ -513,7 +747,7 @@ CREATE TABLE "coupon" (
   "discount_id" int NOT NULL,
   "code" varchar(255) NOT NULL UNIQUE,
 
-  FOREIGN KEY ("discount_id") REFERENCES "discount" ("id")
+  FOREIGN KEY ("discount_id") REFERENCES "discount" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 CREATE TABLE "product" (
@@ -534,13 +768,24 @@ CREATE TABLE "product" (
   "disabled_at" timestamp,
 
   CHECK(renewal_period_in_days >= 0),
-  CHECK(cancellation_window_in_days >= 0),
   CHECK(max_renewal_use >= 1),
+  CHECK(cancellation_window_in_days >= 0),
   CHECK(starts_in >= created_at),
   CHECK(expires_in > starts_in),
-  CHECK(starts_in < expires_in),
-  CHECK(disabled_at > created_at),
-  CHECK(updated_at >= created_at)
+  CHECK(updated_at >= created_at),
+  CHECK(disabled_at > created_at)
+);
+
+CREATE TABLE "price" (
+  "id" int PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY,
+  "product_id" uuid NOT NULL,
+  "amount" INT NOT NULL,
+  "currency" currency NOT NULL,
+  "created_at" timestamp DEFAULT now()
+
+  FOREIGN KEY ("product_id") REFERENCES "product" ("id"),
+
+  CHECK(amount >= 0)
 );
 
 CREATE TABLE "product_discount" (
@@ -551,24 +796,10 @@ CREATE TABLE "product_discount" (
 
   PRIMARY KEY ("product_id", "discount_id"),
 
-  CHECK(disabled_at > created_at),
-  CHECK(updated_at >= created_at),
-
   FOREIGN KEY ("product_id") REFERENCES "product" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY ("discount_id") REFERENCES "discount" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
+  FOREIGN KEY ("discount_id") REFERENCES "discount" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
-CREATE TABLE "price" ( -- shoud be immutable
-  "id" int PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY,
-  "product_id" uuid NOT NULL,
-  "amount" numeric(15, 2) NOT NULL,
-  "currency" currency NOT NULL,
-  "created_at" timestamp DEFAULT now(),
-  "disabled_at" timestamp,
-
-  CHECK(amount >= 0),
-  CHECK(disabled_at > created_at),
-  FOREIGN KEY ("product_id") REFERENCES "product" ("id")
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE  "split" (
@@ -591,22 +822,23 @@ CREATE TABLE  "split_receiver" (
   "split_id" uuid NOT NULL,
   "customer_id" uuid NOT NULL,
   "type" split_type NOT NULL,
-  "value" NUMERIC(15, 2) NOT NULL,
+  "value" INT NOT NULL,
   "currency" currency NOT NULL,
   "note" TEXT,
   "created_at" timestamp NOT NULL DEFAULT now(),
   "disabled_at" timestamp,
 
+  FOREIGN KEY ("split_id") REFERENCES "split" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("customer_id") REFERENCES "customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
   CHECK(
     (type = 'PERCENTAGE' AND value BETWEEN 0 AND 1)
     OR
     (type = 'FIXED' AND value >= 0)
-  ),
-  FOREIGN KEY ("split_id") REFERENCES "split" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY ("customer_id") REFERENCES "customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  )
 );
 
-CREATE TABLE "order" ( -- shoud be immutable
+CREATE TABLE "order" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "customer_id" uuid NOT NULL,
   "coupon_id" uuid,
@@ -614,34 +846,30 @@ CREATE TABLE "order" ( -- shoud be immutable
   "split_id" uuid,
   "note" text,
   "created_at" timestamp DEFAULT now(),
-  "confirmed_at" timestamp,
-  "disabled_at" timestamp,
 
-  CHECK(confirmed_at > created_at),
-  CHECK(disabled_at > confirmed_at),
-  CHECK(disabled_at > created_at),
-  FOREIGN KEY ("customer_id") REFERENCES "customer" ("id"),
-  FOREIGN KEY ("coupon_id") REFERENCES "coupon" ("id"),
-  FOREIGN KEY ("split_id") REFERENCES "split" ("id"),
-  FOREIGN KEY ("voucher_id") REFERENCES "voucher" ("id")
+  FOREIGN KEY ("customer_id") REFERENCES "customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("coupon_id") REFERENCES "coupon" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,
+  FOREIGN KEY ("voucher_id") REFERENCES "voucher" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+  FOREIGN KEY ("split_id") REFERENCES "split" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT
 );
 
-CREATE TABLE "order_item" ( -- shoud be immutable
+CREATE TABLE "order_item" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "order_id" uuid NOT NULL,
   "product_id" uuid NOT NULL,
-  "quantity" int NOT NULL,
   "price_id" int NOT NULL,
+  "quantity" int NOT NULL,
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
   UNIQUE ("order_id", "product_id"),
 
+  FOREIGN KEY ("order_id") REFERENCES "order" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("product_id") REFERENCES "product" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+  FOREIGN KEY ("price_id") REFERENCES "price" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,
+
   CHECK(quantity >= 1),
-  CHECK(disabled_at > created_at),
-  FOREIGN KEY ("order_id") REFERENCES "order" ("id"),
-  FOREIGN KEY ("product_id") REFERENCES "product" ("id"),
-  FOREIGN KEY ("price_id") REFERENCES "price" ("id")
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "order_item_discount" (
@@ -649,10 +877,12 @@ CREATE TABLE "order_item_discount" (
   "discount_id" int NOT NULL,
   "created_at" timestamp DEFAULT now(),
 
-  PRIMARY KEY ("order_item_id", "discount_id")
+  PRIMARY KEY ("order_item_id", "discount_id"),
 
-  FOREIGN KEY ("order_item_id") REFERENCES "order_item" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,
-  FOREIGN KEY ("discount_id") REFERENCES "discount" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT
+  FOREIGN KEY ("order_item_id") REFERENCES "order_item" ("id") ON DELETE CASCADE ON UPDATE RESTRICT,
+  FOREIGN KEY ("discount_id") REFERENCES "discount" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,
+
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "subscription" (
@@ -661,9 +891,12 @@ CREATE TABLE "subscription" (
   "renewal_period_in_days" int NOT NULL DEFAULT 0,
   "max_renewal_use" int,
   "cancellation_window_in_days" int NOT NULL DEFAULT 0,
-  "canceled_at" timestamp,
+  "created_at" timestamp DEFAULT now(),
+  "disabled_at" timestamp,
 
-  FOREIGN KEY ("order_item_id") REFERENCES "item" ("id")
+  FOREIGN KEY ("order_item_id") REFERENCES "order_item" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE "subscription_cycle" (
@@ -675,13 +908,14 @@ CREATE TABLE "subscription_cycle" (
   "created_at" timestamp DEFAULT now(),
   "updated_at" timestamp DEFAULT now(),
 
+  FOREIGN KEY ("subscription_id") REFERENCES "subscription" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("invoice_id") REFERENCES "invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+
   CHECK(expires_in > starts_in),
-  CHECK(updated_at >= created_at),
-  FOREIGN KEY ("subscription_id") REFERENCES "subscription" ("id"),
-  FOREIGN KEY ("invoice_id") REFERENCES "invoice" ("id")
+  CHECK(updated_at >= created_at)
 );
 
-CREATE TABLE subscription_pause (
+CREATE TABLE "subscription_pause_status" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "subscription_cycle_id" uuid NOT NULL,
   "note" text,
@@ -690,33 +924,22 @@ CREATE TABLE subscription_pause (
   "paused_at" timestamp NOT NULL, -- starts in subscription_cycle.expires_in
   "resumed_at" timestamp,
 
-  CHECK(disabled_at > created_at),
-  CHECK(resumed_at >= paused_at),
-  CHECK(paused_at >= created_at),
+  FOREIGN KEY ("subscription_cycle_id") REFERENCES "subscription_cycle" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
 
-  FOREIGN KEY ("subscription_cycle_id") REFERENCES "subscription_cycle" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  CHECK(disabled_at > created_at),
+  CHECK(paused_at >= created_at),
+  CHECK(resumed_at >= paused_at)
 );
 
+-- [TODO] deve mudar, pq será um crédito no extrato da wallet do customer
 CREATE TABLE "voucher" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "discount_id" int NOT NULL,
   "customer_id" uuid NOT NULL,
   "code" varchar(255) NOT NULL UNIQUE,
 
-  FOREIGN KEY ("discount_id") REFERENCES "discount" ("id"),
-  FOREIGN KEY ("customer_id") REFERENCES "customer" ("id")
-);
-
-CREATE TABLE  "payment_gateway" (
-  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "name" VARCHAR(255) NOT NULL UNIQUE,
-  "picture" TEXT NOT NULL,
-  "endpoint" VARCHAR(255) NOT NULL,
-  "client_id" VARCHAR(255) NOT NULL,
-  "client_secret" TEXT NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp	
+  FOREIGN KEY ("discount_id") REFERENCES "discount" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,
+  FOREIGN KEY ("customer_id") REFERENCES "customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE  "receiver_gateway" (
@@ -730,18 +953,21 @@ CREATE TABLE  "receiver_gateway" (
   PRIMARY KEY ("customer_id", "payment_gateway_id", "split_receiver_id"),
 
   FOREIGN KEY ("customer_id") REFERENCES "customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY ("payment_gateway_id") REFERENCES "payment_gateway" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY ("split_receiver_id") REFERENCES "split_receiver" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY ("payment_gateway_id") REFERENCES "payment_gateway" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+  FOREIGN KEY ("split_receiver_id") REFERENCES "split_receiver" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+
+  CHECK(updated_at >= created_at),
+  CHECK(disabled_at > created_at)
 );
 
 CREATE TABLE  "payment_method" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "customer_id" uuid NOT NULL,
   "title" VARCHAR(255) NOT NULL,
   "description" TEXT,
-  "grace_period_in_days" int NOT NULL,
+  "customer_id" uuid NOT NULL,
   "payment_gateway_id" uuid NOT NULL,
   "payment_gateway_external_id" VARCHAR(255) NOT NULL,
+  "grace_period_in_days" int NOT NULL,
   "type" payment_method_type NOT NULL,
   "created_at" timestamp NOT NULL DEFAULT now(),
   "updated_at" timestamp NOT NULL DEFAULT now(),
@@ -750,52 +976,57 @@ CREATE TABLE  "payment_method" (
   UNIQUE ("customer_id", "payment_gateway_id", "payment_gateway_external_id"),
   UNIQUE ("customer_id", "title"),
 
-  CHECK(grace_period_in_days >= 0),
-  CHECK(disabled_at > created_at),
-  CHECK(updated_at >= created_at),
   FOREIGN KEY ("customer_id") REFERENCES "customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY ("payment_gateway_id") REFERENCES "payment_gateway" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY ("payment_gateway_id") REFERENCES "payment_gateway" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
+  CHECK(grace_period_in_days >= 0),
+  CHECK(updated_at >= created_at),
+  CHECK(disabled_at > created_at)
 );
 
 ALTER TABLE "customer" 
   ADD CONSTRAINT fk_customer_default_payment_method 
     FOREIGN KEY ("default_payment_method_id") REFERENCES "payment_method" ("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
-CREATE TABLE  "invoice" ( -- shoud be immutable
+CREATE TABLE  "invoice" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "order_id" uuid NOT NULL,
-  "amount_due" numeric(15, 2) NOT NULL,
-  "tax_amount" numeric(15, 2) NOT NULL,
-  "shipping_amount" numeric(15,2) NOT NULL DEFAULT 0,
+  "amount" INT NOT NULL,
+  "tax_amount" INT NOT NULL,
+  -- "shipping_amount" INT NOT NULL DEFAULT 0,
   "note" text,
-  "created_at" timestamp NOT NULL DEFAULT now(),
   "starts_in" timestamp NOT NULL,
   "expires_in" timestamp,
+  "created_at" timestamp NOT NULL DEFAULT now(),
+
+  FOREIGN KEY ("order_id") REFERENCES "order" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
 
   CHECK(starts_in >= created_at),
-  CHECK(expires_in > starts_in),
-  FOREIGN KEY ("order_id") REFERENCES "order" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  CHECK(expires_in > starts_in)
 );
 
-CREATE TABLE  "payment" ( -- shoud be immutable
+CREATE TABLE  "payment" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "invoice_id" uuid REFERENCES invoice (id),
   "payment_method_id" uuid NOT NULL,
-  "amount" numeric(15, 2) NOT NULL,
+  "amount" INT NOT NULL,
+  "installments" int NOT NULL DEFAULT 1,
   "currency" currency NOT NULL,
-  "instalments" int NOT NULL DEFAULT 1,
   "created_at" timestamp NOT NULL DEFAULT now(),
 
-  FOREIGN KEY ("invoice_id") REFERENCES "invoice" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY ("payment_method_id") REFERENCES "payment_method" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY ("invoice_id") REFERENCES "invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+  FOREIGN KEY ("payment_method_id") REFERENCES "payment_method" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+
+  CHECK(amount >= 0),
+  CHECK(installments >= 1)
 );
 
-CREATE TABLE  "payment_status" ( -- shoud be immutable
+CREATE TABLE  "payment_status" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "payment_id" uuid NOT NULL,
   "transaction_id" TEXT NOT NULL,
   "data" TEXT NOT NULL,
-  "state" payment_status NOT NULL DEFAULT 'pending',
+  "status" payment_status NOT NULL DEFAULT 'CREATED',
   "created_at" timestamp NOT NULL DEFAULT now(),
 
   UNIQUE ("payment_id", "transaction_id"),
@@ -803,36 +1034,40 @@ CREATE TABLE  "payment_status" ( -- shoud be immutable
   FOREIGN KEY ("payment_id") REFERENCES "payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE payment_refund ( -- shoud be immutable
+CREATE TABLE payment_refund (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "payment_id" uuid NOT NULL,
-  "amount" numeric(15,2) NOT NULL,
+  "amount" INT NOT NULL,
   "currency" currency NOT NULL,
   "note" text,
   "created_at" timestamp NOT NULL DEFAULT now(),
 
-  FOREIGN KEY ("payment_id") REFERENCES "payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY ("payment_id") REFERENCES "payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
+  CHECK(amount >= 0)
 );
 
-CREATE TABLE payment_dispute ( -- shoud be immutable
+CREATE TABLE payment_dispute (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "payment_id" uuid NOT NULL,
-  "status" dispute_status NOT NULL DEFAULT 'open',
+  "status" dispute_status NOT NULL DEFAULT 'OPEN',
   "note" text,
   "created_at" timestamp NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("payment_id") REFERENCES "payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE payment_chargeback ( -- shoud be immutable
+CREATE TABLE payment_chargeback (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "dispute_id" uuid REFERENCES,
-  "amount" numeric(15,2) NOT NULL,
+  "amount" INT NOT NULL,
   "currency" currency NOT NULL,
-  "note" text
+  "note" text,
   "created_at" timestamp NOT NULL DEFAULT now(),
 
-  FOREIGN KEY ("dispute_id") REFERENCES "payment_dispute" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY ("dispute_id") REFERENCES "payment_dispute" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+
+  CHECK(amount >= 0)
 );
 
 CREATE TABLE  "offer" (
@@ -850,17 +1085,22 @@ CREATE TABLE  "offer_item" (
   "quantity" int NOT NULL DEFAULT 1,
   "created_at" timestamp NOT NULL DEFAULT now(),
   "updated_at" timestamp NOT NULL DEFAULT now(),
+
   PRIMARY KEY ("offer_id", "product_id"),
 
   FOREIGN KEY ("offer_id") REFERENCES "offer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY ("product_id") REFERENCES "product" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY ("product_id") REFERENCES "product" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
+  CHECK(quantity >= 1),
+  CHECK(updated_at >= created_at)
 );
 
-CREATE TABLE "consumption" ( -- shoud be immutable
+-- Preciso criar um wallet com extrato, onde as entradas virão de comprar de produtos tipo crédito, voucher, refund, gift card, etc. E as saídas viram de notificação de eventos do que foi consumido ou por valr fixo mensal
+CREATE TABLE "consumption" (
   "id" INT PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY,
   "account_id" uuid NOT NULL,
   "data" text NOT NULL,
-  "amount" numeric(15, 2) NOT NULL,
+  "amount" INT NOT NULL,
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
@@ -868,3 +1108,94 @@ CREATE TABLE "consumption" ( -- shoud be immutable
   CHECK(disabled_at > created_at),
   FOREIGN KEY ("account_id") REFERENCES "account" ("id")
 );
+
+-- business rules
+
+CREATE OR REPLACE FUNCTION prevent_update()
+RETURNS trigger AS $$
+BEGIN
+  RAISE EXCEPTION 'Updates are not allowed on table "%"', TG_TABLE_NAME;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_prevent_update_password
+BEFORE UPDATE ON password
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_phone
+BEFORE UPDATE ON phone
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_phone_messager
+BEFORE UPDATE ON phone_messager
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_email
+BEFORE UPDATE ON email
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_api_token
+BEFORE UPDATE ON api_token
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_oauth_access_token
+BEFORE UPDATE ON oauth_access_token
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_oauth_refresh_token
+BEFORE UPDATE ON oauth_refresh_token
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_order_item
+BEFORE UPDATE ON order_item
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_invoice
+BEFORE UPDATE ON invoice
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_payment_status
+BEFORE UPDATE ON payment_status
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_payment_refund
+BEFORE UPDATE ON payment_refund
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_payment_dispute
+BEFORE UPDATE ON payment_dispute
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_payment_chargeback
+BEFORE UPDATE ON payment_chargeback
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_consumption
+BEFORE UPDATE ON consumption
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+
+CREATE OR REPLACE FUNCTION check_discount_exclusivity_by_context()
+RETURNS trigger AS $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM product WHERE discount_id = NEW.discount_id)
+     AND TG_TABLE_NAME = 'coupon' THEN
+    RAISE EXCEPTION 'Discount % is already used by a product', NEW.discount_id;
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM coupon WHERE discount_id = NEW.discount_id)
+     AND TG_TABLE_NAME = 'product' THEN
+    RAISE EXCEPTION 'Discount % is already used by a coupon', NEW.discount_id;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_discount_exclusivity_by_context_product
+BEFORE INSERT OR UPDATE ON product
+FOR EACH ROW EXECUTE FUNCTION check_discount_exclusivity_by_context();
+
+CREATE TRIGGER trg_check_discount_exclusivity_by_context_coupon
+BEFORE INSERT OR UPDATE ON coupon
+FOR EACH ROW EXECUTE FUNCTION check_discount_exclusivity_by_context();
