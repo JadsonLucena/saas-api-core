@@ -285,6 +285,14 @@ CREATE TYPE "discount_rule_type" AS ENUM (
   'CUSTOM_EXPRESSION'
 );
 
+CREATE TYPE "invoice_adjustment_type" AS ENUM (
+  'DISCOUNT',
+  'FEE',
+  'TAX'
+);
+
+--------------------------------------------------
+
 CREATE TABLE "user" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "first_name" varchar(255) NOT NULL,
@@ -1003,6 +1011,20 @@ CREATE TABLE  "invoice" (
 
   CHECK(starts_in >= created_at),
   CHECK(expires_in > starts_in)
+);
+
+CREATE TABLE "invoice_adjustment" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "invoice_id" uuid NOT NULL,
+  "amount" INT NOT NULL,
+  "currency" currency NOT NULL,
+  "type" invoice_adjustment_type NOT NULL,
+  "note" text,
+  "created_at" timestamp NOT NULL DEFAULT now(),
+
+  FOREIGN KEY ("invoice_id") REFERENCES "invoice" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
+  CHECK(amount >= 0)
 );
 
 CREATE TABLE  "payment" (
