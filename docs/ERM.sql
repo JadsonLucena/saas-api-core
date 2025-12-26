@@ -285,10 +285,18 @@ CREATE TYPE "discount_rule_type" AS ENUM (
   'CUSTOM_EXPRESSION'
 );
 
+CREATE TYPE "invoice_type" AS ENUM (
+  -- 'ADJUSTMENT',
+  'ONE_TIME',
+  'SUBSCRIPTION_CYCLE'
+);
+
 CREATE TYPE "invoice_adjustment_type" AS ENUM (
+  'ADJUSTMENT',
   'DISCOUNT',
   'FEE',
-  'TAX'
+  'OTHER',
+  'WRITE_OFF'
 );
 
 --------------------------------------------------
@@ -852,13 +860,15 @@ CREATE TABLE "order" (
   "coupon_id" uuid,
   "voucher_id" uuid UNIQUE,
   "split_id" uuid,
+  "invoice_id" uuid NOT NULL UNIQUE,
   "note" text,
   "created_at" timestamp DEFAULT now(),
 
   FOREIGN KEY ("customer_id") REFERENCES "customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY ("coupon_id") REFERENCES "coupon" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,
   FOREIGN KEY ("voucher_id") REFERENCES "voucher" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-  FOREIGN KEY ("split_id") REFERENCES "split" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT
+  FOREIGN KEY ("split_id") REFERENCES "split" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,
+  FOREIGN KEY ("invoice_id") REFERENCES "invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 CREATE TABLE "order_item" (
@@ -866,6 +876,7 @@ CREATE TABLE "order_item" (
   "order_id" uuid NOT NULL,
   "product_id" uuid NOT NULL,
   "price_id" int NOT NULL,
+  "is_prorated" boolean NOT NULL DEFAULT false,
   "quantity" int NOT NULL,
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
@@ -895,22 +906,35 @@ CREATE TABLE "order_item_discount" (
 
 CREATE TABLE "subscription" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "order_item_id" uuid NOT NULL,
   "renewal_period_in_days" int NOT NULL DEFAULT 0,
   "max_renewal_use" int,
-  "cancellation_window_in_days" int NOT NULL DEFAULT 0,
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
-  FOREIGN KEY ("order_item_id") REFERENCES "order_item" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-
   CHECK(disabled_at > created_at)
+);
+
+CREATE TABLE "subscription_item" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "subscription_id" uuid NOT NULL,
+  "order_item_id" uuid NOT NULL,
+  "starts_in" timestamp NOT NULL,
+  "expires_in" timestamp,
+  "created_at" timestamp DEFAULT now(),
+
+  UNIQUE ("subscription_id", "order_item_id"),
+
+  FOREIGN KEY ("subscription_id") REFERENCES "subscription" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("order_item_id") REFERENCES "order_item" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+
+  CHECK(starts_in >= created_at),
+  CHECK(expires_in > starts_in)
 );
 
 CREATE TABLE "subscription_cycle" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "subscription_id" uuid NOT NULL,
-  "invoice_id" uuid NOT NULL,
+  "invoice_id" uuid NOT NULL UNIQUE,
   "starts_in" timestamp NOT NULL,
   "expires_in" timestamp NOT NULL,
   "created_at" timestamp DEFAULT now(),
@@ -998,19 +1022,42 @@ ALTER TABLE "customer"
 
 CREATE TABLE  "invoice" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "order_id" uuid NOT NULL,
-  "amount" INT NOT NULL,
-  "tax_amount" INT NOT NULL,
+  -- "amount" INT NOT NULL,
+  -- "tax_amount" INT NOT NULL,
   -- "shipping_amount" INT NOT NULL DEFAULT 0,
+  "type" invoice_type NOT NULL,
   "note" text,
+  "parent_invoice_id" uuid, -- Used by up-selling
   "starts_in" timestamp NOT NULL,
   "expires_in" timestamp,
   "created_at" timestamp NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("order_id") REFERENCES "order" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("parent_invoice_id") REFERENCES "invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
   CHECK(starts_in >= created_at),
   CHECK(expires_in > starts_in)
+);
+
+CREATE TABLE "invoice_item" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "invoice_id" uuid NOT NULL,
+  "order_item_id" uuid NOT NULL,
+  "amount" INT NOT NULL,
+  "currency" currency NOT NULL,
+  "tax_amount" INT NOT NULL DEFAULT 0,
+  "shipping_amount" INT NOT NULL DEFAULT 0,
+  "is_prorated" boolean NOT NULL DEFAULT false,
+  "quantity" int NOT NULL DEFAULT 1,
+  "note" text,
+  "created_at" timestamp NOT NULL DEFAULT now(),
+
+  FOREIGN KEY ("invoice_id") REFERENCES "invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+  FOREIGN KEY ("order_item_id") REFERENCES "order_item" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+
+  CHECK(amount >= 0),
+  CHECK(tax_amount >= 0),
+  CHECK(shipping_amount >= 0)
 );
 
 CREATE TABLE "invoice_adjustment" (
@@ -1018,13 +1065,14 @@ CREATE TABLE "invoice_adjustment" (
   "invoice_id" uuid NOT NULL,
   "amount" INT NOT NULL,
   "currency" currency NOT NULL,
+  "is_prorated" boolean NOT NULL DEFAULT false,
   "type" invoice_adjustment_type NOT NULL,
   "note" text,
   "created_at" timestamp NOT NULL DEFAULT now(),
 
-  FOREIGN KEY ("invoice_id") REFERENCES "invoice" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("invoice_id") REFERENCES "invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
-  CHECK(amount >= 0)
+  CHECK(amount != 0)
 );
 
 CREATE TABLE  "payment" (
