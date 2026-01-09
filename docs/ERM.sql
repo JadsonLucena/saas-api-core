@@ -1196,6 +1196,24 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION prevent_update_except_disabled_at()
+RETURNS trigger AS $$
+BEGIN
+    IF (NEW IS DISTINCT FROM OLD) THEN
+        IF (NEW.* IS DISTINCT FROM (OLD.*) AND (NEW.disabled_at IS DISTINCT FROM OLD.disabled_at)) THEN
+             NULL; 
+        END IF;
+
+        IF ROW(NEW.*) #= hstore('disabled_at', OLD.disabled_at::text) 
+           IS DISTINCT FROM ROW(OLD.*) #= hstore('disabled_at', OLD.disabled_at::text) THEN
+            RAISE EXCEPTION 'Updates are only allowed on "disabled_at" column in table %', TG_TABLE_NAME;
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE TRIGGER trg_prevent_update_password
 BEFORE UPDATE ON IAM."password"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
@@ -1228,11 +1246,11 @@ FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
 CREATE TRIGGER trg_prevent_update_discount
 BEFORE UPDATE ON ecommerce."discount"
-FOR EACH ROW EXECUTE FUNCTION prevent_update();
+FOR EACH ROW EXECUTE FUNCTION prevent_update_except_disabled_at();
 
 CREATE TRIGGER trg_prevent_update_discount_rule
 BEFORE UPDATE ON ecommerce."discount_rule"
-FOR EACH ROW EXECUTE FUNCTION prevent_update();
+FOR EACH ROW EXECUTE FUNCTION prevent_update_except_disabled_at();
 
 CREATE TRIGGER trg_prevent_update_coupon
 BEFORE UPDATE ON ecommerce."coupon"
@@ -1244,11 +1262,11 @@ FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
 CREATE TRIGGER trg_prevent_update_product_discount
 BEFORE UPDATE ON ecommerce."product_discount"
-FOR EACH ROW EXECUTE FUNCTION prevent_update();
+FOR EACH ROW EXECUTE FUNCTION prevent_update_except_disabled_at();
 
 CREATE TRIGGER trg_prevent_update_split_receiver
 BEFORE UPDATE ON ecommerce."split_receiver"
-FOR EACH ROW EXECUTE FUNCTION prevent_update();
+FOR EACH ROW EXECUTE FUNCTION prevent_update_except_disabled_at();
 
 CREATE TRIGGER trg_prevent_update_order
 BEFORE UPDATE ON ecommerce."order"
@@ -1256,15 +1274,15 @@ FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
 CREATE TRIGGER trg_prevent_update_order_item
 BEFORE UPDATE ON ecommerce."order_item"
-FOR EACH ROW EXECUTE FUNCTION prevent_update();
+FOR EACH ROW EXECUTE FUNCTION prevent_update_except_disabled_at();
 
 CREATE TRIGGER trg_prevent_update_order_item_discount
 BEFORE UPDATE ON ecommerce."order_item_discount"
-FOR EACH ROW EXECUTE FUNCTION prevent_update();
+FOR EACH ROW EXECUTE FUNCTION prevent_update_except_disabled_at();
 
 CREATE TRIGGER trg_prevent_update_subscription
 BEFORE UPDATE ON ecommerce."subscription"
-FOR EACH ROW EXECUTE FUNCTION prevent_update();
+FOR EACH ROW EXECUTE FUNCTION prevent_update_except_disabled_at();
 
 CREATE TRIGGER trg_prevent_update_subscription_item
 BEFORE UPDATE ON ecommerce."subscription_item"
@@ -1276,7 +1294,7 @@ FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
 CREATE TRIGGER trg_prevent_update_subscription_pause_status
 BEFORE UPDATE ON ecommerce."subscription_pause_status"
-FOR EACH ROW EXECUTE FUNCTION prevent_update();
+FOR EACH ROW EXECUTE FUNCTION prevent_update_except_disabled_at();
 
 CREATE TRIGGER trg_prevent_update_invoice
 BEFORE UPDATE ON ecommerce."invoice"
