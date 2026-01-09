@@ -1224,12 +1224,74 @@ CREATE TRIGGER trg_prevent_update_oauth_refresh_token
 BEFORE UPDATE ON IAM."oauth_refresh_token"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
+--------------------------------------------------
+
+CREATE TRIGGER trg_prevent_update_discount
+BEFORE UPDATE ON ecommerce."discount"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_discount_rule
+BEFORE UPDATE ON ecommerce."discount_rule"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_coupon
+BEFORE UPDATE ON ecommerce."coupon"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_price
+BEFORE UPDATE ON ecommerce."price"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_product_discount
+BEFORE UPDATE ON ecommerce."product_discount"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_split_receiver
+BEFORE UPDATE ON ecommerce."split_receiver"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_order
+BEFORE UPDATE ON ecommerce."order"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
 CREATE TRIGGER trg_prevent_update_order_item
 BEFORE UPDATE ON ecommerce."order_item"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
+CREATE TRIGGER trg_prevent_update_order_item_discount
+BEFORE UPDATE ON ecommerce."order_item_discount"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_subscription
+BEFORE UPDATE ON ecommerce."subscription"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_subscription_item
+BEFORE UPDATE ON ecommerce."subscription_item"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_subscription_cycle
+BEFORE UPDATE ON ecommerce."subscription_cycle"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_subscription_pause_status
+BEFORE UPDATE ON ecommerce."subscription_pause_status"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
 CREATE TRIGGER trg_prevent_update_invoice
 BEFORE UPDATE ON ecommerce."invoice"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_invoice_item
+BEFORE UPDATE ON ecommerce."invoice_item"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_invoice_adjustment
+BEFORE UPDATE ON ecommerce."invoice_adjustment"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_payment
+BEFORE UPDATE ON ecommerce."payment"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
 CREATE TRIGGER trg_prevent_update_payment_transaction
@@ -1252,6 +1314,7 @@ CREATE TRIGGER trg_prevent_update_consumption
 BEFORE UPDATE ON ecommerce."consumption"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
+--------------------------------------------------
 
 CREATE OR REPLACE FUNCTION check_discount_exclusivity_by_context()
 RETURNS trigger AS $$
