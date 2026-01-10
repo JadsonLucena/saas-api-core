@@ -777,6 +777,7 @@ CREATE TABLE ecommerce."product" (
   "picture" text,
   "type" ecommerce.product_type NOT NULL,
   "sku" varchar(255) UNIQUE,
+  "quantity" int,
   "renewal_period_in_days" int NOT NULL DEFAULT 0, -- is subscription if greater than 0
   "max_renewal_use" int NOT NULL DEFAULT 1, -- maximum number of renewals
   "cancellation_window_in_days" int NOT NULL DEFAULT 0,
@@ -787,6 +788,7 @@ CREATE TABLE ecommerce."product" (
   "updated_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
+  CHECK(quantity >= 1),
   CHECK(renewal_period_in_days >= 0),
   CHECK(max_renewal_use >= 1),
   CHECK(cancellation_window_in_days >= 0),
@@ -1156,6 +1158,7 @@ CREATE TABLE ecommerce."catalog" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "title" VARCHAR(255) NOT NULL UNIQUE,
   "description" TEXT,
+  "picture" text,
   "created_at" timestamp NOT NULL DEFAULT now(),
   "updated_at" timestamp NOT NULL DEFAULT now(),
   "disabled_at" timestamp
