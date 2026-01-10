@@ -713,7 +713,8 @@ CREATE TABLE ecommerce."credit_card" (
 
   UNIQUE ("customer_id", "payment_gateway_id", "fingerprint"),
 
-  FOREIGN KEY ("customer_id") REFERENCES ecommerce."customer" ("id"),
+  FOREIGN KEY ("customer_id") REFERENCES ecommerce."customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("payment_gateway_id") REFERENCES ecommerce."payment_gateway" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
   CHECK(expiration_month BETWEEN 1 AND 12),
   CHECK(expiration_year >= EXTRACT(YEAR FROM now())),
@@ -802,7 +803,7 @@ CREATE TABLE ecommerce."price" (
   "currency" ecommerce.currency NOT NULL,
   "created_at" timestamp DEFAULT now(),
 
-  FOREIGN KEY ("product_id") REFERENCES ecommerce."product" ("id"),
+  FOREIGN KEY ("product_id") REFERENCES ecommerce."product" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
 
   CHECK(amount >= 0)
 );
@@ -864,7 +865,7 @@ CREATE TABLE ecommerce."voucher" (
   "customer_id" uuid NOT NULL,
   "code" varchar(255) NOT NULL UNIQUE,
 
-  FOREIGN KEY ("discount_id") REFERENCES ecommerce."discount" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,
+  FOREIGN KEY ("discount_id") REFERENCES ecommerce."discount" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("customer_id") REFERENCES ecommerce."customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -881,6 +882,7 @@ CREATE TABLE ecommerce."invoice" (
   "expires_in" timestamp,
   "created_at" timestamp NOT NULL DEFAULT now(),
 
+  FOREIGN KEY ("order_id") REFERENCES ecommerce."order" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("parent_invoice_id") REFERENCES ecommerce."invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
   CHECK(starts_in >= created_at),
@@ -897,10 +899,10 @@ CREATE TABLE ecommerce."order" (
   "note" text,
   "created_at" timestamp DEFAULT now(),
 
-  FOREIGN KEY ("customer_id") REFERENCES ecommerce."customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY ("coupon_id") REFERENCES ecommerce."coupon" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,
+  FOREIGN KEY ("customer_id") REFERENCES ecommerce."customer" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+  FOREIGN KEY ("coupon_id") REFERENCES ecommerce."coupon" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("voucher_id") REFERENCES ecommerce."voucher" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-  FOREIGN KEY ("split_id") REFERENCES ecommerce."split" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,
+  FOREIGN KEY ("split_id") REFERENCES ecommerce."split" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("invoice_id") REFERENCES ecommerce."invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
@@ -920,9 +922,9 @@ CREATE TABLE ecommerce."order_item" (
 
   UNIQUE ("order_id", "product_id"),
 
-  FOREIGN KEY ("order_id") REFERENCES ecommerce."order" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("order_id") REFERENCES ecommerce."order" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("product_id") REFERENCES ecommerce."product" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-  FOREIGN KEY ("price_id") REFERENCES ecommerce."price" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,
+  FOREIGN KEY ("price_id") REFERENCES ecommerce."price" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
   CHECK(quantity >= 1),
   CHECK(disabled_at > created_at)
@@ -936,8 +938,8 @@ CREATE TABLE ecommerce."order_item_discount" (
 
   PRIMARY KEY ("order_item_id", "discount_id"),
 
-  FOREIGN KEY ("order_item_id") REFERENCES ecommerce."order_item" ("id") ON DELETE CASCADE ON UPDATE RESTRICT,
-  FOREIGN KEY ("discount_id") REFERENCES ecommerce."discount" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,
+  FOREIGN KEY ("order_item_id") REFERENCES ecommerce."order_item" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+  FOREIGN KEY ("discount_id") REFERENCES ecommerce."discount" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
   CHECK(disabled_at > created_at)
 );
@@ -962,7 +964,7 @@ CREATE TABLE ecommerce."subscription_item" (
 
   UNIQUE ("subscription_id", "order_item_id"),
 
-  FOREIGN KEY ("subscription_id") REFERENCES ecommerce."subscription" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("subscription_id") REFERENCES ecommerce."subscription" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("order_item_id") REFERENCES ecommerce."order_item" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
   CHECK(starts_in >= created_at),
@@ -978,7 +980,7 @@ CREATE TABLE ecommerce."subscription_cycle" (
   "created_at" timestamp DEFAULT now(),
   "updated_at" timestamp DEFAULT now(),
 
-  FOREIGN KEY ("subscription_id") REFERENCES ecommerce."subscription" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("subscription_id") REFERENCES ecommerce."subscription" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("invoice_id") REFERENCES ecommerce."invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
   CHECK(expires_in > starts_in),
@@ -994,7 +996,7 @@ CREATE TABLE ecommerce."subscription_pause_status" (
   "paused_at" timestamp NOT NULL, -- starts in subscription_cycle.expires_in
   "resumed_at" timestamp,
 
-  FOREIGN KEY ("subscription_cycle_id") REFERENCES ecommerce."subscription_cycle" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("subscription_cycle_id") REFERENCES ecommerce."subscription_cycle" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
   CHECK(disabled_at > created_at),
   CHECK(paused_at >= created_at),
@@ -1060,6 +1062,8 @@ CREATE TABLE ecommerce."invoice_item" (
   "note" text,
   "created_at" timestamp NOT NULL DEFAULT now(),
 
+  UNIQUE ("invoice_id", "order_item_id"),
+
   FOREIGN KEY ("invoice_id") REFERENCES ecommerce."invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("order_item_id") REFERENCES ecommerce."order_item" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
@@ -1120,7 +1124,7 @@ CREATE TABLE ecommerce."payment_refund" (
   "note" text,
   "created_at" timestamp NOT NULL DEFAULT now(),
 
-  FOREIGN KEY ("payment_id") REFERENCES ecommerce."payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("payment_id") REFERENCES ecommerce."payment" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
   CHECK(amount >= 0)
 );
@@ -1132,7 +1136,7 @@ CREATE TABLE ecommerce."payment_dispute" (
   "note" text,
   "created_at" timestamp NOT NULL DEFAULT now(),
 
-  FOREIGN KEY ("payment_id") REFERENCES ecommerce."payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY ("payment_id") REFERENCES ecommerce."payment" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 CREATE TABLE ecommerce."payment_chargeback" (
