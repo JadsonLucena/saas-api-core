@@ -946,6 +946,37 @@ CREATE TABLE ecommerce."order_item_discount" (
   CHECK(disabled_at > created_at)
 );
 
+CREATE TABLE ecommerce."checkout_session" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "customer_id" uuid NOT NULL,
+  "coupon_id" uuid,
+  "created_at" timestamp DEFAULT now(),
+  "updated_at" timestamp DEFAULT now(),
+  "disabled_at" timestamp,
+
+  FOREIGN KEY ("customer_id") REFERENCES ecommerce."customer" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+  FOREIGN KEY ("coupon_id") REFERENCES ecommerce."coupon" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+
+  CHECK(updated_at >= created_at),
+  CHECK(disabled_at > created_at)
+);
+
+CREATE TABLE ecommerce."checkout_session_item" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "checkout_session_id" uuid NOT NULL,
+  "product_id" uuid NOT NULL,
+  "quantity" int NOT NULL,
+  "is_prorated" boolean NOT NULL DEFAULT false,
+  "created_at" timestamp DEFAULT now(),
+  "disabled_at" timestamp,
+
+  FOREIGN KEY ("checkout_session_id") REFERENCES ecommerce."checkout_session" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+  FOREIGN KEY ("product_id") REFERENCES ecommerce."product" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+
+  CHECK(quantity >= 1),
+  CHECK(disabled_at > created_at)
+);
+
 CREATE TABLE ecommerce."subscription" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "renewal_period_in_days" int NOT NULL DEFAULT 0,
