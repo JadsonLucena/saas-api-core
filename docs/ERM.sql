@@ -302,6 +302,12 @@ CREATE TYPE ecommerce."invoice_adjustment_type" AS ENUM (
   'WRITE_OFF'
 );
 
+CREATE TYPE ecommerce."payment_gateway_webhook_event_status" AS ENUM (
+  'CREATED',
+  'PROCESSED',
+  'FAILED'
+);
+
 --------------------------------------------------
 
 CREATE TABLE IAM."user" (
@@ -1136,7 +1142,7 @@ CREATE TABLE ecommerce."payment" (
   CHECK(installments >= 1)
 );
 
-CREATE TABLE ecommerce."payment_transaction" (
+CREATE TABLE ecommerce."payment_status_transition" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "payment_id" uuid NOT NULL,
   "transaction_id" TEXT NOT NULL,
@@ -1183,6 +1189,26 @@ CREATE TABLE ecommerce."payment_chargeback" (
   FOREIGN KEY ("dispute_id") REFERENCES ecommerce."payment_dispute" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
   CHECK(amount >= 0)
+);
+
+CREATE TABLE ecommerce."payment_gateway_webhook_event" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "payment_id" uuid NOT NULL,
+  "event_id" text NOT NULL,
+  "payload" text NOT NULL,
+  "is_signature_valid" boolean NOT NULL,
+  "status" ecommerce.payment_gateway_webhook_event_status NOT NULL DEFAULT 'CREATED',
+  "error_message" text,
+  "created_at" timestamp NOT NULL DEFAULT now(),
+  "updated_at" timestamp NOT NULL DEFAULT now(),
+  "processed_at" timestamp,
+
+  UNIQUE ("payment_id", "event_id"),
+
+  FOREIGN KEY ("payment_id") REFERENCES ecommerce."payment" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+
+  CHECK(updated_at >= created_at),
+  CHECK(processed_at >= created_at)
 );
 
 CREATE TABLE ecommerce."catalog" (
