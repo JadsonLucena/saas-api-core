@@ -702,7 +702,7 @@ CREATE TABLE ecommerce."payment_gateway" (
 CREATE TABLE ecommerce."credit_card" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "customer_id" uuid NOT NULL,
-  "payment_gateway_id" varchar(50) NOT NULL,
+  "payment_gateway_id" uuid NOT NULL,
   "fingerprint" VARCHAR(128),
   "token" text NOT NULL,
   "network_token" VARCHAR(256),
@@ -879,7 +879,7 @@ CREATE TABLE ecommerce."voucher" (
 
 CREATE TABLE ecommerce."invoice" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "order_id" uuid,
+  -- "order_id" uuid,
   -- "amount" INT NOT NULL,
   -- "tax_amount" INT NOT NULL,
   -- "shipping_amount" INT NOT NULL DEFAULT 0,
@@ -890,7 +890,7 @@ CREATE TABLE ecommerce."invoice" (
   "expires_in" timestamp,
   "created_at" timestamp NOT NULL DEFAULT now(),
 
-  FOREIGN KEY ("order_id") REFERENCES ecommerce."order" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+  -- FOREIGN KEY ("order_id") REFERENCES ecommerce."order" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("parent_invoice_id") REFERENCES ecommerce."invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
   CHECK(starts_in >= created_at),
@@ -1401,7 +1401,7 @@ FOR EACH ROW EXECUTE FUNCTION prevent_update();
 CREATE OR REPLACE FUNCTION check_discount_exclusivity_by_context()
 RETURNS trigger AS $$
 BEGIN
-  IF EXISTS (SELECT 1 FROM ecommerce."product" WHERE discount_id = NEW.discount_id)
+  IF EXISTS (SELECT 1 FROM ecommerce."product_discount" WHERE discount_id = NEW.discount_id)
      AND TG_TABLE_NAME = 'coupon' THEN
     RAISE EXCEPTION 'Discount % is already used by a product', NEW.discount_id;
   END IF;
