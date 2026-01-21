@@ -1,6 +1,13 @@
 CREATE SCHEMA IF NOT EXISTS IAM;
 CREATE SCHEMA IF NOT EXISTS ecommerce;
 
+CREATE TYPE IAM."consent_channel" AS ENUM (
+  'EMAIL',
+  'SMS',
+  'PHONE_MESSAGE',
+  'PUSH_NOTIFICATION'
+);
+
 CREATE TYPE IAM."otp_digest_algorithm" AS ENUM (
   'SHA1',
   'SHA256',
@@ -326,6 +333,18 @@ CREATE TABLE IAM."user" (
   CHECK(disabled_at > created_at)
 );
 
+CREATE TABLE IAM."user_consent_event" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "user_id" uuid NOT NULL,
+  "channel" IAM."consent_channel" NOT NULL,
+  "accepted" boolean NOT NULL,
+  "created_at" timestamp NOT NULL DEFAULT now(),
+  FOREIGN KEY ("user_id") REFERENCES IAM."user" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE INDEX ON IAM."user_consent_event" ("user_id", "purpose", "channel", "event_at" DESC);
+
+
 CREATE TABLE IAM."password" (
   "user_id" uuid NOT NULL,
   "hash" text NOT NULL,
@@ -520,7 +539,7 @@ CREATE TABLE IAM."role" (
   "created_at" timestamp DEFAULT now(),
   "disabled_at" timestamp,
 
-  UNIQUE ("name", "account_id"),
+  UNIQUE ("title", "account_id"),
 
   FOREIGN KEY ("account_id") REFERENCES IAM."account" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY ("user_id") REFERENCES IAM."user" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
