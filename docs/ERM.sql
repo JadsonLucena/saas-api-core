@@ -36,24 +36,20 @@ CREATE TYPE IAM."oauth_type" AS ENUM (
   'PUBLIC'
 );
 
-CREATE TYPE ecommerce."operation_type" AS ENUM (
-  'SUBTRACTION',
-  'PERCENTAGE'
-);
-
 CREATE TYPE ecommerce."card_brand" AS ENUM (
-  'AMEX',
-  'HIPERCARD',
-  'DINERS',
-  'VISA',
-  'MASTERCARD', 
   'AMERICAN_EXPRESS',
+  'AMEX',
+  'CARNET',
+  'DINERS',
   'DISCOVER',
   'ELO',
+  'HIPERCARD',
   'MAESTRO'
+  'MASTERCARD', 
+  'VISA',
 );
 
-CREATE TYPE ecommerce."currency" AS ENUM(
+CREATE TYPE ecommerce."currency" AS ENUM( -- ISO 4217
   'AED',
   'AFN',
   'ALL',
@@ -248,7 +244,12 @@ CREATE TYPE ecommerce."product_type" AS ENUM (
 CREATE TYPE ecommerce."payment_method_type" AS ENUM (
   'CREDIT_CARD',
   'DEBIT_CARD',
-  'BANK_ACCOUNT'
+  'BANK_SLIP',
+  'INSTANT_PAYMENTS', -- Pix/FedNow/UPI/Faster Payments/SEPA Instant/MB Way/Zengin
+  'APPLE_STORE',
+  'GOOGLE_PLAY',
+  'AUTHORIZED_APP',
+  'CRYPTO'
 );
 
 CREATE TYPE ecommerce."split_type" AS ENUM (
@@ -257,21 +258,31 @@ CREATE TYPE ecommerce."split_type" AS ENUM (
 );
 
 CREATE TYPE ecommerce."payment_status" AS ENUM (
-  'CREATED',
+  'PENDING',
   'PAID',
+  'CANCELED',
   'EXPIRED',
-  'FAILED',
-  'FRAUD_DETECTED',
-  'FRAUD_UNDER_REVIEW',
-  'FRAUD_CONFIRMED'
+  'FAILED'
+);
+
+CREATE TYPE ecommerce."fraud_type" AS ENUM (
+  'DETECTED',
+  'UNDER_REVIEW',
+  'CONFIRMED',
+  'ERROR',
+  'FALSE_POSITIVE',
+  'UNDETERMINED'
 );
 
 CREATE TYPE ecommerce."dispute_status" AS ENUM (
   'OPEN',
+  'NEEDS_RESPONSE',
+  'RESPONSE_SUBMITTED',
   'UNDER_REVIEW',
   'WON',
   'LOST',
-  'CANCELLED'
+  'WITHDRAWN',
+  'EXPIRED'
 );
 
 CREATE TYPE ecommerce."discount_rule_type" AS ENUM (
@@ -1193,15 +1204,25 @@ CREATE TABLE ecommerce."payment" (
   CHECK(installments >= 1)
 );
 
-CREATE TABLE ecommerce."payment_status_transition" (
+CREATE TABLE ecommerce."payment_event" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "payment_id" uuid NOT NULL,
   "transaction_id" TEXT NOT NULL,
   "data" TEXT NOT NULL,
-  "status" ecommerce.payment_status NOT NULL DEFAULT 'CREATED',
+  "status" ecommerce.payment_status NOT NULL DEFAULT 'PENDING',
   "created_at" timestamp NOT NULL DEFAULT now(),
 
   UNIQUE ("payment_id", "transaction_id"),
+
+  FOREIGN KEY ("payment_id") REFERENCES ecommerce."payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE ecommerce."payment_fraud" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "payment_id" uuid NOT NULL,
+  "status" ecommerce.fraud_type NOT NULL,
+  "note" text,
+  "created_at" timestamp NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("payment_id") REFERENCES ecommerce."payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -1245,13 +1266,12 @@ CREATE TABLE ecommerce."payment_chargeback" (
 CREATE TABLE ecommerce."payment_gateway_webhook_event" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "payment_id" uuid NOT NULL,
-  "event_id" text NOT NULL,
-  "payload" text NOT NULL,
-  "is_signature_valid" boolean NOT NULL,
+  "data" text NOT NULL,
   "status" ecommerce.payment_gateway_webhook_event_status NOT NULL DEFAULT 'CREATED',
-  "error_message" text,
+  "note" text,
   "created_at" timestamp NOT NULL DEFAULT now(),
   "updated_at" timestamp NOT NULL DEFAULT now(),
+  "verified_at" timestamp,
   "processed_at" timestamp,
 
   UNIQUE ("payment_id", "event_id"),
