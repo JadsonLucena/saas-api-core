@@ -333,18 +333,16 @@ CREATE TABLE IAM."user" (
   CHECK(disabled_at > created_at)
 );
 
+-- Compliance with prior consent for sending marketing and promotional communications
 CREATE TABLE IAM."user_consent_event" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "user_id" uuid NOT NULL,
   "channel" IAM."consent_channel" NOT NULL,
-  "accepted" boolean NOT NULL,
+  "accepted" boolean NOT NULL, -- opt-in, opt-out
   "created_at" timestamp NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("user_id") REFERENCES IAM."user" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
-
-CREATE INDEX ON IAM."user_consent_event" ("user_id", "purpose", "channel", "event_at" DESC);
-
 
 CREATE TABLE IAM."password" (
   "user_id" uuid NOT NULL,
