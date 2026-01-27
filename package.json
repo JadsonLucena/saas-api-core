@@ -95,7 +95,7 @@
     "memcached": "latest",
     "mssql": "latest",
     "pg": "latest",
-    "redis": "latest"
+    "redis": "5.8.2"
   },
   "devDependencies": {
     "@eslint/compat": "latest",
