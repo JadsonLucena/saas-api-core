@@ -260,10 +260,16 @@ CREATE TYPE ecommerce."split_type" AS ENUM (
 
 CREATE TYPE ecommerce."payment_status" AS ENUM (
   'PENDING',
+  'AUTHORIZED',
   'PAID',
+  'FAILED',
   'CANCELED',
   'EXPIRED',
-  'FAILED'
+  'ABANDONED', -- in cases of INSTANT_PAYMENTS and BANK_SLIP expired
+  'REFUNDED',
+  'DISPUTED',
+  'CHARGEBACKED',
+  'FRAUD'
 );
 
 CREATE TYPE ecommerce."fraud_type" AS ENUM (
