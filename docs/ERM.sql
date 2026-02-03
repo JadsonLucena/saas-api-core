@@ -972,6 +972,7 @@ CREATE TABLE ecommerce."customer" (
   "account_id" uuid NOT NULL,
   "document" varchar(255),
   "document_type" ecommerce."document_type",
+  "currency" ecommerce.currency NOT NULL,
   "default_customer_address_id" int,
   "default_payment_method_id" uuid,
   "created_at" timestamp NOT NULL DEFAULT now(),
