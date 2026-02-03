@@ -626,9 +626,9 @@ CREATE TABLE IAM."user" (
   "picture" text,
   "totp_secret" TEXT NOT NULL,
   "mfa_enabled" boolean DEFAULT false,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   CHECK(updated_at >= created_at),
   CHECK(disabled_at > created_at)
@@ -640,7 +640,7 @@ CREATE TABLE IAM."user_consent_event" (
   "user_id" uuid NOT NULL,
   "channel" IAM."consent_channel" NOT NULL,
   "is_accepted" boolean NOT NULL, -- opt-in, opt-out
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("user_id") REFERENCES IAM."user" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -652,8 +652,8 @@ CREATE TABLE IAM."password" (
   "iterations" int NOT NULL,
   "salt" text NOT NULL,
   "secret_manager_version" VARCHAR(255),
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   PRIMARY KEY ("user_id", "hash", "algorithm", "iterations", "salt", "secret_manager_version"),
 
@@ -665,9 +665,9 @@ CREATE TABLE IAM."password" (
 CREATE TABLE IAM."phone" (
   "user_id" uuid NOT NULL,
   "number" varchar(255) NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "confirmed_at" timestamp,
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "confirmed_at" timestamptz,
+  "disabled_at" timestamptz,
 
   PRIMARY KEY ("user_id", "number"),
 
@@ -683,9 +683,9 @@ CREATE TABLE IAM."phone_message_provider" (
   "picture" text,
   "client_id" varchar(255) NOT NULL, -- external vendor credentials
   "client_secret" varchar(255) NOT NULL, -- external vendor credentials
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   CHECK(updated_at >= created_at),
   CHECK(disabled_at > created_at)
@@ -695,8 +695,8 @@ CREATE TABLE IAM."phone_messager" (
   "phone_message_provider_id" int NOT NULL,
   "user_id" uuid NOT NULL,
   "phone" varchar(255) NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   PRIMARY KEY ("phone_message_provider_id", "user_id", "phone"),
 
@@ -709,9 +709,9 @@ CREATE TABLE IAM."phone_messager" (
 CREATE TABLE IAM."email" (
   "user_id" uuid NOT NULL,
   "address" varchar(255) NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "confirmed_at" timestamp,
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "confirmed_at" timestamptz,
+  "disabled_at" timestamptz,
 
   PRIMARY KEY ("user_id", "address"),
 
@@ -729,10 +729,10 @@ CREATE TABLE IAM."otp" (
   "variation" int NOT NULL,
   "type" IAM.otp_type NOT NULL,
   "user_id" uuid NOT NULL,
-  "confirmed_at" timestamp,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "confirmed_at" timestamptz,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   UNIQUE ("secret", "digestAlgorithm", "length", "type"),
 
@@ -749,9 +749,9 @@ CREATE TABLE IAM."passkey" (
   "public_key" text NOT NULL UNIQUE, -- external vendor credentials
   "device_name" varchar(255) NOT NULL,
   "user_id" uuid NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   PRIMARY KEY ("user_id", "device_name"),
 
@@ -767,9 +767,9 @@ CREATE TABLE IAM."identity_provider" (
   "picture" text NOT NULL,
   "client_id" varchar(255) NOT NULL, -- external vendor credentials
   "client_secret" varchar(255) NOT NULL, -- external vendor credentials
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   CHECK(updated_at >= created_at),
   CHECK(disabled_at > created_at)
@@ -782,12 +782,12 @@ CREATE TABLE IAM."sign_in_with" (
   "name" varchar(255) NOT NULL,
   "picture" text,
   "access_token" varchar(255) NOT NULL,
-  "expires_in" timestamp NOT NULL,
+  "expires_in" timestamptz NOT NULL,
   "refresh_token" varchar(255) NOT NULL,
-  "refresh_token_expires_in" timestamp,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "refresh_token_expires_in" timestamptz,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   PRIMARY KEY ("identity_provider_id", "user_id", "username"),
   UNIQUE ("identity_provider_id", "username"),
@@ -805,10 +805,10 @@ CREATE TABLE IAM."account" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "name" varchar(255) NOT NULL,
   "picture" text,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
-  "deleted_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
+  "deleted_at" timestamptz,
 
   CHECK(updated_at >= created_at),
   CHECK(disabled_at > created_at),
@@ -820,9 +820,9 @@ CREATE TABLE IAM."scope" (
   "label" VARCHAR(255) NOT NULL UNIQUE,
   "uri" varchar(255),
   "method" IAM.http_method,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   UNIQUE ("uri", "method"),
 
@@ -836,8 +836,8 @@ CREATE TABLE IAM."role" (
   "description" text,
   "account_id" uuid NOT NULL,
   "user_id" uuid, -- the creator
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   UNIQUE ("title", "account_id"),
 
@@ -850,7 +850,7 @@ CREATE TABLE IAM."role" (
 CREATE TABLE IAM."role_acl" (
   "role_id" int NOT NULL,
   "scope_id" int NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   PRIMARY KEY ("role_id", "scope_id"),
 
@@ -863,10 +863,10 @@ CREATE TABLE IAM."member" (
   "account_id" uuid NOT NULL,
   "user_id" uuid NOT NULL,
   "role_id" int NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "confirmed_at" timestamp,
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "confirmed_at" timestamptz,
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   UNIQUE ("account_id", "user_id"),
 
@@ -884,10 +884,10 @@ CREATE TABLE IAM."api_token" (
   "token" text NOT NULL UNIQUE,
   "member_id" uuid NOT NULL,
   "role_id" int NOT NULL,
-  "starts_in" timestamp NOT NULL,
-  "expires_in" timestamp NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "starts_in" timestamptz NOT NULL,
+  "expires_in" timestamptz NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   FOREIGN KEY ("member_id") REFERENCES IAM."member" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY ("role_id") REFERENCES IAM."role" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -908,9 +908,9 @@ CREATE TABLE IAM."oauth" (
   "type" IAM.oauth_type NOT NULL,
   "member_id" uuid NOT NULL,
   "role_id" int NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   UNIQUE ("name", "member_id"),
 
@@ -924,9 +924,9 @@ CREATE TABLE IAM."oauth" (
 CREATE TABLE IAM."oauth_access_token" (
   "token" varchar(255) PRIMARY KEY NOT NULL,
   "oauth_id" uuid NOT NULL UNIQUE,
-  "expires_in" timestamp NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "expires_in" timestamptz NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   FOREIGN KEY ("oauth_id") REFERENCES IAM."oauth" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
 
@@ -937,9 +937,9 @@ CREATE TABLE IAM."oauth_access_token" (
 CREATE TABLE IAM."oauth_refresh_token" (
   "token" varchar(255) PRIMARY KEY NOT NULL,
   "oauth_id" uuid NOT NULL UNIQUE,
-  "expires_in" timestamp NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "expires_in" timestamptz NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   FOREIGN KEY ("oauth_id") REFERENCES IAM."oauth" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
 
@@ -957,9 +957,9 @@ CREATE TABLE ecommerce."address" (
   "city" varchar(255),
   "locality" varchar(255),
   "street" varchar(255) NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   UNIQUE ("country", "postal_code", "street"),
 
@@ -975,9 +975,9 @@ CREATE TABLE ecommerce."customer" (
   "currency" ecommerce.currency NOT NULL,
   "default_customer_address_id" int,
   "default_payment_method_id" uuid,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   UNIQUE ("account_id", "document"),
 
@@ -998,9 +998,9 @@ CREATE TABLE ecommerce."customer_address" (
   "address_id" int NOT NULL,
   "number" varchar(255) NOT NULL,
   "note" text,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   UNIQUE ("customer_id", "address_id", "number"),
 
@@ -1022,18 +1022,18 @@ CREATE TABLE ecommerce."payment_gateway" (
   "endpoint" VARCHAR(255) NOT NULL,
   "client_id" VARCHAR(255) NOT NULL,
   "client_secret" TEXT NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp	
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz	
 );
 
 CREATE TABLE ecommerce."customer_gateway" (
   "customer_id" uuid NOT NULL,
   "payment_gateway_id" uuid NOT NULL,
   "gateway_customer_id" VARCHAR(255) NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   PRIMARY KEY ("customer_id", "payment_gateway_id"),
   UNIQUE ("payment_gateway_id", "gateway_customer_id"),
@@ -1056,10 +1056,10 @@ CREATE TABLE ecommerce."discount" (
   "quantity" int NOT NULL,
   "max_use_per_order" int, -- maximum number of uses in cycles per order/subscription
   "max_use_per_customer" int,
-  "starts_in" timestamp NOT NULL DEFAULT now(),
-  "expires_in" timestamp,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "starts_in" timestamptz NOT NULL DEFAULT now(),
+  "expires_in" timestamptz,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   CHECK(percent >= 0 AND percent <= 1),
   CHECK(cap_amount >= 0),
@@ -1076,8 +1076,8 @@ CREATE TABLE ecommerce."discount_rule" (
   "discount_id" int NOT NULL,
   "type" ecommerce.discount_rule_type NOT NULL,
   "value" text NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   FOREIGN KEY ("discount_id") REFERENCES ecommerce."discount" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
 
@@ -1115,11 +1115,11 @@ CREATE TABLE ecommerce."product" (
   "cancellation_window_in_days" int NOT NULL DEFAULT 0,
   "data" jsonb,
   "note" text,
-  "starts_in" timestamp NOT NULL DEFAULT now(),
-  "expires_in" timestamp,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "starts_in" timestamptz NOT NULL DEFAULT now(),
+  "expires_in" timestamptz,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   CHECK(quantity >= 1),
   CHECK(renewal_period_in_days >= 0),
@@ -1136,7 +1136,7 @@ CREATE TABLE ecommerce."price" (
   "product_id" uuid NOT NULL,
   "amount" BIGINT NOT NULL,
   "currency" ecommerce.currency NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("product_id") REFERENCES ecommerce."product" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
 
@@ -1146,8 +1146,8 @@ CREATE TABLE ecommerce."price" (
 CREATE TABLE ecommerce."product_discount" (
   "product_id" uuid NOT NULL,
   "discount_id" int NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   PRIMARY KEY ("product_id", "discount_id"),
 
@@ -1161,8 +1161,8 @@ CREATE TABLE ecommerce."product_permission" (
   "id" INT PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY,
   "title" varchar(255) NOT NULL UNIQUE,
   "description" text,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   CHECK(disabled_at > created_at)
 );
@@ -1170,7 +1170,7 @@ CREATE TABLE ecommerce."product_permission" (
 CREATE TABLE ecommerce."product_permission_acl" (
   "product_permission_id" int NOT NULL,
   "scope_id" int NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   PRIMARY KEY ("product_permission_id", "scope_id"),
 
@@ -1181,7 +1181,7 @@ CREATE TABLE ecommerce."product_permission_acl" (
 CREATE TABLE ecommerce."product_permission_bundle" (
   product_id  int NOT NULL,
   product_permission_id   uuid NOT NULL,
-  created_at  timestamp NOT NULL DEFAULT now(),
+  created_at  timestamptz NOT NULL DEFAULT now(),
 
   PRIMARY KEY (product_id, product_permission_id),
 
@@ -1195,9 +1195,9 @@ CREATE TABLE ecommerce."split" (
   "title" VARCHAR(255) NOT NULL,
   "description" TEXT,
   "assume_fee" boolean NOT NULL DEFAULT false,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   UNIQUE ("account_id", "title"),
 
@@ -1212,8 +1212,8 @@ CREATE TABLE ecommerce."split_receiver" (
   "value" INT NOT NULL,
   "currency" ecommerce.currency NOT NULL,
   "note" TEXT,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   FOREIGN KEY ("split_id") REFERENCES ecommerce."split" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY ("customer_id") REFERENCES ecommerce."customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
@@ -1234,9 +1234,9 @@ CREATE TABLE ecommerce."invoice" (
   "type" ecommerce.invoice_type NOT NULL,
   "note" text,
   "parent_invoice_id" uuid, -- Used by up-selling
-  "starts_in" timestamp NOT NULL,
-  "expires_in" timestamp,
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "starts_in" timestamptz NOT NULL,
+  "expires_in" timestamptz,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   -- FOREIGN KEY ("order_id") REFERENCES ecommerce."order" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("parent_invoice_id") REFERENCES ecommerce."invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -1253,7 +1253,7 @@ CREATE TABLE ecommerce."order" (
   "split_id" uuid,
   "invoice_id" uuid NOT NULL UNIQUE,
   "note" text,
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("customer_id") REFERENCES ecommerce."customer" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("coupon_id") REFERENCES ecommerce."coupon" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -1273,8 +1273,8 @@ CREATE TABLE ecommerce."order_item" (
   "price_id" int NOT NULL,
   "is_prorated" boolean NOT NULL DEFAULT false,
   "quantity" int NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   UNIQUE ("order_id", "product_id"),
 
@@ -1289,8 +1289,8 @@ CREATE TABLE ecommerce."order_item" (
 CREATE TABLE ecommerce."order_item_discount" (
   "order_item_id" uuid NOT NULL,
   "discount_id" int NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   PRIMARY KEY ("order_item_id", "discount_id"),
 
@@ -1304,9 +1304,9 @@ CREATE TABLE ecommerce."checkout_session" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "customer_id" uuid NOT NULL,
   "coupon_id" uuid,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   FOREIGN KEY ("customer_id") REFERENCES ecommerce."customer" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("coupon_id") REFERENCES ecommerce."coupon" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -1321,8 +1321,8 @@ CREATE TABLE ecommerce."checkout_session_item" (
   "product_id" uuid NOT NULL,
   "quantity" int NOT NULL,
   "is_prorated" boolean NOT NULL DEFAULT false,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   FOREIGN KEY ("checkout_session_id") REFERENCES ecommerce."checkout_session" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("product_id") REFERENCES ecommerce."product" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -1335,8 +1335,8 @@ CREATE TABLE ecommerce."subscription" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "renewal_period_in_days" int NOT NULL DEFAULT 0,
   "max_renewal_use" int,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   CHECK(disabled_at > created_at)
 );
@@ -1345,9 +1345,9 @@ CREATE TABLE ecommerce."subscription_item" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "subscription_id" uuid NOT NULL,
   "order_item_id" uuid NOT NULL,
-  "starts_in" timestamp NOT NULL,
-  "expires_in" timestamp,
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "starts_in" timestamptz NOT NULL,
+  "expires_in" timestamptz,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   UNIQUE ("subscription_id", "order_item_id"),
 
@@ -1362,10 +1362,10 @@ CREATE TABLE ecommerce."subscription_cycle" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "subscription_id" uuid NOT NULL,
   "invoice_id" uuid NOT NULL UNIQUE,
-  "starts_in" timestamp NOT NULL,
-  "expires_in" timestamp NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
+  "starts_in" timestamptz NOT NULL,
+  "expires_in" timestamptz NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("subscription_id") REFERENCES ecommerce."subscription" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("invoice_id") REFERENCES ecommerce."invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -1380,7 +1380,7 @@ CREATE TABLE ecommerce."subscription_event" (
   "type" ecommerce.subscription_event_type NOT NULL,
   "data" jsonb NOT NULL,
   "note" text,
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("subscription_id") REFERENCES ecommerce."subscription" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
@@ -1389,9 +1389,9 @@ CREATE TABLE ecommerce."receiver_gateway" (
   "customer_id" uuid NOT NULL,
   "payment_gateway_id" uuid NOT NULL,
   "split_receiver_id" uuid NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   PRIMARY KEY ("customer_id", "payment_gateway_id", "split_receiver_id"),
 
@@ -1428,9 +1428,9 @@ CREATE TABLE ecommerce."payment_method" (
   "payment_gateway_id" uuid NOT NULL,
   "payment_gateway_external_id" VARCHAR(255) NOT NULL,
   "type" ecommerce.payment_method_type NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz,
 
   UNIQUE ("customer_id", "payment_gateway_id", "payment_gateway_external_id"),
   UNIQUE ("customer_id", "title"),
@@ -1489,7 +1489,7 @@ CREATE TABLE ecommerce."invoice_item" (
   "is_prorated" boolean NOT NULL DEFAULT false,
   "quantity" int NOT NULL DEFAULT 1,
   "note" text,
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   UNIQUE ("invoice_id", "order_item_id"),
 
@@ -1509,7 +1509,7 @@ CREATE TABLE ecommerce."invoice_adjustment" (
   "is_prorated" boolean NOT NULL DEFAULT false,
   "type" ecommerce.invoice_adjustment_type NOT NULL,
   "note" text,
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("invoice_id") REFERENCES ecommerce."invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
@@ -1523,7 +1523,7 @@ CREATE TABLE ecommerce."payment" (
   "amount" BIGINT NOT NULL,
   "installments" int NOT NULL DEFAULT 1,
   "currency" ecommerce.currency NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("invoice_id") REFERENCES ecommerce."invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("payment_method_id") REFERENCES ecommerce."payment_method" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -1539,7 +1539,7 @@ CREATE TABLE ecommerce."payment_event" (
   "data" jsonb NOT NULL,
   "note" text,
   "status" ecommerce.payment_status NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   UNIQUE ("payment_id", "transaction_id"),
 
@@ -1551,7 +1551,7 @@ CREATE TABLE ecommerce."payment_fraud" (
   "payment_id" uuid NOT NULL,
   "status" ecommerce.fraud_type NOT NULL,
   "note" text,
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("payment_id") REFERENCES ecommerce."payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -1562,7 +1562,7 @@ CREATE TABLE ecommerce."payment_refund" (
   "amount" BIGINT NOT NULL,
   "currency" ecommerce.currency NOT NULL,
   "note" text,
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("payment_id") REFERENCES ecommerce."payment" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
@@ -1574,7 +1574,7 @@ CREATE TABLE ecommerce."payment_dispute" (
   "payment_id" uuid NOT NULL,
   "status" ecommerce.dispute_status NOT NULL DEFAULT 'OPEN',
   "note" text,
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("payment_id") REFERENCES ecommerce."payment" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
@@ -1585,7 +1585,7 @@ CREATE TABLE ecommerce."payment_chargeback" (
   "amount" BIGINT NOT NULL,
   "currency" ecommerce.currency NOT NULL,
   "note" text,
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("dispute_id") REFERENCES ecommerce."payment_dispute" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
@@ -1598,7 +1598,7 @@ CREATE TABLE ecommerce."payment_gateway_webhook_event" (
   "status" ecommerce.payment_gateway_webhook_event_status NOT NULL,
   "data" jsonb NOT NULL,
   "note" text,
-  "created_at" timestamp NOT NULL DEFAULT now()
+  "created_at" timestamptz NOT NULL DEFAULT now()
 
   UNIQUE ("payment_id", "event_id"),
 
@@ -1613,17 +1613,17 @@ CREATE TABLE ecommerce."catalog" (
   "title" VARCHAR(255) NOT NULL UNIQUE,
   "description" TEXT,
   "picture" text,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
-  "disabled_at" timestamp
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "disabled_at" timestamptz
 );
 
 CREATE TABLE ecommerce."catalog_item" (
   "catalog_id" uuid NOT NULL,
   "product_id" uuid NOT NULL,
   "quantity" int NOT NULL DEFAULT 1,
-  "created_at" timestamp NOT NULL DEFAULT now(),
-  "updated_at" timestamp NOT NULL DEFAULT now(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
 
   PRIMARY KEY ("catalog_id", "product_id"),
 
@@ -1645,7 +1645,7 @@ CREATE TABLE ecommerce."ledger" (
   "referrer" ecommerce.ledger_referrer NOT NULL,
   "data" jsonb NOT NULL,
   "note" text,
-  "created_at" timestamp NOT NULL DEFAULT now(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
 
   UNIQUE ("account_id", "idempotency_key"),
 
