@@ -1,5 +1,5 @@
-import { IRepository } from './IRepository.ts'
-import { TRANSACTION_ISOLATION_LEVELS } from './ISqlDriver.ts'
+import type { IRepository } from './IRepository.ts'
+import type { TRANSACTION_ISOLATION_LEVELS } from './ISqlDriver.ts'
 
 export interface IUnitOfWork<Repos extends Record<string, IRepository<string, string>>> {
 	begin(isolationLevel?: Partial<TRANSACTION_ISOLATION_LEVELS>): Promise<IUnitOfWorkTransaction<Repos>>
