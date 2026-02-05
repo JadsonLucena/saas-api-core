@@ -92,9 +92,9 @@ class MySqlTransactionDriver implements ITransactionDriver {
 		await this.pool.release(this.transaction)
 	}
 
-	async rollback(savepoint?: string) {
-		if (savepoint) {
-			await this.transaction.rollbackTo(savepoint)
+	async rollback(savepointName?: string) {
+		if (savepointName) {
+			await this.transaction.rollbackTo(savepointName)
 			return
 		}
 
