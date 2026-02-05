@@ -100,10 +100,10 @@ class PostgreSqlTransactionDriver implements ITransactionDriver {
 		this.transaction.release()
 	}
 
-	async rollback(savepoint?: string) {
-		if (savepoint) {
+	async rollback(savepointName?: string) {
+		if (savepointName) {
 			// eslint-disable-next-line sonarjs/sql-queries
-			await this.transaction.query(`ROLLBACK TO SAVEPOINT ${savepoint}`)
+			await this.transaction.query(`ROLLBACK TO SAVEPOINT ${savepointName}`)
 			return
 		}
 

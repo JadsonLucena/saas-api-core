@@ -123,10 +123,10 @@ class SqlServerTransactionDriver implements ITransactionDriver {
 		await this.transaction.commit()
 	}
 
-	async rollback(savepoint?: string) {
-		if (savepoint) {
+	async rollback(savepointName?: string) {
+		if (savepointName) {
 			const request = new Request(this.transaction)
-			await request.query(`ROLLBACK TRANSACTION ${savepoint}`)
+			await request.query(`ROLLBACK TRANSACTION ${savepointName}`)
 			return
 		}
 

@@ -8,7 +8,7 @@ export interface ISqlDriver extends IDmlDriver {
 export interface ITransactionDriver extends IDmlDriver {
 	savepoint(name: string): Promise<boolean>
 	commit(): Promise<void>
-	rollback(savepoint?: string): Promise<void>
+	rollback(savepointName?: string): Promise<void>
 	releaseSavepoint(name: string): Promise<boolean>
 }
 
