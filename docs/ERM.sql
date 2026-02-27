@@ -761,6 +761,24 @@ CREATE TABLE ecommerce."payment_gateway" (
   "disabled_at" timestamp	
 );
 
+CREATE TABLE ecommerce."customer_gateway" (
+  "customer_id" uuid NOT NULL,
+  "payment_gateway_id" uuid NOT NULL,
+  "gateway_customer_id" VARCHAR(255) NOT NULL,
+  "created_at" timestamp NOT NULL DEFAULT now(),
+  "updated_at" timestamp NOT NULL DEFAULT now(),
+  "disabled_at" timestamp,
+
+  PRIMARY KEY ("customer_id", "payment_gateway_id"),
+  UNIQUE ("payment_gateway_id", "gateway_customer_id"),
+
+  FOREIGN KEY ("customer_id") REFERENCES ecommerce."customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("payment_gateway_id") REFERENCES ecommerce."payment_gateway" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+
+  CHECK(updated_at >= created_at),
+  CHECK(disabled_at > created_at)
+);
+
 CREATE TABLE ecommerce."credit_card" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "customer_id" uuid NOT NULL,
