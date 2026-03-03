@@ -1180,6 +1180,21 @@ CREATE TABLE ecommerce."receiver_gateway" (
   CHECK(disabled_at > created_at)
 );
 
+CREATE TABLE ecommerce."grace_period" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "payment_gateway_id" uuid NOT NULL,
+  "payment_method_type" ecommerce.payment_method_type NOT NULL,
+  "period" int NOT NULL,
+  "created_at" timestamp NOT NULL DEFAULT now(),
+  "updated_at" timestamp NOT NULL DEFAULT now(),
+
+  FOREIGN KEY ("payment_gateway_id") REFERENCES ecommerce."payment_gateway" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+
+  CHECK(period >= 0),
+  CHECK(updated_at >= created_at)
+);
+
+
 CREATE TABLE ecommerce."payment_method" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "title" VARCHAR(255) NOT NULL,
@@ -1190,7 +1205,6 @@ CREATE TABLE ecommerce."payment_method" (
   "customer_address_id" int,
   "payment_gateway_id" uuid NOT NULL,
   "payment_gateway_external_id" VARCHAR(255) NOT NULL,
-  "grace_period_in_days" int NOT NULL,
   "type" ecommerce.payment_method_type NOT NULL,
   "created_at" timestamp NOT NULL DEFAULT now(),
   "updated_at" timestamp NOT NULL DEFAULT now(),
@@ -1203,7 +1217,6 @@ CREATE TABLE ecommerce."payment_method" (
   FOREIGN KEY ("payment_gateway_id") REFERENCES ecommerce."payment_gateway" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY ("customer_address_id") REFERENCES ecommerce."customer_address" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
-  CHECK(grace_period_in_days >= 0),
   CHECK(updated_at >= created_at),
   CHECK(disabled_at > created_at),
   CHECK(
