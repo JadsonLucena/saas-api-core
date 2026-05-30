@@ -50,9 +50,9 @@ CREATE TYPE ecommerce."card_brand" AS ENUM (
   'DISCOVER',
   'ELO',
   'HIPERCARD',
-  'MAESTRO'
+  'MAESTRO',
   'MASTERCARD', 
-  'VISA',
+  'VISA'
 );
 
 CREATE TYPE ecommerce."currency" AS ENUM( -- ISO 4217
