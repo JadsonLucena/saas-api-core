@@ -1782,122 +1782,146 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_prevent_update_password
+CREATE TRIGGER trg_prevent_update_iam_user_consent_event
+BEFORE UPDATE ON IAM."user_consent_event"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_iam_password
 BEFORE UPDATE ON IAM."password"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_phone
+CREATE TRIGGER trg_prevent_update_iam_phone
 BEFORE UPDATE ON IAM."phone"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_phone_messager
+CREATE TRIGGER trg_prevent_update_iam_phone_messager
 BEFORE UPDATE ON IAM."phone_messager"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_email
+CREATE TRIGGER trg_prevent_update_iam_email
 BEFORE UPDATE ON IAM."email"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_api_token
+CREATE TRIGGER trg_prevent_update_iam_api_token
 BEFORE UPDATE ON IAM."api_token"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_oauth_access_token
+CREATE TRIGGER trg_prevent_update_iam_oauth_access_token
 BEFORE UPDATE ON IAM."oauth_access_token"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_oauth_refresh_token
+CREATE TRIGGER trg_prevent_update_iam_oauth_refresh_token
 BEFORE UPDATE ON IAM."oauth_refresh_token"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_iam_privacy_policy_acceptance_event
+BEFORE UPDATE ON IAM."privacy_policy_acceptance_event"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_iam_terms_of_service_acceptance_event
+BEFORE UPDATE ON IAM."terms_of_service_acceptance_event"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
 --------------------------------------------------
 
-CREATE TRIGGER trg_prevent_update_discount
+CREATE TRIGGER trg_prevent_update_ecommerce_discount
 BEFORE UPDATE ON ecommerce."discount"
 FOR EACH ROW EXECUTE FUNCTION prevent_update_except_disabled_at();
 
-CREATE TRIGGER trg_prevent_update_discount_rule
+CREATE TRIGGER trg_prevent_update_ecommerce_discount_rule
 BEFORE UPDATE ON ecommerce."discount_rule"
 FOR EACH ROW EXECUTE FUNCTION prevent_update_except_disabled_at();
 
-CREATE TRIGGER trg_prevent_update_coupon
+CREATE TRIGGER trg_prevent_update_ecommerce_coupon
 BEFORE UPDATE ON ecommerce."coupon"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_price
+CREATE TRIGGER trg_prevent_update_ecommerce_price
 BEFORE UPDATE ON ecommerce."price"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_product_discount
+CREATE TRIGGER trg_prevent_update_ecommerce_product_discount
 BEFORE UPDATE ON ecommerce."product_discount"
 FOR EACH ROW EXECUTE FUNCTION prevent_update_except_disabled_at();
 
-CREATE TRIGGER trg_prevent_update_split_receiver
+CREATE TRIGGER trg_prevent_update_ecommerce_split_receiver
 BEFORE UPDATE ON ecommerce."split_receiver"
 FOR EACH ROW EXECUTE FUNCTION prevent_update_except_disabled_at();
 
-CREATE TRIGGER trg_prevent_update_order
+CREATE TRIGGER trg_prevent_update_ecommerce_order
 BEFORE UPDATE ON ecommerce."order"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_order_item
+CREATE TRIGGER trg_prevent_update_ecommerce_order_item
 BEFORE UPDATE ON ecommerce."order_item"
 FOR EACH ROW EXECUTE FUNCTION prevent_update_except_disabled_at();
 
-CREATE TRIGGER trg_prevent_update_order_item_discount
+CREATE TRIGGER trg_prevent_update_ecommerce_order_item_discount
 BEFORE UPDATE ON ecommerce."order_item_discount"
 FOR EACH ROW EXECUTE FUNCTION prevent_update_except_disabled_at();
 
-CREATE TRIGGER trg_prevent_update_subscription
+CREATE TRIGGER trg_prevent_update_ecommerce_subscription
 BEFORE UPDATE ON ecommerce."subscription"
 FOR EACH ROW EXECUTE FUNCTION prevent_update_except_disabled_at();
 
-CREATE TRIGGER trg_prevent_update_subscription_item
+CREATE TRIGGER trg_prevent_update_ecommerce_subscription_item
 BEFORE UPDATE ON ecommerce."subscription_item"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_subscription_cycle
+CREATE TRIGGER trg_prevent_update_ecommerce_subscription_cycle
 BEFORE UPDATE ON ecommerce."subscription_cycle"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_subscription_pause_status
-BEFORE UPDATE ON ecommerce."subscription_pause_status"
-FOR EACH ROW EXECUTE FUNCTION prevent_update_except_disabled_at();
+CREATE TRIGGER trg_prevent_update_ecommerce_subscription_event
+BEFORE UPDATE ON ecommerce."subscription_event"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_invoice
+CREATE TRIGGER trg_prevent_update_ecommerce_invoice
 BEFORE UPDATE ON ecommerce."invoice"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_invoice_item
+CREATE TRIGGER trg_prevent_update_ecommerce_invoice_item
 BEFORE UPDATE ON ecommerce."invoice_item"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_invoice_adjustment
+CREATE TRIGGER trg_prevent_update_ecommerce_invoice_adjustment
 BEFORE UPDATE ON ecommerce."invoice_adjustment"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_payment
+CREATE TRIGGER trg_prevent_update_ecommerce_payment
 BEFORE UPDATE ON ecommerce."payment"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_payment_transaction
-BEFORE UPDATE ON ecommerce."payment_transaction"
+CREATE TRIGGER trg_prevent_update_ecommerce_payment_event
+BEFORE UPDATE ON ecommerce."payment_event"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_payment_refund
+CREATE TRIGGER trg_prevent_update_ecommerce_payment_refund
 BEFORE UPDATE ON ecommerce."payment_refund"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_payment_dispute
+CREATE TRIGGER trg_prevent_update_ecommerce_payment_dispute
 BEFORE UPDATE ON ecommerce."payment_dispute"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_payment_chargeback
+CREATE TRIGGER trg_prevent_update_ecommerce_payment_chargeback
 BEFORE UPDATE ON ecommerce."payment_chargeback"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_consumption
+CREATE TRIGGER trg_prevent_update_ecommerce_payment_gateway_webhook_event
+BEFORE UPDATE ON ecommerce."payment_gateway_webhook_event"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_ecommerce_consumption
 BEFORE UPDATE ON ecommerce."consumption"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_ecommerce_privacy_policy_acceptance_event
+BEFORE UPDATE ON ecommerce."privacy_policy_acceptance_event"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
+
+CREATE TRIGGER trg_prevent_update_ecommerce_terms_of_service_acceptance_event
+BEFORE UPDATE ON ecommerce."terms_of_service_acceptance_event"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
 --------------------------------------------------
@@ -1919,10 +1943,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_check_discount_exclusivity_by_context_product
+CREATE TRIGGER trg_check_discount_exclusivity_by_context_ecommerce_product_discount
 BEFORE INSERT OR UPDATE ON ecommerce."product_discount"
 FOR EACH ROW EXECUTE FUNCTION check_discount_exclusivity_by_context();
 
-CREATE TRIGGER trg_check_discount_exclusivity_by_context_coupon
+CREATE TRIGGER trg_check_discount_exclusivity_by_context_ecommerce_coupon
 BEFORE INSERT OR UPDATE ON ecommerce."coupon"
 FOR EACH ROW EXECUTE FUNCTION check_discount_exclusivity_by_context();
