@@ -1229,9 +1229,9 @@ CREATE TABLE ecommerce."product_permission_acl" (
 );
 
 CREATE TABLE ecommerce."product_permission_bundle" (
-  product_id  int NOT NULL,
-  product_permission_id   uuid NOT NULL,
-  created_at  timestamptz NOT NULL DEFAULT now(),
+  product_id uuid NOT NULL,
+  product_permission_id INT NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
 
   PRIMARY KEY (product_id, product_permission_id),
 
