@@ -1920,7 +1920,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trg_check_discount_exclusivity_by_context_product
-BEFORE INSERT OR UPDATE ON ecommerce."product"
+BEFORE INSERT OR UPDATE ON ecommerce."product_discount"
 FOR EACH ROW EXECUTE FUNCTION check_discount_exclusivity_by_context();
 
 CREATE TRIGGER trg_check_discount_exclusivity_by_context_coupon
