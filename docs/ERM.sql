@@ -1312,9 +1312,9 @@ CREATE TABLE ecommerce."order" (
   FOREIGN KEY ("invoice_id") REFERENCES ecommerce."invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
-ALTER TABLE ecommerce."invoice" 
-  ADD CONSTRAINT fk_invoice_order 
-    FOREIGN KEY ("order_id") REFERENCES ecommerce."order" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
+-- ALTER TABLE ecommerce."invoice" 
+  -- ADD CONSTRAINT fk_invoice_order 
+    -- FOREIGN KEY ("order_id") REFERENCES ecommerce."order" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 CREATE TABLE ecommerce."order_item" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
