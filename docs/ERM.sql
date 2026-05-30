@@ -1912,8 +1912,8 @@ CREATE TRIGGER trg_prevent_update_ecommerce_payment_gateway_webhook_event
 BEFORE UPDATE ON ecommerce."payment_gateway_webhook_event"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
-CREATE TRIGGER trg_prevent_update_ecommerce_consumption
-BEFORE UPDATE ON ecommerce."consumption"
+CREATE TRIGGER trg_prevent_update_ecommerce_ledger
+BEFORE UPDATE ON ecommerce."ledger"
 FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
 CREATE TRIGGER trg_prevent_update_ecommerce_privacy_policy_acceptance_event
