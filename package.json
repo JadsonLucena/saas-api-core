@@ -84,7 +84,7 @@
     "@azure/identity": "latest",
     "@azure/keyvault-secrets": "latest",
     "@fastify/multipart": "latest",
-    "@fastify/static": "latest",
+    "@fastify/static": "9.0.0",
     "@google-cloud/secret-manager": "latest",
     "@mysql/xdevapi": "latest",
     "@types/mssql": "latest",
