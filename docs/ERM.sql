@@ -530,6 +530,12 @@ CREATE TYPE ecommerce."payment_status" AS ENUM (
   'FRAUD'
 );
 
+CREATE TYPE ecommerce."payment_refund_status" AS ENUM (
+  'PENDING',
+  'REFUNDED',
+  'FAILED'
+);
+
 CREATE TYPE ecommerce."fraud_type" AS ENUM (
   'DETECTED',
   'UNDER_REVIEW',
@@ -1603,13 +1609,24 @@ CREATE TABLE ecommerce."payment_refund" (
   "payment_id" uuid NOT NULL,
   "amount" BIGINT NOT NULL,
   "currency" ecommerce.currency NOT NULL,
+  "status" ecommerce.payment_refund_status NOT NULL DEFAULT 'PENDING',
+  "transaction_id" TEXT UNIQUE,
+  "data" jsonb,
   "note" text,
   "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("payment_id") REFERENCES ecommerce."payment" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
-  CHECK(amount >= 0)
+  CHECK(amount >= 0),
+  CHECK(updated_at >= created_at),
+  CHECK(
+    (status = 'PENDING' AND transaction_id IS NULL AND data IS NULL)
+    OR (status <> 'PENDING' AND transaction_id IS NOT NULL AND data IS NOT NULL)
+  )
 );
+
+CREATE INDEX idx_payment_refund_pending ON ecommerce."payment_refund" ("created_at") WHERE status = 'PENDING';
 
 CREATE TABLE ecommerce."payment_dispute" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1756,6 +1773,34 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION prevent_update_except_payment_refund_resolution()
+RETURNS trigger AS $$
+DECLARE
+  resolved_values hstore := hstore(
+    ARRAY['status', 'transaction_id', 'data', 'updated_at'],
+    ARRAY[OLD.status::text, OLD.transaction_id, OLD.data::text, OLD.updated_at::text]
+  );
+BEGIN
+  IF ROW(NEW.*) #= resolved_values IS DISTINCT FROM ROW(OLD.*) THEN
+    RAISE EXCEPTION 'Updates are only allowed on "status", "transaction_id", "data" and "updated_at" in table %', TG_TABLE_NAME;
+  END IF;
+
+  IF OLD.status <> 'PENDING' THEN
+    RAISE EXCEPTION 'Refund % already finalized with status %; retries must create a new payment_refund row', OLD.id, OLD.status;
+  END IF;
+
+  IF NEW.status = 'PENDING' THEN
+    RAISE EXCEPTION 'Refund % must resolve to REFUNDED or FAILED, not remain PENDING', OLD.id;
+  END IF;
+
+  IF NEW.updated_at <= OLD.updated_at THEN
+    RAISE EXCEPTION 'updated_at must advance when refund status changes on table %', TG_TABLE_NAME;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION prevent_update_except_disabled_at()
 RETURNS trigger AS $$
 BEGIN
@@ -1890,7 +1935,7 @@ FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
 CREATE TRIGGER trg_prevent_update_ecommerce_payment_refund
 BEFORE UPDATE ON ecommerce."payment_refund"
-FOR EACH ROW EXECUTE FUNCTION prevent_update();
+FOR EACH ROW EXECUTE FUNCTION prevent_update_except_payment_refund_resolution();
 
 CREATE TRIGGER trg_prevent_update_ecommerce_payment_dispute
 BEFORE UPDATE ON ecommerce."payment_dispute"
