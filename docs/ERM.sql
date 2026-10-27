@@ -572,9 +572,8 @@ CREATE TYPE ecommerce."discount_rule_type" AS ENUM (
 );
 
 CREATE TYPE ecommerce."invoice_type" AS ENUM (
-  -- 'ADJUSTMENT',
   'ONE_TIME',
-  'SUBSCRIPTION_CYCLE'
+  'SUBSCRIPTION'
 );
 
 CREATE TYPE ecommerce."invoice_adjustment_type" AS ENUM (
@@ -1275,46 +1274,39 @@ CREATE TABLE ecommerce."split_receiver" (
   )
 );
 
-CREATE TABLE ecommerce."invoice" (
-  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  -- "order_id" uuid,
-  -- "amount" BIGINT NOT NULL,
-  -- "tax_amount" BIGINT NOT NULL,
-  -- "shipping_amount" BIGINT NOT NULL DEFAULT 0,
-  "type" ecommerce.invoice_type NOT NULL,
-  "note" text,
-  "parent_invoice_id" uuid, -- Used by up-selling
-  "starts_in" timestamptz NOT NULL,
-  "expires_in" timestamptz,
-  "created_at" timestamptz NOT NULL DEFAULT now(),
-
-  -- FOREIGN KEY ("order_id") REFERENCES ecommerce."order" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-  FOREIGN KEY ("parent_invoice_id") REFERENCES ecommerce."invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-
-  CHECK(starts_in >= created_at),
-  CHECK(expires_in > starts_in)
-);
-
 CREATE TABLE ecommerce."order" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "customer_id" uuid NOT NULL,
-  "coupon_id" uuid,
+  "coupon_id" uuid, -- coupon for the whole chain; cycle reuse is capped by discount.max_use_per_order
   "voucher_id" uuid UNIQUE,
   "split_id" uuid,
-  "invoice_id" uuid NOT NULL UNIQUE,
   "note" text,
   "created_at" timestamptz NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("customer_id") REFERENCES ecommerce."customer" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("coupon_id") REFERENCES ecommerce."coupon" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
   FOREIGN KEY ("voucher_id") REFERENCES ecommerce."voucher" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-  FOREIGN KEY ("split_id") REFERENCES ecommerce."split" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-  FOREIGN KEY ("invoice_id") REFERENCES ecommerce."invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+  FOREIGN KEY ("split_id") REFERENCES ecommerce."split" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
--- ALTER TABLE ecommerce."invoice" 
-  -- ADD CONSTRAINT fk_invoice_order 
-    -- FOREIGN KEY ("order_id") REFERENCES ecommerce."order" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
+CREATE TABLE ecommerce."invoice" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "order_id" uuid NOT NULL, -- commercial origin: one-time purchase and every renewal
+  "type" ecommerce.invoice_type NOT NULL,
+  "note" text,
+  "parent_invoice_id" uuid, -- immediate predecessor (up-sell); not the chain origin (order_id)
+  "starts_in" timestamptz NOT NULL,
+  "expires_in" timestamptz,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+
+  FOREIGN KEY ("order_id") REFERENCES ecommerce."order" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+  FOREIGN KEY ("parent_invoice_id") REFERENCES ecommerce."invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+
+  CHECK(starts_in >= created_at),
+  CHECK(expires_in > starts_in)
+);
+
+CREATE INDEX idx_invoice_order_id ON ecommerce."invoice" ("order_id");
 
 CREATE TABLE ecommerce."order_item" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
