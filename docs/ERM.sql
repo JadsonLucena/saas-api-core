@@ -1659,14 +1659,20 @@ CREATE TABLE ecommerce."payment_gateway_webhook_event" (
   "data" jsonb NOT NULL,
   "headers" jsonb,
   "note" text,
-  "created_at" timestamptz NOT NULL DEFAULT now()
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "processed_at" timestamptz,
 
   UNIQUE ("payment_id", "event_id"),
 
   FOREIGN KEY ("payment_id") REFERENCES ecommerce."payment" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
   CHECK(updated_at >= created_at),
-  CHECK(processed_at >= created_at)
+  CHECK(processed_at IS NULL OR processed_at >= created_at),
+  CHECK(
+    (status = 'PROCESSED' AND processed_at IS NOT NULL)
+    OR (status <> 'PROCESSED' AND processed_at IS NULL)
+  )
 );
 
 CREATE TABLE ecommerce."catalog" (
@@ -1795,6 +1801,30 @@ BEGIN
 
   IF NEW.updated_at <= OLD.updated_at THEN
     RAISE EXCEPTION 'updated_at must advance when refund status changes on table %', TG_TABLE_NAME;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION prevent_update_except_payment_gateway_webhook_event_resolution()
+RETURNS trigger AS $$
+DECLARE
+  resolved_values hstore := hstore(
+    ARRAY['status', 'note', 'processed_at', 'updated_at'],
+    ARRAY[OLD.status::text, OLD.note, OLD.processed_at::text, OLD.updated_at::text]
+  );
+BEGIN
+  IF ROW(NEW.*) #= resolved_values IS DISTINCT FROM ROW(OLD.*) THEN
+    RAISE EXCEPTION 'Updates are only allowed on "status", "note", "processed_at" and "updated_at" in table %', TG_TABLE_NAME;
+  END IF;
+
+  IF OLD.status = 'PROCESSED' THEN
+    RAISE EXCEPTION 'Webhook event % already processed; reprocessing is not allowed', OLD.id;
+  END IF;
+
+  IF NEW.updated_at <= OLD.updated_at THEN
+    RAISE EXCEPTION 'updated_at must advance when webhook event status changes on table %', TG_TABLE_NAME;
   END IF;
 
   RETURN NEW;
@@ -1947,7 +1977,7 @@ FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
 CREATE TRIGGER trg_prevent_update_ecommerce_payment_gateway_webhook_event
 BEFORE UPDATE ON ecommerce."payment_gateway_webhook_event"
-FOR EACH ROW EXECUTE FUNCTION prevent_update();
+FOR EACH ROW EXECUTE FUNCTION prevent_update_except_payment_gateway_webhook_event_resolution();
 
 CREATE TRIGGER trg_prevent_update_ecommerce_ledger
 BEFORE UPDATE ON ecommerce."ledger"
