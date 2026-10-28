@@ -577,11 +577,6 @@ CREATE TYPE ecommerce."discount_rule_type" AS ENUM (
   'CUSTOM_EXPRESSION'
 );
 
-CREATE TYPE ecommerce."invoice_type" AS ENUM (
-  'ONE_TIME',
-  'SUBSCRIPTION'
-);
-
 CREATE TYPE ecommerce."invoice_adjustment_type" AS ENUM (
   'ADJUSTMENT',
   'DISCOUNT',
@@ -1314,7 +1309,6 @@ CREATE TABLE ecommerce."order" (
 CREATE TABLE ecommerce."invoice" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "order_id" uuid NOT NULL, -- commercial origin: one-time purchase and every renewal
-  "type" ecommerce.invoice_type NOT NULL,
   "note" text,
   "parent_invoice_id" uuid, -- immediate predecessor (up-sell); not the chain origin (order_id)
   "starts_in" timestamptz NOT NULL,
