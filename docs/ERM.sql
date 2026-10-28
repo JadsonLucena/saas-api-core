@@ -1632,9 +1632,7 @@ CREATE INDEX idx_payment_fraud_event_payment_id ON ecommerce."payment_fraud_even
 
 CREATE TABLE ecommerce."payment_refund" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "payment_id" uuid NOT NULL,
-  "amount" BIGINT NOT NULL,
-  "currency" ecommerce.currency NOT NULL,
+  "payment_id" uuid NOT NULL, -- total refunded is SUM(payment_refund_item.amount) across this refund's lines; total when it equals payment.amount, partial when lower
   "status" ecommerce.payment_refund_status NOT NULL DEFAULT 'PENDING',
   "transaction_id" TEXT UNIQUE,
   "data" jsonb,
@@ -1644,7 +1642,6 @@ CREATE TABLE ecommerce."payment_refund" (
 
   FOREIGN KEY ("payment_id") REFERENCES ecommerce."payment" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
 
-  CHECK(amount >= 0),
   CHECK(updated_at >= created_at),
   CHECK(
     (status = 'PENDING' AND transaction_id IS NULL AND data IS NULL)
@@ -1653,6 +1650,22 @@ CREATE TABLE ecommerce."payment_refund" (
 );
 
 CREATE INDEX idx_payment_refund_pending ON ecommerce."payment_refund" ("created_at") WHERE status = 'PENDING';
+
+CREATE TABLE ecommerce."payment_refund_item" (
+  "payment_refund_id" uuid NOT NULL,
+  "order_item_id" uuid NOT NULL,
+  "amount" BIGINT NOT NULL, -- equals the invoice_item refundable balance for a single-item refund; lower means proportional
+  "currency" ecommerce.currency NOT NULL,
+  "note" text,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+
+  PRIMARY KEY ("payment_refund_id", "order_item_id"),
+
+  FOREIGN KEY ("payment_refund_id") REFERENCES ecommerce."payment_refund" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+  FOREIGN KEY ("order_item_id") REFERENCES ecommerce."order_item" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+
+  CHECK(amount > 0)
+);
 
 CREATE TABLE ecommerce."payment_dispute_event" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1972,7 +1985,7 @@ FOR EACH ROW EXECUTE FUNCTION prevent_update_except_columns('disabled_at');
 
 CREATE TRIGGER trg_prevent_update_ecommerce_subscription_item
 BEFORE UPDATE ON ecommerce."subscription_item"
-FOR EACH ROW EXECUTE FUNCTION prevent_update();
+FOR EACH ROW EXECUTE FUNCTION prevent_update_except_columns('expires_in');
 
 CREATE TRIGGER trg_prevent_update_ecommerce_subscription_cycle
 BEFORE UPDATE ON ecommerce."subscription_cycle"
@@ -2005,6 +2018,10 @@ FOR EACH ROW EXECUTE FUNCTION prevent_update();
 CREATE TRIGGER trg_prevent_update_ecommerce_payment_refund
 BEFORE UPDATE ON ecommerce."payment_refund"
 FOR EACH ROW EXECUTE FUNCTION prevent_update_except_payment_refund_resolution();
+
+CREATE TRIGGER trg_prevent_update_ecommerce_payment_refund_item
+BEFORE UPDATE ON ecommerce."payment_refund_item"
+FOR EACH ROW EXECUTE FUNCTION prevent_update();
 
 CREATE TRIGGER trg_prevent_update_ecommerce_payment_dispute_event
 BEFORE UPDATE ON ecommerce."payment_dispute_event"
@@ -2172,3 +2189,27 @@ FOR EACH ROW EXECUTE FUNCTION check_credit_card_payment_method_type();
 CREATE TRIGGER trg_check_credit_card_payment_method_type_ecommerce_payment_method
 BEFORE UPDATE OF type ON ecommerce."payment_method"
 FOR EACH ROW EXECUTE FUNCTION check_credit_card_payment_method_type();
+
+--------------------------------------------------
+
+CREATE OR REPLACE FUNCTION check_payment_refund_item_ownership()
+RETURNS trigger AS $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM ecommerce."payment_refund" pr
+    JOIN ecommerce."payment" p ON p.id = pr.payment_id
+    JOIN ecommerce."invoice_item" ii ON ii.invoice_id = p.invoice_id
+    WHERE pr.id = NEW.payment_refund_id
+      AND ii.order_item_id = NEW.order_item_id
+  ) THEN
+    RAISE EXCEPTION 'Order item % does not belong to the invoice of the payment refunded by %', NEW.order_item_id, NEW.payment_refund_id;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_payment_refund_item_ownership_ecommerce_payment_refund_item
+BEFORE INSERT ON ecommerce."payment_refund_item"
+FOR EACH ROW EXECUTE FUNCTION check_payment_refund_item_ownership();
