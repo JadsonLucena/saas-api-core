@@ -684,7 +684,7 @@ CREATE TABLE IAM."phone_message_provider" (
   "name" varchar(255) NOT NULL UNIQUE,
   "picture" text,
   "client_id" varchar(255) NOT NULL, -- external vendor credentials
-  "client_secret" varchar(255) NOT NULL, -- external vendor credentials
+  "client_secret" text NOT NULL, -- external vendor credentials
   "created_at" timestamptz NOT NULL DEFAULT now(),
   "updated_at" timestamptz NOT NULL DEFAULT now(),
   "disabled_at" timestamptz,
@@ -770,7 +770,7 @@ CREATE TABLE IAM."identity_provider" (
   "name" varchar(255) NOT NULL UNIQUE,
   "picture" text NOT NULL,
   "client_id" varchar(255) NOT NULL, -- external vendor credentials
-  "client_secret" varchar(255) NOT NULL, -- external vendor credentials
+  "client_secret" text NOT NULL, -- external vendor credentials
   "created_at" timestamptz NOT NULL DEFAULT now(),
   "updated_at" timestamptz NOT NULL DEFAULT now(),
   "disabled_at" timestamptz,
@@ -785,9 +785,9 @@ CREATE TABLE IAM."sign_in_with" (
   "username" varchar(255) NOT NULL,
   "name" varchar(255) NOT NULL,
   "picture" text,
-  "access_token" varchar(255) NOT NULL,
+  "access_token" text NOT NULL,
   "expires_in" timestamptz NOT NULL,
-  "refresh_token" varchar(255) NOT NULL,
+  "refresh_token" text NOT NULL,
   "refresh_token_expires_in" timestamptz,
   "created_at" timestamptz NOT NULL DEFAULT now(),
   "updated_at" timestamptz NOT NULL DEFAULT now(),
@@ -950,7 +950,7 @@ CREATE TABLE IAM."oauth" (
 );
 
 CREATE TABLE IAM."oauth_access_token" (
-  "token" varchar(255) PRIMARY KEY NOT NULL,
+  "token" text PRIMARY KEY NOT NULL,
   "oauth_id" uuid NOT NULL UNIQUE,
   "expires_in" timestamptz NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT now(),
@@ -963,7 +963,7 @@ CREATE TABLE IAM."oauth_access_token" (
 );
 
 CREATE TABLE IAM."oauth_refresh_token" (
-  "token" varchar(255) PRIMARY KEY NOT NULL,
+  "token" text PRIMARY KEY NOT NULL,
   "oauth_id" uuid NOT NULL UNIQUE,
   "expires_in" timestamptz NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT now(),
