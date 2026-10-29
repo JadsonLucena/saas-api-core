@@ -1309,6 +1309,7 @@ CREATE TABLE ecommerce."order" (
 CREATE TABLE ecommerce."invoice" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "order_id" uuid NOT NULL, -- commercial origin: one-time purchase and every renewal
+  "currency" ecommerce.currency NOT NULL,
   "note" text,
   "parent_invoice_id" uuid, -- immediate predecessor (up-sell); not the chain origin (order_id)
   "starts_in" timestamptz NOT NULL,
@@ -1542,10 +1543,9 @@ CREATE TABLE ecommerce."invoice_item" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "invoice_id" uuid NOT NULL,
   "order_item_id" uuid NOT NULL,
-  "amount" BIGINT NOT NULL,
-  "currency" ecommerce.currency NOT NULL,
-  "tax_amount" BIGINT NOT NULL DEFAULT 0,
-  "shipping_amount" BIGINT NOT NULL DEFAULT 0,
+  "amount" BIGINT NOT NULL, -- currency is invoice.currency
+  "tax_amount" BIGINT NOT NULL DEFAULT 0, -- currency is invoice.currency
+  "shipping_amount" BIGINT NOT NULL DEFAULT 0, -- currency is invoice.currency
   "is_prorated" boolean NOT NULL DEFAULT false,
   "quantity" int NOT NULL DEFAULT 1,
   "note" text,
@@ -1564,8 +1564,7 @@ CREATE TABLE ecommerce."invoice_item" (
 CREATE TABLE ecommerce."invoice_adjustment" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "invoice_id" uuid NOT NULL,
-  "amount" BIGINT NOT NULL,
-  "currency" ecommerce.currency NOT NULL,
+  "amount" BIGINT NOT NULL, -- currency is invoice.currency
   "is_prorated" boolean NOT NULL DEFAULT false,
   "type" ecommerce.invoice_adjustment_type NOT NULL,
   "note" text,
@@ -1584,9 +1583,8 @@ CREATE TABLE ecommerce."payment" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "invoice_id" uuid NOT NULL,
   "payment_method_id" uuid NOT NULL,
-  "amount" BIGINT NOT NULL,
+  "amount" BIGINT NOT NULL, -- currency is invoice.currency
   "installments" int NOT NULL DEFAULT 1,
-  "currency" ecommerce.currency NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT now(),
 
   FOREIGN KEY ("invoice_id") REFERENCES ecommerce."invoice" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -1648,8 +1646,7 @@ CREATE INDEX idx_payment_refund_pending ON ecommerce."payment_refund" ("created_
 CREATE TABLE ecommerce."payment_refund_item" (
   "payment_refund_id" uuid NOT NULL,
   "order_item_id" uuid NOT NULL,
-  "amount" BIGINT NOT NULL, -- equals the invoice_item refundable balance for a single-item refund; lower means proportional
-  "currency" ecommerce.currency NOT NULL,
+  "amount" BIGINT NOT NULL, -- equals the invoice_item refundable balance for a single-item refund; lower means proportional; currency is invoice.currency
   "note" text,
   "created_at" timestamptz NOT NULL DEFAULT now(),
 
@@ -1681,8 +1678,7 @@ CREATE TABLE ecommerce."payment_chargeback" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "dispute_event_id" uuid NOT NULL,
   "transaction_id" TEXT NOT NULL UNIQUE,
-  "amount" BIGINT NOT NULL,
-  "currency" ecommerce.currency NOT NULL,
+  "amount" BIGINT NOT NULL, -- currency is invoice.currency
   "note" text,
   "created_at" timestamptz NOT NULL DEFAULT now(),
 
